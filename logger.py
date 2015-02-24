@@ -36,20 +36,8 @@ import sys
 def _is_file_or_desc(obj):
     """Returns True if obj is a file or file descriptor, False otherwise."""
     # we don't care what the obj is, if it has 'write' it's up to them
-    # to implement it properly; str, int or byteswill have open() used on them
+    # to implement it properly; str, int or bytes will have open() used on them
     return hasattr(obj, "write") or isinstance(obj, (str, int, bytes))
-
-def _is_valid_encoder(enc):
-    """Returns True if enc is a valid encoding, False otherwise."""
-    try:
-        b' '.decode(enc)
-        return True
-    except LookupError:
-        return False
-
-def _get_type(obj): # hacky way around types
-    """Returns the type of obj."""
-    return repr(type(obj))[8:-2]
 
 class BaseLogger:
     """Base Logger class for your everyday needs.
@@ -116,8 +104,10 @@ class BaseLogger:
         self.separator = separator
         self.ending = ending
 
-        self.file = file
-        self.fb_file = sys.stdout
+        if file is None:
+            self.file = sys.stdout
+        else:
+            self.file = file
 
         self.use_utc = use_utc
 
@@ -126,20 +116,6 @@ class BaseLogger:
         # and an offset from UTC in the form +0000 or -0500
         self.ts_format = ts_format
 
-        if not _is_valid_encoder(self.encoding):
-            raise TypeError("%r is not a valid encoding" % self.encoding)
-
-        # all those type checkings are done to ensure we catch any error as
-        # soon as possible, instead of having something blow up down the road;
-        # the functions will expect a string and will fail if not given as such
-        if not isinstance(self.separator, (str, bytes)):
-            raise TypeError("expected str or bytes, got %r"
-                            % _get_type(self.separator))
-
-        if not isinstance(self.ending, (str, bytes)):
-            raise TypeError("expected str or bytes, got %r"
-                            % _get_type(self.ending))
-
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Returns a timestamp with timezone + offset from UTC."""
         if use_utc is None:
@@ -147,11 +123,11 @@ class BaseLogger:
         if ts_format is None:
             ts = self.ts_format
         if use_utc:
-            tmf = datetime.utcnow().strftime(timestamp_format)
+            tmf = datetime.utcnow().strftime(ts_format)
             tz = "UTC"
             offset = "+0000"
         else:
-            tmf = time.strftime(timestamp_format)
+            tmf = time.strftime(ts_format)
             tz = time.tzname[0]
             offset = "+"
             if datetime.utcnow().hour > datetime.now().hour:
@@ -223,7 +199,8 @@ class BaseLogger:
     # this is the re-implementation of the built-in print function
     # we use this later for printing to screen
     # we can override the default function in the outer scope
-    def _print(self, *out, enc=None, file=None, sep=None, end=None, spl=True):
+    def _print(self, *out, enc=None, file=None, sep=None, end=None,
+               split=True):
         """Safe way to print to screen or to a file.
 
         This mimics the built-in print() behaviour and adds versatility.
@@ -231,39 +208,17 @@ class BaseLogger:
 
         if enc is None:
             enc = self.encoding
-        elif not isinstance(enc, str):
-            raise TypeError("invalid type provided for encoding")
 
         if file is None:
-            if self.file is None:
-                file = self.fb_file
-            else:
-                file = self.file
-        elif isinstance(file, bytes):
-            file = file.decode(enc)
-        elif not _is_file_or_desc(file):
-            raise TypeError("invalid file object")
-
+            file = self.file
         if sep is None:
             sep = self.separator
-        elif not isinstance(sep, (str, bytes)):
-            raise TypeError("expected str or bytes, got %r" % _get_type(sep))
 
         if end is None:
             end = self.ending
-        elif not isinstance(end, (str, bytes)):
-            raise TypeError("expected str or bytes, got %r" % _get_type(end))
 
-        lout = list(out)
-
-        for i, line in enumerate(out):
-            if isinstance(line, bytes):
-                lout[i] = line.decode(enc)
-            elif not isinstance(line, str):
-                lout[i] = repr(line)
-
-        if spl:
-            lout = self._split_lines(lout, enc, sep, end)
+        if split:
+            out = self._split_lines(out, enc, sep, end)
 
         # create a file object handler to write to.
         # if 'file' has a write() method, don't ask questions and use it
@@ -273,11 +228,7 @@ class BaseLogger:
         # as such, .write() needs to not be able to call this function,
         # otherwise this would lead to an infinite recursive loop
         if hasattr(file, "write"):
-            # make sure it can be called, and not just a random name
-            if callable(file.write):
-                objh = file
-            else:
-                raise TypeError("error: object is not writable")
+            objh = file
         else:
             # if it is str/bytes, it will be a file on the hard drive.
             # open it, but don't truncate the file; instead append to it.
@@ -290,30 +241,23 @@ class BaseLogger:
             else: # int
                 objh = open(file, "w", errors="replace", closefd=False)
 
-        if isinstance(sep, bytes):
-            sep = sep.decode(enc)
-
-        if isinstance(end, bytes):
-            end = end.decode(enc)
-
-        objh.write(sep.join(lout) + end) # mimic built-in print() behaviour
+        objh.write(sep.join(out) + end) # mimic built-in print() behaviour
 
         # instead of asking for it, flush the stream if we can
         if hasattr(objh, "flush"):
             objh.flush()
 
         # close the used resources if we can, again no need to ask for it
-        if hasattr(objh, "close"):
+        # however, make sure sys.stdout is NOT closed
+        if hasattr(objh, "close") and objh not in (sys.stdout, sys.stderr):
             objh.close()
 
     def _get_output(self, out, sep, end):
         """Sanitizes output and performs checks for bytes objects."""
-        out, sep, end = self._make_all_equal(out, sep, end)
         if not out: # called with no argument, let's support it anyway
             out = ['']
         _lns = ("", "\n")
-        if isinstance(sep, bytes):
-            _lns = (b"", b"\n")
+        out, sep, end, _lns = self._make_all_equal(out, sep, end, _lns)
         msg = None
         for line in out:
             if msg is None:
@@ -381,11 +325,12 @@ class Logger(BaseLogger):
         self.logfiles = logfiles
         self.ignorers = ignorers
 
-        # this needs to be list/tuple of (setting, type, module, attr) tuples
+        # this needs to be list/tuple of (setting, type, module, attr) tuples;
         # the setting is the setting to bypass; type is the type to check for
         # to determine if bypassing should occur; module and attr are used
         # with getattr() to bypass the value of setting with the one found
-        # in the given module, for the given attribute
+        # in the given module, for the given attribute; module of None means
+        # to use the attr as the direct value
         self.bypassers = bypassers
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
