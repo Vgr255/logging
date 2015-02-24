@@ -1,28 +1,8 @@
 """Improved Logger module by Vgr v0.1
+Documentation string still to-do."""
 
-This module exposes one class, Logger, as a means of logging various things.
-It also exposes one decorator, log, as a simple way to log function calls.
-The decorator is made from Logger().decorate(), which can be re-used to create
-further decorators, for more specific purposes.
-
-This also implements a safe way to print to screen, nprint(). This can be
-accessed and used modularly through Logger()._print(), although if no
-customization is required, nprint() is the immediate possibility.
-
-The main feature of this module is the Logger().logger() method.
-This can effectively log many different kinds of data in a very customizable
-fashion. This can range from simple logging of user input to complicated
-printing of strings, with the ability to translate strings, dynamic formatting
-and so on. It also includes customizable timestamps.
-
-The Logger class also exposes a Logger().multiple() method, which is used with
-the logger() method to log to more than one output.
-
-The Logger().doc() (and its independent variant, docread()) method can be used
-to print or log docstrings, formatted to follow Python's standards.
-"""
-
-notes = """Here are notes for what this module should be able to do.
+"""Notes:
+Here are notes for what this module should be able to do.
 These are here since this module is not complete yet
 
 - Ability to write to screen as well as one or more files
@@ -71,22 +51,17 @@ def _get_type(obj): # hacky way around types
     """Returns the type of obj."""
     return repr(type(obj))[8:-2]
 
-class Logger:
-    """Logger class for your everyday needs.
+class BaseLogger:
+    """Base Logger class for your everyday needs.
 
-    Usage: Logger(
+    This can be inherited to create custom classes.
+    This is not user-faced. For general purposes, please use the Logger class.
+
+    Usage: BaseLogger(
            encoding = "utf-8",
            separator = " ",
            ending = "\n",
-           display = True,
-           write = True,
-           *,
            file = None,
-           fb_file = sys.stdout,
-           logfiles = {},
-           ignorers = {},
-           bypassers = (),
-           translater = None,
            use_utc = False,
            ts_format = "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})",
            )
@@ -108,56 +83,9 @@ class Logger:
 
         Default:    "\n"
 
-    display:        Default parameter to determine if the loggers should
-                    print to screen. This can be overriden on a per-call basis.
-
-        Default:    True
-
-    write:          Default parameter to determine if the loggers should
-                    write to a file. This can be overriden on a per-call basis.
-
-        Default:    True
-
-    - Parameters from this point on need to be explicitely called -
-
     file:           Default file to use for anything (both for printing to
                     screen and writing to a file). This should not be altered
                     when instantiating the class and be left None.
-
-        Default:    None
-
-    fb_file:        Fallback file to use if the file is invalid, inexistant or
-                    otherwise cannot be used. This doesn't need to be changed.
-
-        Default:    sys.stdout
-
-    logfiles:       Dictionary of {type:file} pairs. The type is the logging
-                    type that the logger expects. The file is the file that
-                    tells the logger to write to. This can be used for dynamic
-                    file logging.
-
-        Default:    {}
-
-    ignorers:       Dictionary of {setting:type} pairs. This can be used when
-                    instantiating the class to allow more customization over
-                    various calls, to ignore certains settings for certtain
-                    types. This will internally set the setting to False if
-                    and when applicable. See 'bypassers' if you wish to use
-                    any arbitrary value.
-
-        Default:    {}
-
-    bypassers:      Iterable of (setting, type, module, attr) iterables.
-                    'setting' is the setting to bypass when 'type' matches the
-                    type that the logger was called with. It will replace the
-                    setting's value with the value of attribute 'attr' of
-                    module or dict 'module'. If 'module' is None, 'attr' will
-                    be used as its immediate value, without any lookup.
-
-        Default:    ()
-
-    translater:     Module object that will be used when checking for
-                    matching lines to translate.
 
         Default:    None
 
@@ -181,38 +109,22 @@ class Logger:
     """
 
     def __init__(self, encoding="utf-8", separator=" ", ending="\n",
-                 display=True, write=True, *, file=None, fb_file=sys.stdout,
-                 logfiles={}, ignorers={}, bypassers=(), translater=None,
-                 use_utc=False,
+                 file=None, use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"):
 
-        self.display = display
-        self.write = write
-        self.file = file
-        self.fb_file = fb_file
         self.encoding = encoding
         self.separator = separator
         self.ending = ending
-        self.logfiles = logfiles
-        self.ignorers = ignorers
 
-        # this needs to be list/tuple of (setting, type, module, attr) tuples
-        # the setting is the setting to bypass; type is the type to check for
-        # to determine if bypassing should occur; module and attr are used
-        # with getattr() to bypass the value of setting with the one found
-        # in the given module, for the given attribute
-        self.bypassers = bypassers
+        self.file = file
+        self.fb_file = sys.stdout
+
         self.use_utc = use_utc
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
         # and an offset from UTC in the form +0000 or -0500
-        self.timestamp_format = ts_format
-
-        # we need to have a general fallback file or file object
-        # if we don't, raise an exception here instead of away from the source
-        if not self.fb_file:
-            raise Exception("no fallback file specified")
+        self.ts_format = ts_format
 
         if not _is_valid_encoder(self.encoding):
             raise TypeError("%r is not a valid encoding" % self.encoding)
@@ -228,12 +140,12 @@ class Logger:
             raise TypeError("expected str or bytes, got %r"
                             % _get_type(self.ending))
 
-    def _get_timestamp(self, use_utc=None, timestamp_format=None):
+    def _get_timestamp(self, use_utc=None, ts_format=None):
         """Returns a timestamp with timezone + offset from UTC."""
         if use_utc is None:
             use_utc = self.use_utc
-        if timestamp_format is None:
-            timestamp_format = self.timestamp_format
+        if ts_format is None:
+            ts = self.ts_format
         if use_utc:
             tmf = datetime.utcnow().strftime(timestamp_format)
             tz = "UTC"
@@ -251,9 +163,9 @@ class Logger:
         """Split long lines at clever points to avoid weird clipping."""
         col = shutil.get_terminal_size()[0]
         _sp = (" ", "\n", "")
-        if any(isinstance(sep, bytes), isinstance(end, bytes),
+        if any((isinstance(sep, bytes), isinstance(end, bytes),
               (not isinstance(out, (str, bytes)) and any(isinstance(x, bytes)
-              for x in out)), isinstance(out, bytes)):
+              for x in out)), isinstance(out, bytes))):
 
             _sp = (b" ", b"\n", b"")
             if not isinstance(out, (str, bytes)):
@@ -312,7 +224,11 @@ class Logger:
     # we use this later for printing to screen
     # we can override the default function in the outer scope
     def _print(self, *out, enc=None, file=None, sep=None, end=None, spl=True):
-        """Safe way to print to screen. Replaces the builtin print function."""
+        """Safe way to print to screen or to a file.
+
+        This mimics the built-in print() behaviour and adds versatility.
+        This can be used directly, or tweaked for additional functionality."""
+
         if enc is None:
             enc = self.encoding
         elif not isinstance(enc, str):
@@ -354,7 +270,7 @@ class Logger:
         # it's up to the end user if that method fails.
         # let's be careful though, as this can be fed its own instance;
         # this will work safely on itself, but make sure to avoid recursion.
-        # as such, Logger().write() needs to not be able to call this function,
+        # as such, .write() needs to not be able to call this function,
         # otherwise this would lead to an infinite recursive loop
         if hasattr(file, "write"):
             # make sure it can be called, and not just a random name
@@ -374,11 +290,11 @@ class Logger:
             else: # int
                 objh = open(file, "w", errors="replace", closefd=False)
 
-        if not isinstance(end, type(sep)):
-            if isinstance(sep, str):
-                end = end.decode(enc)
-            else:
-                end = end.encode(enc)
+        if isinstance(sep, bytes):
+            sep = sep.decode(enc)
+
+        if isinstance(end, bytes):
+            end = end.decode(enc)
 
         objh.write(sep.join(lout) + end) # mimic built-in print() behaviour
 
@@ -407,3 +323,74 @@ class Logger:
                     line = _lns[1]
                 msg = msg + sep + line
         return msg + end
+
+class Logger(BaseLogger):
+    """Main Logger class for general and specific logging purposes.
+
+    This is inherited from the BaseLogger class.
+
+    The options are the same as the base class, with these additions:
+
+    display:        Default parameter to determine if the loggers should
+                    print to screen. This can be overriden on a per-call basis.
+
+        Default:    True
+
+    write:          Default parameter to determine if the loggers should
+                    write to a file. This can be overriden on a per-call basis.
+
+        Default:    True
+
+    logfiles:       Dictionary of {type:file} pairs. The type is the logging
+                    type that the logger expects. The file is the file that
+                    tells the logger to write to. This can be used for dynamic
+                    file logging.
+
+        Default:    {}
+
+    ignorers:       Dictionary of {setting:type} pairs. This can be used when
+                    instantiating the class to allow more customization over
+                    various calls, to ignore certains settings for certtain
+                    types. This will internally set the setting to False if
+                    and when applicable. See 'bypassers' if you wish to use
+                    any arbitrary value.
+
+        Default:    {}
+
+    bypassers:      Iterable of (setting, type, module, attr) iterables.
+                    'setting' is the setting to bypass when 'type' matches the
+                    type that the logger was called with. It will replace the
+                    setting's value with the value of attribute 'attr' of
+                    module or dict 'module'. If 'module' is None, 'attr' will
+                    be used as its immediate value, without any lookup.
+
+        Default:    ()
+"""
+
+    def __init__(self, encoding="utf-8", separator=" ", ending="\n",
+                 file=None, use_utc=False, ts_format=("[%Y-%m-%d] " + 
+                 "(%H:%M:%S UTC{tzoffset})"), display=True, write=True,
+                 logfiles={}, ignorers={}, bypassers=()):
+
+        BaseLogger.__init__(encoding, separator, ending, file, use_utc,
+                            ts_format)
+
+        self.display = display
+        self.write = write
+
+        self.logfiles = logfiles
+        self.ignorers = ignorers
+
+        # this needs to be list/tuple of (setting, type, module, attr) tuples
+        # the setting is the setting to bypass; type is the type to check for
+        # to determine if bypassing should occur; module and attr are used
+        # with getattr() to bypass the value of setting with the one found
+        # in the given module, for the given attribute
+        self.bypassers = bypassers
+
+    def logger(self, *output, file=None, type=None, display=None, write=None,
+               sep=None, end=None, split=True, use_utc=None, ts_format=None):
+        """Logs everything to screen and/or file. Always use this."""
+        output = self._get_output(output, sep, end)
+        timestamp = self._get_timestamp(use_utc, ts_format)
+        # todo
