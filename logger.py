@@ -300,12 +300,6 @@ class Logger(BaseLogger):
         if end is None:
             end = self.ending
 
-        if use_utc is None:
-            use_utc = self.use_utc
-
-        if ts_format is None:
-            ts_format = self.ts_format
-
         if display is None:
             display = self.display
 
@@ -319,9 +313,12 @@ class Logger(BaseLogger):
             for _file, _type in self.logfiles.items():
                 if _file == file:
                     type = _type
+                    break
+            else:
+                type = "normal"
 
         if file is None:
-            file = self.logfiles[type]
+            file = self.logfiles.get(type, self.logfiles["normal"])
 
         output = self._get_output(output, sep, end)
         timestamp = self._get_timestamp(use_utc, ts_format)
