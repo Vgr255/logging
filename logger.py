@@ -1,4 +1,4 @@
-"""Improved Logger module by Vgr v0.1
+﻿"""Improved Logger module by Vgr v0.1
 Documentation string still to-do."""
 
 """Notes:
@@ -33,7 +33,20 @@ import time
 import sys
 
 class LoggerMeta(type):
-    """Metaclass for the Logger classes."""
+    """Metaclass for the Logger classes.
+
+    The base class' docstring carries over to all subclasses.
+    The base class' __new__ method will be overridden if it exists.
+    The subclasses are expected to have a __new__method.
+    This is a restriction due to how Python works.
+    This restriction may be lifted in the future.
+    To get around this, just define a __new__ method like this:
+
+    def __new__(cls, *args, **kwargs):
+        return cls
+
+    This will get around this implementation restriction."""
+
     def __new__(metacls, cls, bases, classdict):
         newcls = type.__new__(metacls, cls, bases, classdict)
         if not hasattr(metacls, "_all"):
