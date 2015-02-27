@@ -288,18 +288,16 @@ class Logger(BaseLogger):
         Default:    ()
 """
 
-    def __init__(self, encoding="utf-8", separator=" ", ending="\n",
-                 file=None, use_utc=False, ts_format=("[%Y-%m-%d] " + 
-                 "(%H:%M:%S UTC{tzoffset})"), display=True, write=True,
-                 logfiles={}, ignorers={}, bypassers=()):
+    def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
+                 ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
+                 display=True, logfiles={}, ignorers={}, bypassers=()):
 
-        BaseLogger.__init__(encoding, separator, ending, file, use_utc,
-                            ts_format)
+        BaseLogger.__init__(self, separator, ending, file, use_utc, ts_format)
 
         self.display = display
         self.write = write
 
-        self.logfiles = logfiles
+        self.logfiles = {"normal": "logger.log"}.update(logfiles)
         self.ignorers = ignorers
 
         # this needs to be list/tuple of (setting, type, module, attr) tuples;
@@ -313,6 +311,35 @@ class Logger(BaseLogger):
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
         """Logs everything to screen and/or file. Always use this."""
+        if sep is None:
+            sep = self.separator
+
+        if end is None:
+            end = self.ending
+
+        if use_utc is None:
+            use_utc = self.use_utc
+
+        if ts_format is None:
+            ts_format = self.ts_format
+
+        if display is None:
+            display = self.display
+
+        if write is None:
+            write = self.write
+
+        if file is type is None:
+            type = "normal"
+
+        if type is None:
+            for _file, _type in self.logfiles.items():
+                if _file == file:
+                    type = _type
+
+        if file is None:
+            file = self.logfiles[type]
+
         output = self._get_output(output, sep, end)
         timestamp = self._get_timestamp(use_utc, ts_format)
         # todo
