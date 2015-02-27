@@ -372,16 +372,16 @@ class Logger(BaseLogger):
                     tells the logger to write to. This can be used for dynamic
                     file logging.
 
-        Default:    {}
+        Default:    {"normal": "logger.log"}
 
-    ignorers:       Dictionary of {setting:type} pairs. This can be used when
-                    instantiating the class to allow more customization over
-                    various calls, to ignore certains settings for certtain
-                    types. This will internally set the setting to False if
-                    and when applicable. See 'bypassers' if you wish to use
-                    any arbitrary value.
+    ignorers:       Dictionary of {setting:[types]} pairs. This can be used
+                    when instantiating the class to allow more customization
+                    over various calls, to ignore certains settings for
+                    certtain types. This will internally set the setting to
+                    False if and when applicable. See 'bypassers' if you wish
+                    to use any arbitrary value.
 
-        Default:    {}
+        Default:    {"timestamp": [], "all": [], "split": []}
 
     bypassers:      Iterable of (setting, types, module, attr) iterables. Do
                     note that 'types' is an iterable of all types that can
@@ -404,8 +404,11 @@ class Logger(BaseLogger):
         self.display = display
         self.write = write
 
-        self.logfiles = {"normal": "logger.log"}.update(logfiles)
-        self.ignorers = ignorers
+        self.logfiles = {"normal": "logger.log"}
+        self.logfiles.update(logfiles)
+
+        self.ignorers = {"timestamp": [], "all": [], "splitter": []}
+        self.ignorers.update(ignorers)
 
         # this needs to be list/tuple of (setting, type, module, attr) tuples;
         # the setting is the setting to bypass; type is the type to check for
@@ -436,9 +439,9 @@ class Logger(BaseLogger):
             type = "normal"
 
         if type is None:
-            for _file, _type in self.logfiles.items():
-                if _file == file:
-                    type = _type
+            for f, t in self.logfiles.items():
+                if f == file:
+                    type = t
                     break
             else:
                 type = "normal"
