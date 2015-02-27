@@ -46,28 +46,18 @@ class BaseLogger:
     This is not user-faced. For general purposes, please use the Logger class.
 
     Usage: BaseLogger(
-           encoding = "utf-8",
-           separator = " ",
+           sep = " ",
            ending = "\n",
            file = None,
            use_utc = False,
            ts_format = "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})",
            )
 
-    encoding:       Defines the encoding method to use for decoding bytes
-                    object. Will raise a TypeError if not a valid encoding.
-
-        Default:    "utf-8"
-
-    separator:      String or bytes object to join the lines together.
-                    If the separator or any line is a bytes object, all str
-                    objects will be converted to bytes.
+    sep:            String to be used to join the lines together.
 
         Default:    " "
 
-    ending:         String or bytes object to append at the end of the lines.
-                    This can be a str or bytes object. Again, if it is a bytes
-                    object, the resulting line will be converted to one.
+    ending:         String to be appended at the end of the lines.
 
         Default:    "\n"
 
@@ -96,18 +86,12 @@ class BaseLogger:
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
     """
 
-    def __init__(self, encoding="utf-8", separator=" ", ending="\n",
-                 file=None, use_utc=False,
+    def __init__(self, sep=" ", ending="\n", file=sys.stdout, use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"):
 
-        self.encoding = encoding
-        self.separator = separator
+        self.separator = sep
         self.ending = ending
-
-        if file is None:
-            self.file = sys.stdout
-        else:
-            self.file = file
+        self.file = file
 
         self.use_utc = use_utc
 
@@ -135,34 +119,23 @@ class BaseLogger:
             offset += str(time.timezone // 36).zfill(4)
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
 
-    def _split_lines(self, out, enc="utf-8", sep=" ", end="\n"):
+    def _split_lines(self, out, sep=" ", end="\n"):
         """Split long lines at clever points to avoid weird clipping."""
         col = shutil.get_terminal_size()[0]
-        _sp = (" ", "\n", "")
-        if any((isinstance(sep, bytes), isinstance(end, bytes),
-              (not isinstance(out, (str, bytes)) and any(isinstance(x, bytes)
-              for x in out)), isinstance(out, bytes))):
-
-            _sp = (b" ", b"\n", b"")
-            if not isinstance(out, (str, bytes)):
-                out = [x.encode(enc) if isinstance(x, str) else x for x in out]
-            elif isinstance(out, str):
-                out = out.encode(enc)
-
-        if not isinstance(out, (str, bytes)):
+        if not isinstance(out, str):
             out = sep.join(out) # make any iterable work
-        out = out.strip(_sp[0])
-        lines = out.split(_sp[1])
+        out = out.strip(" ")
+        lines = out.split("\n")
         splines = [line.split() for line in lines]
         newlines = [] # newline-separated lines
         for i, line in enumerate(lines):
             if len(line) <= col:
                 newlines.append(line)
                 continue
-            newstr = _sp[2]
+            newstr = ""
             for word in splines[i]:
                 if newstr:
-                    new = _sp[0].join((newstr, word))
+                    new = " ".join((newstr, word))
                 else:
                     new = word
                 if len(new) > col:
@@ -174,43 +147,18 @@ class BaseLogger:
                 newlines.append(newstr)
         return newlines
 
-    def _make_all_equal(self, *stuff, encoding=None):
-        """Convert str objects to bytes if there's at least a bytes object."""
-        if encoding is None:
-            encoding = self.encoding
-        for s in stuff:
-            if isinstance(s, bytes) or any(isinstance(x, bytes) for x in s):
-                break
-        else: # no bytes object
-            return stuff
-        _all = list(stuff)
-        for i, item in enumerate(stuff):
-            if isinstance(item, str):
-                _all[i] = item.encode(encoding)
-            elif not isinstance(item, bytes): # another iterable
-                new = []
-                for inner in item:
-                    if isinstance(inner, str):
-                        inner = inner.encode(encoding)
-                    new.append(inner)
-                _all[i] = new
-        return _all
-
     # this is the re-implementation of the built-in print function
     # we use this later for printing to screen
     # we can override the default function in the outer scope
-    def _print(self, *out, enc=None, file=None, sep=None, end=None,
-               split=True):
+    def _print(self, *output, file=None, sep=None, end=None, split=True):
         """Safe way to print to screen or to a file.
 
         This mimics the built-in print() behaviour and adds versatility.
         This can be used directly, or tweaked for additional functionality."""
 
-        if enc is None:
-            enc = self.encoding
-
         if file is None:
             file = self.file
+
         if sep is None:
             sep = self.separator
 
@@ -218,7 +166,7 @@ class BaseLogger:
             end = self.ending
 
         if split:
-            out = self._split_lines(out, enc, sep, end)
+            output = self._split_lines(output, sep, end)
 
         # create a file object handler to write to.
         # if 'file' has a write() method, don't ask questions and use it
@@ -230,18 +178,14 @@ class BaseLogger:
         if hasattr(file, "write"):
             objh = file
         else:
-            # if it is str/bytes, it will be a file on the hard drive.
-            # open it, but don't truncate the file; instead append to it.
-            # if it's not a string, it's an int, since we did checks earlier;
-            # therefore, allow the opening, but make sure not to close it
-            # as it can be sys.stdout; it's up to the user to make sure it
-            # frees up the resources properly in that case
+            # if a str or bytes, assume it's a file
+            # otherwise, assume stdout or similar
             if isinstance(file, (str, bytes)):
                 objh = open(file, "a", errors="replace")
-            else: # int
+            else: # likely int
                 objh = open(file, "w", errors="replace", closefd=False)
 
-        objh.write(sep.join(out) + end) # mimic built-in print() behaviour
+        objh.write(sep.join(output) + end) # mimic built-in print() behaviour
 
         # instead of asking for it, flush the stream if we can
         if hasattr(objh, "flush"):
@@ -256,16 +200,16 @@ class BaseLogger:
         """Sanitizes output and performs checks for bytes objects."""
         if not out: # called with no argument, let's support it anyway
             out = ['']
-        _lns = ("", "\n")
-        out, sep, end, _lns = self._make_all_equal(out, sep, end, _lns)
         msg = None
         for line in out:
+            if isinstance(line, (list, tuple)):
+                line = sep.join(line)
             if msg is None:
                 msg = line
             else:
-                if line == _lns[0]:
-                    line = _lns[1]
-                msg = msg + sep + line
+                if line == "":
+                    line = "\n"
+                msg = msg + sep + str(line)
         return msg + end
 
 class Logger(BaseLogger):
