@@ -35,24 +35,45 @@ import sys
 class LoggerMeta(type):
     """Metaclass for the Logger classes."""
     def __new__(metacls, cls, bases, classdict):
-        logger = super().__new__(metacls, cls, bases, classdict)
+        newcls = type.__new__(metacls, cls, bases, classdict)
+        if not hasattr(metacls, "_all"):
+            metacls._all = {}
+        metacls._all[cls] = newcls
         if not hasattr(metacls, "base"): # care only about the base class
-            metacls.base = logger
-            metacls.basedoc = classdict['__doc__']
+            newcls._is_base = True
+            newcls.__new__ = metacls._disallow_instantiation_
+            newcls.__call__ = metacls._disallow_calling_
+            metacls.base = newcls
+            metacls.basedoc = newcls.__doc__
             if metacls.basedoc is None:
                 metacls.basedoc = ""
-        else:
+        elif newcls in metacls.base.__subclasses__():
+            newcls._is_base = False
+            if newcls.__new__ == metacls.base.__new__: # inherited
+                newcls.__new__ = metacls._dummy_new_
+            if newcls.__call__ == metacls.base.__call__:
+                newcls.__call__ = metacls._cannot_call_(cls)
             col = shutil.get_terminal_size()[0]
-            for subcls in metacls.base.__subclasses__():
-                subdoc = subcls.__doc__
-                if subdoc is None:
-                    subdoc = ""
-                newdoc = metacls.basedoc + "\n\n" + " -" * (col // 2 - 1)
-                if subdoc:
-                    subcls.__doc__ = newdoc + "-\n\n" + subdoc
-                else:
-                    subcls.__doc__ = metacls.basedoc
-        return logger
+            newdoc = metacls.basedoc + "\n\n" + " -" * (col // 2 - 1)
+            if newcls.__doc__:
+                newcls.__doc__ = newdoc + "-\n\n" + newcls.__doc__
+            else:
+                newcls.__doc__ = metacls.basedoc
+        return newcls
+
+    def _cannot_call_(name):
+        def _restricted_call_(*args, **kwargs):
+            raise TypeError("%r object is not callable" % name)
+        return _restricted_call_
+
+    def _dummy_new_(cls, *args, **kwargs):
+        raise TypeError("type object does not have a __new__ method")
+
+    def _disallow_instantiation_(cls, *args, **kwargs):
+        raise TypeError("cannot instantiate the base class")
+
+    def _disallow_calling_(cls, *args, **kwargs):
+        raise TypeError("cannot call the base class")
 
 class BaseLogger(metaclass=LoggerMeta):
     r"""Base Logger class for your everyday needs.
@@ -115,9 +136,6 @@ class BaseLogger(metaclass=LoggerMeta):
         # this adds respectively a timezone in the format UTC or EST
         # and an offset from UTC in the form +0000 or -0500
         self.ts_format = ts_format
-
-    def __new__(cls, value):
-        return cls
 
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Returns a timestamp with timezone + offset from UTC."""
