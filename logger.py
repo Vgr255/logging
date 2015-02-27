@@ -21,7 +21,6 @@ Timestamps are properly implemented.
 This has the ability to split cleverly on long lines.
 
 Next to-do:
-- Add a write() method to write to files properly
 - Make the logger() method, to do proper all-around logging
 - Implement a way to bypass some settings
 - Implement arbitrary string replacing from within another module (translating)
@@ -33,11 +32,6 @@ import shutil
 import time
 import sys
 
-def _is_file_or_desc(obj):
-    """Returns True if obj is a file or file descriptor, False otherwise."""
-    # we don't care what the obj is, if it has 'write' it's up to them
-    # to implement it properly; str, int or bytes will have open() used on them
-    return hasattr(obj, "write") or isinstance(obj, (str, int, bytes))
 
 class BaseLogger:
     """Base Logger class for your everyday needs.
@@ -170,11 +164,7 @@ class BaseLogger:
 
         # create a file object handler to write to.
         # if 'file' has a write() method, don't ask questions and use it
-        # it's up to the end user if that method fails.
-        # let's be careful though, as this can be fed its own instance;
-        # this will work safely on itself, but make sure to avoid recursion.
-        # as such, .write() needs to not be able to call this function,
-        # otherwise this would lead to an infinite recursive loop
+        # it's up to the end user if that method fails
         if hasattr(file, "write"):
             objh = file
         else:
