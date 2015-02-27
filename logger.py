@@ -32,6 +32,126 @@ import shutil
 import time
 import sys
 
+class _NoValue:
+    """Used to express the lack of value as None can be a value."""
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+_NoValue = _NoValue()
+
+class _Bypassers:
+    """Special dict used by the bypassers argument of the Logger class.
+
+    Functional API:
+
+    bypassers = _Bypassers((setting, [type1, type2], module, attr))
+
+    types = bypassers[setting]          Gets the types bound to this setting
+    bypassers[setting] = types          Binds new types to this setting
+    bypassers[setting].update(types)    Updates the types list
+    del bypassers[setting]              Removes all types (item is not deleted)
+
+    str(bypassers) | repr(bypassers)    Shows all the settings, types, modules
+                                        and attributes currently active.
+
+    bypassers.update(setting, iters)    Binds a module and attribute to the
+                                        setting. 'iters' must be an iterable of
+                                        (module, attr). Types are not altered.
+
+    bypassers.remove(setting)           Deletes all bindings of setting
+
+    bypassers.extend(iterable)          Adds a new binding; expects four-tuple
+
+    bypassers.add(setting)              Adds a new unbound setting
+
+    bypassers.pop(setting)              Returns the (types, module, attr)
+                                        iterable bound to setting and removes
+                                        all the setting's bindings.
+
+    bypassers.get(setting, fallback)    Returns the (types, module, attr)
+                                        iterable bound to the setting. If the
+                                        setting does not exist, 'fallback' will
+                                        be returned; defaults to None.
+
+    bypassers.clear()                   Removes all bindings
+"""
+
+    def __init__(self, *names):
+        self.bpdict = {}
+        for setting, types, module, attr in names:
+            self.bpdict[setting] = [list(types), module, attr]
+
+    def __getitem__(self, item):
+        return self.bpdict[item][0]
+
+    def __setitem__(self, item, value):
+        self.bpdict[item][0] = list(value) # need to keep a mutable object
+
+    def __delitem__(self, item):
+        self.bpdict[item][0] = []
+
+    def __contains__(self, other):
+        return other in self.bpdict
+
+    def __len__(self):
+        return len(self.bpdict)
+
+    def __repr__(self):
+        args = []
+        for setting in self.bpdict:
+            types, module, attr = self.bpdict[setting]
+            args.append("(setting=%r, types=%r, module=%r, attr=%r)" %
+                       (setting, types, module, attr))
+        return 'BypassersItems(%s)' % " | ".join(args)
+
+    def __dir__(self):
+        return list(self.__class__.__dict__.keys())
+
+    def update(self, setting, bpdict):
+        module, attr = bpdict
+        if setting not in self.bpdict:
+            self.bpdict[setting] = [[], _NoValue, _NoValue]
+        if module is not _NoValue:
+            self.bpdict[setting][1] = module
+        if attr is not _NoValue:
+            self.bpdict[setting][2] = attr
+
+    def remove(self, item):
+        del self.bpdict[item]
+
+    def extend(self, items):
+        setting, types, module, attr = items
+        self.bpdict[setting] = [list(types), module, attr]
+
+    def add(self, setting):
+        if setting in self.bpdict:
+            return
+        self.bpdict[setting] = [[], _NoValue, _NoValue]
+
+    def pop(self, item):
+        return self.bpdict.pop(item)
+
+    def get(self, item, fallback=None):
+        if item not in self.bpdict:
+            return fallback
+        return tuple(self.bpdict[item])
+
+    def keys(self):
+        return list(self.bpdict.keys())
+
+    def values(self):
+        val = []
+        for item in self.bpdict.values():
+            val.append((item[1], item[2]))
+        return val
+
+    def items(self):
+        return list(zip(self.keys(), self.values()))
+
+    def clear(self):
+        self.bpdict.clear()
+
 class LoggerMeta(type):
     """Metaclass for the Logger classes.
 
@@ -263,14 +383,16 @@ class Logger(BaseLogger):
 
         Default:    {}
 
-    bypassers:      Iterable of (setting, type, module, attr) iterables.
-                    'setting' is the setting to bypass when 'type' matches the
-                    type that the logger was called with. It will replace the
-                    setting's value with the value of attribute 'attr' of
-                    module or dict 'module'. If 'module' is None, 'attr' will
-                    be used as its immediate value, without any lookup.
+    bypassers:      Iterable of (setting, types, module, attr) iterables. Do
+                    note that 'types' is an iterable of all types that can
+                    match this bypassers. 'setting' is the setting to bypass
+                    when at least one of the types matches the type that the
+                    logger was called with. It will replace the setting's value
+                    with the value of attribute 'attr' of module or dict
+                    'module'. If 'module' is None, 'attr' will be used as its
+                    immediate value, without any other lookup.
 
-        Default:    ()
+        Default:    () - Converted to a dynamic instance at runtime
 """
 
     def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
@@ -291,8 +413,9 @@ class Logger(BaseLogger):
         # with getattr() to bypass the value of setting with the one found
         # in the given module, for the given attribute; module of None means
         # to use the attr as the direct value; making the type None will also
-        # indicate that any type can be triggered
-        self.bypassers = bypassers
+        # indicate that any type can be triggered. to indicate a lack of value
+        # for any parameter, pass _NoValue as None has a special meaning
+        self.bypassers = _Bypassers(bypassers)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
