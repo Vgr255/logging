@@ -35,17 +35,7 @@ import sys
 class LoggerMeta(type):
     """Metaclass for the Logger classes.
 
-    The base class' docstring carries over to all subclasses.
-    The base class' __new__ method will be overridden if it exists.
-    The subclasses are expected to have a __new__method.
-    This is a restriction due to how Python works.
-    This restriction may be lifted in the future.
-    To get around this, just define a __new__ method like this:
-
-    def __new__(cls, *args, **kwargs):
-        return cls
-
-    This will get around this implementation restriction."""
+    The base class' docstring carries over to all subclasses."""
 
     def __new__(metacls, cls, bases, classdict):
         newcls = type.__new__(metacls, cls, bases, classdict)
@@ -54,18 +44,12 @@ class LoggerMeta(type):
         metacls._all[cls] = newcls
         if not hasattr(metacls, "base"): # care only about the base class
             newcls._is_base = True
-            newcls.__new__ = metacls._disallow_instantiation_
-            newcls.__call__ = metacls._disallow_calling_
             metacls.base = newcls
             metacls.basedoc = newcls.__doc__
             if metacls.basedoc is None:
                 metacls.basedoc = ""
         elif newcls in metacls.base.__subclasses__():
             newcls._is_base = False
-            if newcls.__new__ == metacls.base.__new__: # inherited
-                newcls.__new__ = metacls._dummy_new_
-            if newcls.__call__ == metacls.base.__call__:
-                newcls.__call__ = metacls._cannot_call_(cls)
             col = shutil.get_terminal_size()[0]
             newdoc = metacls.basedoc + "\n\n" + " -" * (col // 2 - 1)
             if newcls.__doc__:
@@ -73,20 +57,6 @@ class LoggerMeta(type):
             else:
                 newcls.__doc__ = metacls.basedoc
         return newcls
-
-    def _cannot_call_(name):
-        def _restricted_call_(*args, **kwargs):
-            raise TypeError("%r object is not callable" % name)
-        return _restricted_call_
-
-    def _dummy_new_(cls, *args, **kwargs):
-        raise TypeError("type object does not have a __new__ method")
-
-    def _disallow_instantiation_(cls, *args, **kwargs):
-        raise TypeError("cannot instantiate the base class")
-
-    def _disallow_calling_(cls, *args, **kwargs):
-        raise TypeError("cannot call the base class")
 
 class BaseLogger(metaclass=LoggerMeta):
     r"""Base Logger class for your everyday needs.
