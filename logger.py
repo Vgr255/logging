@@ -48,14 +48,16 @@ class LoggerMeta(type):
             metacls.basedoc = newcls.__doc__
             if metacls.basedoc is None:
                 metacls.basedoc = ""
-        elif newcls in metacls.base.__subclasses__():
+        else: # handle subclassing properly
             newcls._is_base = False
-            col = shutil.get_terminal_size()[0]
-            newdoc = metacls.basedoc + "\n\n" + " -" * (col // 2 - 1)
-            if newcls.__doc__:
-                newcls.__doc__ = newdoc + "-\n\n" + newcls.__doc__
-            else:
-                newcls.__doc__ = metacls.basedoc
+            for somecls in metacls._all.values():
+                if newcls in somecls.__subclasses__():
+                    col = shutil.get_terminal_size()[0]
+                    newdoc = somecls.__doc__ + "\n\n" + " -" * (col // 2 - 1)
+                    if newcls.__doc__:
+                        newcls.__doc__ = newdoc + "-\n\n" + newcls.__doc__
+                    else:
+                        newcls.__doc__ = somecls.__doc__
         return newcls
 
 class BaseLogger(metaclass=LoggerMeta):
@@ -213,7 +215,7 @@ class BaseLogger(metaclass=LoggerMeta):
             objh.close()
 
     def _get_output(self, out, sep, end):
-        """Sanitizes output and performs checks for bytes objects."""
+        """Sanitizes output and joins iterables together."""
         if not out: # called with no argument, let's support it anyway
             out = ['']
         msg = None
@@ -288,7 +290,8 @@ class Logger(BaseLogger):
         # to determine if bypassing should occur; module and attr are used
         # with getattr() to bypass the value of setting with the one found
         # in the given module, for the given attribute; module of None means
-        # to use the attr as the direct value
+        # to use the attr as the direct value; making the type None will also
+        # indicate that any type can be triggered
         self.bypassers = bypassers
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
