@@ -144,27 +144,33 @@ class Bypassers:
 """
 
     def __init__(self, *names):
+        """Creates a new instance of the class."""
         self.bpdict = {}
         self.fallbacks = {}
         for setting, types, values, module, attr in names:
             self.bpdict[setting] = [list(types), list(values), module, attr]
 
     def __getitem__(self, item):
+        """Returns the types of item."""
         return self.bpdict[item][0]
 
     def __setitem__(self, item, value):
+        """Sets new types to item."""
         self.bpdict[item][0] = list(value) # need to keep a mutable object
 
     def __delitem__(self, item):
+        """Removes item and all bindings."""
         del self.bpdict[item]
 
     def __contains__(self, item):
+        """Returns True if item is a bound setting, False otherwise."""
         if item in self.bpdict:
             if self.bpdict[item][0] or self.bpdict[item][1]:
                 return True
         return False
 
     def __len__(self):
+        """Returns the amount of bound settings."""
         cnt = 0
         for item in self.bpdict:
             if self.bpdict[item][0] or self.bpdict[item][1]:
@@ -172,23 +178,23 @@ class Bypassers:
         return cnt
 
     def __iter__(self):
+        """Returns an iterable of all active settings, bound or otherwise."""
         return iter(self.bpdict)
 
     def __eq__(self, other):
-        try:
-            if set(self.bpdict) == set(other.bpdict):
-                for setting, items in self.bpdict.items():
-                    if other.bpdict[setting] != items:
-                        return False
-                return True # either the same instance or identical dicts
-        except:
-            return False
+        """Returns True if self and other are identical, False otherwise."""
+        if hasattr(other, "bpdict") and self.bpdict == other.bpdict:
+            return True
         return False
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        """Returns True if self and other are not identical, True otherwise."""
+        if not hasattr(other, "bpdict") or self.bpdict == other.bpdict:
+            return False
+        return True
 
     def __repr__(self):
+        """Returns a string of all active attributes."""
         args = []
         for setting in self.bpdict:
             types, values, module, attr = self.bpdict[setting]
@@ -197,15 +203,18 @@ class Bypassers:
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
     def __bool__(self):
+        """Returns True if at least one setting is bound, False otherwise."""
         for item in self.bpdict:
             if self.bpdict[item][0] or self.bpdict[item][1]:
                 return True
         return False
 
     def __dir__(self):
-        return list(self.bpdict.keys())
+        """Returns a list of all methods of the class."""
+        return dir(self.__class__)
 
     def update(self, setting, bpdict):
+        """Updates setting with module and attribute in bpdict."""
         module, attr = bpdict
         if setting not in self.bpdict:
             self.bpdict[setting] = [[], [], NoValue, NoValue]
@@ -215,23 +224,28 @@ class Bypassers:
             self.bpdict[setting][3] = attr
 
     def append(self, setting, iters):
+        """Binds a new (module, attr) pair to setting."""
         if setting not in self.bpdict:
             self.bpdict[setting] = [[], [], NoValue, NoValue]
         self.bpdict[setting][1].append(iters)
 
     def remove(self, setting, iters):
+        """Removes a (module, attr) pair from setting."""
         self.bpdict[setting][1].remove(iters)
 
     def extend(self, items):
+        """Adds a new binding of (setting, types, pairs, module, attr)."""
         setting, types, values, module, attr = items
         self.bpdict[setting] = [list(types), list(values), module, attr]
 
     def add(self, setting):
+        """Adds a new unbound setting. Ignored if setting exists."""
         if setting in self.bpdict:
             return
         self.bpdict[setting] = [[], [], NoValue, NoValue]
 
     def insert(self, setting, new):
+        """Updates the setting's binding with the provided four-tuple."""
         types, values, module, attr = new
         oldt = self.bpdict[setting][0]
         oldv = self.bpdict[setting][1]
@@ -245,25 +259,30 @@ class Bypassers:
             self.bpdict[setting][3] = attr
 
     def pop(self, item):
+        """Removes and returns the bindings of setting."""
         return self.bpdict.pop(item)
 
     def popitem(self):
+        """Unbinds and returns all attributes of a random setting."""
         setting, (types, values, module, attr) = self.bpdict.popitem()
         return (setting, types, values, module, attr)
 
     def get(self, item, fallback=NoValue):
+        """Returns the settings' bindings, or fallback if not available."""
         if item not in self.bpdict:
             if item in self.fallbacks and fallback is NoValue:
                 fallback = self.fallbacks[item]
             return fallback
-        return tuple(self.bpdict[item])
+        return self.bpdict[item]
 
     def setdefault(self, item, fallback=None):
+        """Sets the default fallback for the get() method."""
         self.fallbacks[item] = fallback
         if fallback is NoValue:
             del self.fallbacks[item]
 
     def count(self, iters):
+        """Returns the amount of (module, attr) bindings in all settings."""
         cnt = 0
         module, attr = iters
         for mod, att in self.values():
@@ -272,15 +291,18 @@ class Bypassers:
         return cnt
 
     def keys(self):
+        """Returns all settings, bound or otherwise."""
         return list(self.bpdict.keys())
 
     def values(self):
+        """Returns tuples of all (module, attr) pairs."""
         val = []
         for item in self.bpdict.values():
             val.append((item[2], item[3]))
         return val
 
     def items(self):
+        """Returns tuples of all (setting, module, attr) pairs."""
         module = []
         attr = []
         for m, a in self.values():
@@ -289,12 +311,14 @@ class Bypassers:
         return list(zip(self.keys(), module, attr))
 
     def copy(self):
+        """Returns a new instance with the same attributes."""
         new = []
         for setting, (types, values, module, attr) in self.bpdict.items():
             new.append((setting, types, values, module, attr))
         return self.__class__(*new)
 
     def clear(self):
+        """Removes all settings and their bindings."""
         self.bpdict.clear()
 
 class LoggerMeta(type):
