@@ -44,7 +44,7 @@ class _NoValue:
 _NoValue = _NoValue()
 
 class _Bypassers:
-    """Special dict used by the bypassers argument of the Logger class.
+    """Special mapping used by the bypassers argument of the Logger class.
 
     This mapping is aimed at emulating a dictionnary, and as such has the same
     methods that a dictionnary has.
@@ -56,7 +56,7 @@ class _Bypassers:
     you must first read this documentation, as some actions do not behave as
     they would be normally expected.
 
-    bypassers = _Bypassers((setting, [type1, type2], module, attr))
+    bypassers = _Bypassers((setting, [types], [(module, attr)], module, attr))
 
     types = bypassers[setting]          Gets the types bound to this setting
 
@@ -64,7 +64,7 @@ class _Bypassers:
 
     bypassers[setting].action           Performs action on the types list
 
-    del bypassers[setting]              Unbinds the types from the setting
+    del bypassers[setting]              Removes the setting and all bindings
 
     str(bypassers) | repr(bypassers)    Shows all the settings, types, modules
                                         and attributes currently active.
@@ -72,7 +72,8 @@ class _Bypassers:
     len(bypassers)                      Returns the amount of bound settings;
                                         to get all settings, use dir()
 
-    x in bypassers                      Returns True if x is a bound setting
+    x in bypassers                      Returns True if x is a bound setting,
+                                        False otherwise
 
     for x in bypassers                  Iterates over all settings
 
@@ -85,34 +86,40 @@ class _Bypassers:
                                         setting. 'iters' must be an iterable of
                                         (module, attr). Types are not altered.
 
-    bypassers.remove(setting)           Deletes the setting and all bindings
+    bypassers.append(setting, iters)    Adds a new (module, attr) pair
 
-    bypassers.extend(iterable)          Adds a new binding; expects four-tuple
+    bypassers.remove(setting, iters)    Removes a (module, attr) pair
+
+    bypassers.extend(iterable)          Adds a new binding; expects five-tuple
 
     bypassers.add(setting)              Adds a new unbound setting
 
     bypassers.insert(setting, items)    Inserts items into the setting; the
-                                        setting must exists. 'items' is an
-                                        iterable of (types, module, attr); the
-                                        types will be appended to the existing
-                                        ones. To add a new entry, use .extend
+                                        setting must exist. 'items' is an
+                                        iterable of (types, values, module,
+                                        attr); the types will be appended to
+                                        the existing ones, as well as the
+                                        values. To add a new entry, use .extend
 
-    bypassers.pop(setting)              Returns the (types, module, attr)
-                                        iterable bound to setting and removes
-                                        all the setting's bindings.
+    bypassers.pop(setting)              Returns the (types, values, module,
+                                        attr) iterable bound to setting and
+                                        removes all the setting's bindings.
 
     bypassers.popitem()                 Removes and returns a random pair of
-                                        (setting, types, module, attr)
+                                        (setting, types, values, module, attr)
 
-    bypassers.get(setting, fallback)    Returns the (types, module, attr)
-                                        iterable bound to the setting. If the
-                                        setting does not exist, 'fallback' will
-                                        be returned; defaults to None.
+    bypassers.get(setting, fallback)    Returns the (types, values, module,
+                                        attr) iterable bound to the setting. If
+                                        the setting does not exist, 'fallback'
+                                        will be returned; defaults to None.
 
     bypassers.setdefault(item, fb)      Sets the default fallback for setting
                                         'item' to 'fb'; this only affects .get
 
-    bypassers.keys()                    Returns all bound settings
+    bypassers.count(iters)              Returns the number of settings which
+                                        are set to use this (module, attr) pair
+
+    bypassers.keys()                    Returns all existing settings
 
     bypassers.values()                  Returns pairs of (module, attr) tuples
 
