@@ -136,8 +136,8 @@ class _Bypassers:
     def __init__(self, *names):
         self.bpdict = {}
         self.fallbacks = {}
-        for setting, types, module, attr in names:
-            self.bpdict[setting] = [list(types), module, attr]
+        for setting, types, values, module, attr in names:
+            self.bpdict[setting] = [list(types), list(values), module, attr]
 
     def __getitem__(self, item):
         return self.bpdict[item][0]
@@ -146,18 +146,18 @@ class _Bypassers:
         self.bpdict[item][0] = list(value) # need to keep a mutable object
 
     def __delitem__(self, item):
-        self.bpdict[item][0] = []
+        del self.bpdict[item]
 
     def __contains__(self, item):
         if item in self.bpdict:
-            if self.bpdict[item][0]:
+            if self.bpdict[item][0] or self.bpdict[item][1]:
                 return True
         return False
 
     def __len__(self):
         items = []
         for item in self.bpdict:
-            if self.bpdict[item][0]:
+            if self.bpdict[item][0] or self.bpdict[item][1]:
                 items.append(item)
         return len(items)
 
@@ -181,14 +181,14 @@ class _Bypassers:
     def __repr__(self):
         args = []
         for setting in self.bpdict:
-            types, module, attr = self.bpdict[setting]
-            args.append("(setting=%r, types=%r, module=%r, attr=%r)" %
-                       (setting, types, module, attr))
+            types, values, module, attr = self.bpdict[setting]
+            args.append("(setting=%r, types=%r, values=%r, module=%r, attr=%r)"
+                       % (setting, types, values, module, attr))
         return 'BypassersItems(%s)' % " | ".join(args)
 
     def __bool__(self):
         for item in self.bpdict:
-            if self.bpdict[item][0]: # has types
+            if self.bpdict[item][0] or self.bpdict[item][1]:
                 return True
         return False
 
@@ -198,40 +198,48 @@ class _Bypassers:
     def update(self, setting, bpdict):
         module, attr = bpdict
         if setting not in self.bpdict:
-            self.bpdict[setting] = [[], _NoValue, _NoValue]
+            self.bpdict[setting] = [[], [], _NoValue, _NoValue]
         if module is not _NoValue:
-            self.bpdict[setting][1] = module
+            self.bpdict[setting][2] = module
         if attr is not _NoValue:
-            self.bpdict[setting][2] = attr
+            self.bpdict[setting][3] = attr
 
-    def remove(self, item):
-        del self.bpdict[item]
+    def append(self, setting, iters):
+        if setting not in self.bpdict:
+            self.bpdict[setting] = [[], [], _NoValue, _NoValue]
+        self.bpdict[setting][1].append(iters)
+
+    def remove(self, setting, iters):
+        self.bpdict[setting][1].remove(iters)
 
     def extend(self, items):
-        setting, types, module, attr = items
-        self.bpdict[setting] = [list(types), module, attr]
+        setting, types, values, module, attr = items
+        self.bpdict[setting] = [list(types), list(values), module, attr]
 
     def add(self, setting):
         if setting in self.bpdict:
             return
-        self.bpdict[setting] = [[], _NoValue, _NoValue]
+        self.bpdict[setting] = [[], [], _NoValue, _NoValue]
 
     def insert(self, setting, new):
-        types, module, attr = new
-        old = self.bpdict[setting][0]
-        old.extend(types)
-        self.bpdict[setting][0] = types
+        types, values, module, attr = new
+        oldt = self.bpdict[setting][0]
+        oldv = self.bpdict[setting][1]
+        oldt.extend(types)
+        oldv.extend(values)
+        self.bpdict[setting][0] = oldt
+        self.bpdict[setting][1] = oldv
         if module is not _NoValue:
-            self.bpdict[setting][1] = module
+            self.bpdict[setting][2] = module
         if attr is not _NoValue:
-            self.bpdict[setting][2] = attr
+            self.bpdict[setting][3] = attr
 
     def pop(self, item):
         return self.bpdict.pop(item)
 
     def popitem(self):
-        setting, (types, module, attr) = self.bpdict.popitem()
-        return (setting, types, module, attr)
+        setting, (types, values, module, attr) = self.bpdict.popitem()
+        return (setting, types, values, module, attr)
 
     def get(self, item, fallback=_NoValue):
         if item not in self.bpdict:
@@ -242,6 +250,16 @@ class _Bypassers:
 
     def setdefault(self, item, fallback=None):
         self.fallbacks[item] = fallback
+        if fallback is _NoValue:
+            del self.fallbacks[item]
+
+    def count(self, iters):
+        cnt = 0
+        module, attr = iters
+        for mod, att in self.values():
+            if mod == module and att == attr:
+                cnt += 1
+        return cnt
 
     def keys(self):
         return list(self.bpdict.keys())
@@ -249,7 +267,7 @@ class _Bypassers:
     def values(self):
         val = []
         for item in self.bpdict.values():
-            val.append((item[1], item[2]))
+            val.append((item[2], item[3]))
         return val
 
     def items(self):
@@ -262,9 +280,9 @@ class _Bypassers:
 
     def copy(self):
         new = []
-        for setting, (types, module, attr) in self.bpdict.items():
-            new.append((setting, types, module, attr))
-        return _Bypassers(*new)
+        for setting, (types, values, module, attr) in self.bpdict.items():
+            new.append((setting, types, values, module, attr))
+        return self.__class__(*new)
 
     def clear(self):
         self.bpdict.clear()
