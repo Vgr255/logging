@@ -43,23 +43,46 @@ _NoValue = _NoValue()
 class _Bypassers:
     """Special dict used by the bypassers argument of the Logger class.
 
+    This mapping is aimed at emulating a dictionnary, and as such has the same
+    methods that a dictionnary has.
+
     Functional API:
+
+    Notes: This API provides functionality to allow any of the four arguments
+    to be read and modified. If you want to use this functional API yourself,
+    you must first read this documentation, as some actions do not behave as
+    they would be normally expected.
 
     bypassers = _Bypassers((setting, [type1, type2], module, attr))
 
     types = bypassers[setting]          Gets the types bound to this setting
+
     bypassers[setting] = types          Binds new types to this setting
-    bypassers[setting].update(types)    Updates the types list
-    del bypassers[setting]              Removes all types (item is not deleted)
+
+    bypassers[setting].action           Performs action on the types list
+
+    del bypassers[setting]              Unbinds the types from the setting
 
     str(bypassers) | repr(bypassers)    Shows all the settings, types, modules
                                         and attributes currently active.
+
+    len(bypassers)                      Returns the amount of bound settings;
+                                        to get all settings, use dir()
+
+    x in bypassers                      Returns True if x is a bound setting
+
+    for x in bypassers                  Iterates over all settings
+
+    bool(bypassers)                     Returns True if at least one setting is
+                                        bound, False otherwise
+
+    dir(bypassers)                      Returns a list of all settings
 
     bypassers.update(setting, iters)    Binds a module and attribute to the
                                         setting. 'iters' must be an iterable of
                                         (module, attr). Types are not altered.
 
-    bypassers.remove(setting)           Deletes all bindings of setting
+    bypassers.remove(setting)           Deletes the setting and all bindings
 
     bypassers.extend(iterable)          Adds a new binding; expects four-tuple
 
@@ -69,10 +92,16 @@ class _Bypassers:
                                         iterable bound to setting and removes
                                         all the setting's bindings.
 
+    bypassers.popitem()                 Removes and returns a random pair of
+                                        (setting, types, module, attr)
+
     bypassers.get(setting, fallback)    Returns the (types, module, attr)
                                         iterable bound to the setting. If the
                                         setting does not exist, 'fallback' will
                                         be returned; defaults to None.
+
+    bypassers.setdefault(item, fb)      Sets the default fallback for setting
+                                        'item' to 'fb'; this only affects .get
 
     bypassers.keys()                    Returns all bound settings
 
@@ -86,6 +115,7 @@ class _Bypassers:
 
     def __init__(self, *names):
         self.bpdict = {}
+        self.fallbacks = {}
         for setting, types, module, attr in names:
             self.bpdict[setting] = [list(types), module, attr]
 
@@ -98,11 +128,18 @@ class _Bypassers:
     def __delitem__(self, item):
         self.bpdict[item][0] = []
 
-    def __contains__(self, other):
-        return other in self.bpdict
+    def __contains__(self, item):
+        if item in self.bpdict:
+            if self.bpdict[item][0]:
+                return True
+        return False
 
     def __len__(self):
-        return len(self.bpdict)
+        items = []
+        for item in self.bpdict:
+            if self.bpdict[item][0]:
+                items.append(item)
+        return len(items)
 
     def __iter__(self):
         return list(self.bpdict.keys())
@@ -115,8 +152,14 @@ class _Bypassers:
                        (setting, types, module, attr))
         return 'BypassersItems(%s)' % " | ".join(args)
 
+    def __bool__(self):
+        for item in self.bpdict:
+            if self.bpdict[item][0]: # has types
+                return True
+        return False
+
     def __dir__(self):
-        return list(self.__class__.__dict__.keys())
+        return list(self.bpdict.keys())
 
     def update(self, setting, bpdict):
         module, attr = bpdict
@@ -142,10 +185,19 @@ class _Bypassers:
     def pop(self, item):
         return self.bpdict.pop(item)
 
+    def popitem(self):
+        setting, (types, module, attr) = self.bpdict.popitem()
+        return (setting, types, module, attr)
+
     def get(self, item, fallback=None):
         if item not in self.bpdict:
+            if item in self.fallbacks and fallback is None:
+                fallback = self.fallbacks[item]
             return fallback
         return tuple(self.bpdict[item])
+
+    def setdefault(self, item, fallback=None):
+        self.fallbacks[item] = fallback
 
     def keys(self):
         return list(self.bpdict.keys())
