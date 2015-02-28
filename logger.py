@@ -88,6 +88,12 @@ class _Bypassers:
 
     bypassers.add(setting)              Adds a new unbound setting
 
+    bypassers.insert(setting, items)    Inserts items into the setting; the
+                                        setting must exists. 'items' is an
+                                        iterable of (types, module, attr); the
+                                        types will be appended to the existing
+                                        ones. To add a new entry, use .extend
+
     bypassers.pop(setting)              Returns the (types, module, attr)
                                         iterable bound to setting and removes
                                         all the setting's bindings.
@@ -109,6 +115,9 @@ class _Bypassers:
 
     bypassers.items()                   Returns pairs of keys and values in
                                         (setting, module, attr) tuples
+
+    bypassers.copy()                    Returns a new instance with the same
+                                        attributes.
 
     bypassers.clear()                   Removes all bindings
 """
@@ -142,7 +151,7 @@ class _Bypassers:
         return len(items)
 
     def __iter__(self):
-        return list(self.bpdict.keys())
+        return iter(self.bpdict)
 
     def __repr__(self):
         args = []
@@ -182,6 +191,16 @@ class _Bypassers:
             return
         self.bpdict[setting] = [[], _NoValue, _NoValue]
 
+    def insert(self, setting, new):
+        types, module, attr = new
+        old = self.bpdict[setting][0]
+        old.extend(types)
+        self.bpdict[setting][0] = types
+        if module is not _NoValue:
+            self.bpdict[setting][1] = module
+        if attr is not _NoValue:
+            self.bpdict[setting][2] = attr
+
     def pop(self, item):
         return self.bpdict.pop(item)
 
@@ -215,6 +234,12 @@ class _Bypassers:
             module.append(m)
             attr.append(a)
         return list(zip(self.keys(), module, attr))
+
+    def copy(self):
+        new = []
+        for setting, (types, module, attr) in self.bpdict.items():
+            new.append((setting, types, module, attr))
+        return _Bypassers(*new)
 
     def clear(self):
         self.bpdict.clear()
