@@ -560,7 +560,7 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass _NoValue as None has a special meaning
-        self.bypassers = _Bypassers(bypassers)
+        self.bypassers = _Bypassers(*bypassers)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
