@@ -36,7 +36,7 @@ class _NoValue:
     """Used to express the lack of value as None can be a value."""
 
     def __repr__(self):
-        return self.__class__.__name__
+        return 'NoValue'
 
 _NoValue = _NoValue()
 
@@ -74,6 +74,13 @@ class _Bypassers:
                                         setting does not exist, 'fallback' will
                                         be returned; defaults to None.
 
+    bypassers.keys()                    Returns all bound settings
+
+    bypassers.values()                  Returns pairs of (module, attr) tuples
+
+    bypassers.items()                   Returns pairs of keys and values in
+                                        (setting, module, attr) tuples
+
     bypassers.clear()                   Removes all bindings
 """
 
@@ -96,6 +103,9 @@ class _Bypassers:
 
     def __len__(self):
         return len(self.bpdict)
+
+    def __iter__(self):
+        return list(self.bpdict.keys())
 
     def __repr__(self):
         args = []
@@ -147,7 +157,12 @@ class _Bypassers:
         return val
 
     def items(self):
-        return list(zip(self.keys(), self.values()))
+        module = []
+        attr = []
+        for m, a in self.values():
+            module.append(m)
+            attr.append(a)
+        return list(zip(self.keys(), module, attr))
 
     def clear(self):
         self.bpdict.clear()
