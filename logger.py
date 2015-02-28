@@ -32,7 +32,7 @@ import shutil
 import time
 import sys
 
-class _NoValue:
+class NoValue:
     """Used to express the lack of value as None can be a value."""
 
     def __repr__(self):
@@ -41,7 +41,7 @@ class _NoValue:
     def __bool__(self):
         return False
 
-_NoValue = _NoValue()
+NoValue = NoValue()
 
 class Bypassers:
     """Special mapping used by the bypassers argument of the Logger class.
@@ -207,15 +207,15 @@ class Bypassers:
     def update(self, setting, bpdict):
         module, attr = bpdict
         if setting not in self.bpdict:
-            self.bpdict[setting] = [[], [], _NoValue, _NoValue]
-        if module is not _NoValue:
+            self.bpdict[setting] = [[], [], NoValue, NoValue]
+        if module is not NoValue:
             self.bpdict[setting][2] = module
-        if attr is not _NoValue:
+        if attr is not NoValue:
             self.bpdict[setting][3] = attr
 
     def append(self, setting, iters):
         if setting not in self.bpdict:
-            self.bpdict[setting] = [[], [], _NoValue, _NoValue]
+            self.bpdict[setting] = [[], [], NoValue, NoValue]
         self.bpdict[setting][1].append(iters)
 
     def remove(self, setting, iters):
@@ -228,7 +228,7 @@ class Bypassers:
     def add(self, setting):
         if setting in self.bpdict:
             return
-        self.bpdict[setting] = [[], [], _NoValue, _NoValue]
+        self.bpdict[setting] = [[], [], NoValue, NoValue]
 
     def insert(self, setting, new):
         types, values, module, attr = new
@@ -238,9 +238,9 @@ class Bypassers:
         oldv.extend(values)
         self.bpdict[setting][0] = oldt
         self.bpdict[setting][1] = oldv
-        if module is not _NoValue:
+        if module is not NoValue:
             self.bpdict[setting][2] = module
-        if attr is not _NoValue:
+        if attr is not NoValue:
             self.bpdict[setting][3] = attr
 
     def pop(self, item):
@@ -250,16 +250,16 @@ class Bypassers:
         setting, (types, values, module, attr) = self.bpdict.popitem()
         return (setting, types, values, module, attr)
 
-    def get(self, item, fallback=_NoValue):
+    def get(self, item, fallback=NoValue):
         if item not in self.bpdict:
-            if item in self.fallbacks and fallback is _NoValue:
+            if item in self.fallbacks and fallback is NoValue:
                 fallback = self.fallbacks[item]
             return fallback
         return tuple(self.bpdict[item])
 
     def setdefault(self, item, fallback=None):
         self.fallbacks[item] = fallback
-        if fallback is _NoValue:
+        if fallback is NoValue:
             del self.fallbacks[item]
 
     def count(self, iters):
@@ -561,7 +561,7 @@ class Logger(BaseLogger):
         # in the given module, for the given attribute; module of None means
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
-        # for any parameter, pass _NoValue as None has a special meaning
+        # for any parameter, pass NoValue as None has a special meaning
         self.bypassers = Bypassers(*bypassers)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
