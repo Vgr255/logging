@@ -47,9 +47,10 @@ class Bypassers:
     """Special mapping used by the bypassers argument of the Logger class.
 
     This mapping is aimed at emulating a dictionnary, and as such has the same
-    methods that a dictionnary has. However, due to the fact this mapping can
-    take up to five arguments instead of the standard one or two, more methods
-    were added, named after standard methods from other 
+    methods that a dictionnary has. However, due to the fact this mapping takes
+    exactly five arguments instead of the standard one or two, more methods
+    were added, named after standard methods from other objects, such as sets
+    and lists. This can be subclassed for more functionality.
 
     Functional API:
 
