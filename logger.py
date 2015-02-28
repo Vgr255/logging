@@ -38,6 +38,9 @@ class _NoValue:
     def __repr__(self):
         return 'NoValue'
 
+    def __bool__(self):
+        return False
+
 _NoValue = _NoValue()
 
 class _Bypassers:
@@ -208,9 +211,9 @@ class _Bypassers:
         setting, (types, module, attr) = self.bpdict.popitem()
         return (setting, types, module, attr)
 
-    def get(self, item, fallback=None):
+    def get(self, item, fallback=_NoValue):
         if item not in self.bpdict:
-            if item in self.fallbacks and fallback is None:
+            if item in self.fallbacks and fallback is _NoValue:
                 fallback = self.fallbacks[item]
             return fallback
         return tuple(self.bpdict[item])
