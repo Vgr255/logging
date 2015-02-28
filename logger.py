@@ -164,11 +164,11 @@ class Bypassers:
         return False
 
     def __len__(self):
-        items = []
+        cnt = 0
         for item in self.bpdict:
             if self.bpdict[item][0] or self.bpdict[item][1]:
-                items.append(item)
-        return len(items)
+                cnt += 1
+        return cnt
 
     def __iter__(self):
         return iter(self.bpdict)
