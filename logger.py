@@ -123,6 +123,14 @@ class _Bypassers:
                                         attributes.
 
     bypassers.clear()                   Removes all bindings
+
+    Equality testing (== and !=) can be used to compare two different instances
+    of the _Bypassers mapping. If they have exactly the same mapping (same
+    settings bound to the same types, module and attribute), both instances
+    will be considered as equal. This also works even if the other instance is
+    not a _Bypassers instance, provided they have an identical API. To check if
+    two variables are the same instance, use 'is' instead.
+
 """
 
     def __init__(self, *names):
@@ -155,6 +163,20 @@ class _Bypassers:
 
     def __iter__(self):
         return iter(self.bpdict)
+
+    def __eq__(self, other):
+        try:
+            if set(self.bpdict) == set(other.bpdict):
+                for setting, items in self.bpdict.items():
+                    if other.bpdict[setting] != items:
+                        return False
+                return True # either the same instance or identical dicts
+        except:
+            return False
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         args = []
