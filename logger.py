@@ -43,20 +43,22 @@ class _NoValue:
 
 _NoValue = _NoValue()
 
-class _Bypassers:
+class Bypassers:
     """Special mapping used by the bypassers argument of the Logger class.
 
     This mapping is aimed at emulating a dictionnary, and as such has the same
-    methods that a dictionnary has.
+    methods that a dictionnary has. However, due to the fact this mapping can
+    take up to five arguments instead of the standard one or two, more methods
+    were added, named after standard methods from other 
 
     Functional API:
 
-    Notes: This API provides functionality to allow any of the four arguments
+    Notes: This API provides functionality to allow any of the five arguments
     to be read and modified. If you want to use this functional API yourself,
     you must first read this documentation, as some actions do not behave as
-    they would be normally expected.
+    they would be normally expected to due to the unique nature of this mapping.
 
-    bypassers = _Bypassers((setting, [types], [(module, attr)], module, attr))
+    bypassers = Bypassers((setting, [types], [(module, attr)], module, attr))
 
     types = bypassers[setting]          Gets the types bound to this setting
 
@@ -191,7 +193,7 @@ class _Bypassers:
             types, values, module, attr = self.bpdict[setting]
             args.append("(setting=%r, types=%r, values=%r, module=%r, attr=%r)"
                        % (setting, types, values, module, attr))
-        return 'BypassersItems(%s)' % " | ".join(args)
+        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
     def __bool__(self):
         for item in self.bpdict:
@@ -560,7 +562,7 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass _NoValue as None has a special meaning
-        self.bypassers = _Bypassers(*bypassers)
+        self.bypassers = Bypassers(*bypassers)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
