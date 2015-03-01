@@ -303,7 +303,7 @@ class Bypassers(Container):
         return (types, pairs, module, attr)
 
     def popitem(self):
-        """Unbinds and returns all attributes of a random setting."""
+        """Unbind and return all attributes of a random setting."""
         setting, ((types, pairs), module, attr) = self._items.popitem()
         return (setting, types, pairs, module, attr)
 
@@ -605,14 +605,26 @@ class Logger(BaseLogger):
 
         Default:    {"normal": "logger.log"}
 
-    bypassers:      Iterable of (setting, types, module, attr) iterables. Do
-                    note that 'types' is an iterable of all types that can
-                    match this bypassers. 'setting' is the setting to bypass
-                    when at least one of the types matches the type that the
-                    logger was called with. It will replace the setting's value
-                    with the value of attribute 'attr' of module or dict
-                    'module'. If 'module' is None, 'attr' will be used as its
-                    immediate value, without any other lookup.
+    bypassers:      This is an iterable of (setting, types, pairs, module,
+                    attr) iterables. 'types' is an iterable of all types that
+                    can match this bypasser. 'pairs' is an iterable of
+                    two-tuples, the first argument is the module, a
+                    dictionary or None, the second argument is the attribute
+                    to search for in the module or dict; if the module is None,
+                    the bypassers will use the attribute as its direct value
+                    look-up. After this mangling, if the value is True in a
+                    boolean context, then the override will occur, and the
+                    setting's value will be overridden by the module and
+                    attribute's look-up, in the same way that the pairs are
+                    check for truth testing. 'setting' is the setting to bypass
+                    when the previously-mentioned conditionals evaluate to
+                    True, so if at least one of the types matches the type that
+                    the logger was called with, or if the value evaluates to
+                    True. Do note that the types and pairs parameters expect
+                    sets as parameters, and will fail if not given as such.
+                    This is done to allow the values to be modified and for the
+                    modifications to carry over to the bypassers. This may
+                    change in the future for a custom object.
 
         Default:    () - Converted to a dynamic instance at runtime
     """
