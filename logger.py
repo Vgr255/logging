@@ -48,7 +48,7 @@ class Container:
 
     def __init__(self, items):
         """Create a new items set."""
-        self._items = set(items)
+        self._items = items
 
     def __iter__(self):
         """Return an iterator over the items of self."""
@@ -100,6 +100,10 @@ class BaseMapping(Container):
     def remove(self, item):
         """Remove an item from the set."""
         self._items.remove(item)
+
+    def update(self, new):
+        """Update the set with new."""
+        self._items.update(new)
 
 class TypesMapping(BaseMapping):
     """Subclass for the Types argument."""
@@ -274,15 +278,13 @@ class Bypassers(Container):
     def update(self, new):
         """Update the setting's bindings."""
         setting, types, pairs, module, attr = new
-        old_t = list(self._items[setting][0].types)
-        old_p = list(self._items[setting][0].pairs)
-        old_t.extend(types)
-        old_p.extend(pairs)
+        self._items[setting][0].types.update(types)
+        self._items[setting][0].pairs.update(pairs)
         if module is NoValue:
             module = self._items[setting][1]
         if attr is NoValue:
             attr = self._items[setting][2]
-        self._items[setting] = [InnerMapping((old_t, old_p)), module, attr]
+        self._items[setting][1:] = [module, attr]
 
     def extend(self, items):
         """Add a new binding of (setting, types, pairs, module, attr)."""
@@ -637,9 +639,9 @@ class Logger(BaseLogger):
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue as None has a special meaning
         # for starters, prepare 'ignorers'
-        self.bypassers = Bypassers(("timestamp", [], [], NoValue, NoValue),
-                                   ("splitter", [], [], NoValue, NoValue),
-                                   ("all", [], [], NoValue, NoValue))
+        self.bypassers = Bypassers(("timestamp", set(), set(), NoValue, NoValue),
+                                   ("splitter", set(), set(), NoValue, NoValue),
+                                   ("all", set(), set(), NoValue, NoValue))
 
         self.bypassers.update(bypassers)
 
