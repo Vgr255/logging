@@ -43,7 +43,96 @@ class NoValue:
 
 NoValue = NoValue()
 
-class Bypassers:
+class Container:
+    """Base container class for printing arguments."""
+
+    def __init__(self, items):
+        """Create a new items set."""
+        self._items = set(items)
+
+    def __iter__(self):
+        """Return an iterator over the items of self."""
+        return iter(self._items)
+
+    def __len__(self):
+        """Return the amount if items in self."""
+        return len(self._items)
+
+    def __contains__(self, item):
+        """Return True if item is in self."""
+        return item in self._items
+
+    def __repr__(self):
+        """Return a string of all items."""
+        return "%s(%s)" % (self.__class__.__name__,
+               ", ".join(repr(item) for item in sorted(self._items)))
+
+    def __eq__(self, other):
+        """Return True if self and other are identical, False otherwise."""
+        if hasattr(other, "_items") and self._items == other._items:
+            return True
+        return False
+
+    def __ne__(self, other):
+        """Return True if self and other are not identical, True otherwise."""
+        if not hasattr(other, "_items") or self._items != other._items:
+            return True
+        return False
+
+_mappers = {}
+
+for sub in ("Keys", "Values", "Items", "Types", "Pairs", "Attributes"):
+    _map_doc = """Return all the %s of the class.""" % sub.lower()
+    _mappers[sub.lower()] = type("Bypassers" + sub, (Container,),
+                                {'__doc__': _map_doc})
+
+class BaseMapping(Container):
+    """Lightweight class for inner iteration."""
+
+    def __call__(self):
+        """Return self to trigger __repr__()."""
+        return self
+
+    def add(self, item):
+        """Add a new item to the set."""
+        self._items.add(item)
+
+    def remove(self, item):
+        """Remove an item from the set."""
+        self._items.remove(item)
+
+class TypesMapping(BaseMapping):
+    """Subclass for the Types argument."""
+
+class PairsMapping(BaseMapping):
+    """Subclass for the Pairs argument."""
+
+class InnerMapping(Container):
+    """Special mapping used by the Bypassers class for types and pairs."""
+
+    def __init__(self, iters=([], [])):
+        """Create a new inner iterable."""
+        self.types = TypesMapping(iters[0])
+        self.pairs = PairsMapping(iters[1])
+
+    def __iter__(self):
+        """Return an iterator over types and pairs."""
+        return iter((self.types, self.pairs))
+
+    def __len__(self):
+        """Return the total lenght of types and pairs."""
+        return len(self.types) + len(self.pairs)
+
+    def __contains__(self, item):
+        """Return True if item is in self, False otherwise."""
+        return item in self.types or item in self.pairs
+
+    def __repr__(self):
+        """Return a representation of the types and pairs."""
+        return "%s(types=%s, pairs=%s)" % (self.__class__.__name__, 
+                                            self.types, self.pairs)
+
+class Bypassers(Container):
     """Special mapping used by the bypassers argument of the Logger class.
 
     This mapping is aimed at emulating a dictionnary, and as such has the same
@@ -57,276 +146,247 @@ class Bypassers:
     Notes: This API provides functionality to allow any of the five arguments
     to be read and modified. If you want to use this functional API yourself,
     you must first read this documentation, as some actions do not behave as
-    they would be normally expected to due to the unique nature of this mapping.
+    they would be normally expected due to the unique nature of this mapping.
 
     bypassers = Bypassers((setting, [types], [(module, attr)], module, attr))
 
-    types = bypassers[setting]          Gets the types bound to this setting
+    bypassers[setting]                  Access the internal mapping of types
+                                        and pairs
 
-    bypassers[setting] = types          Binds new types to this setting
+    del bypassers[setting]              Remove the setting and all bindings
 
-    bypassers[setting].action           Performs action on the types list
+    bypassers[setting].types            Access the internal mapping of types
 
-    del bypassers[setting]              Removes the setting and all bindings
+    bypassers[setting].types.add(type)  Add a new type
 
-    str(bypassers) | repr(bypassers)    Shows all the settings, types, modules
-                                        and attributes currently active.
+    bypassers[setting].types.remove(t)  Remove an existing type
 
-    len(bypassers)                      Returns the amount of bound settings;
-                                        to get all settings, use dir()
+    bypassers[setting].pairs            Access the internal mapping of pairs
 
-    x in bypassers                      Returns True if x is a bound setting,
-                                        False otherwise
+    bypassers[setting].pairs.add(pair)  Add a new (module, attr) pair
 
-    for x in bypassers                  Iterates over all settings
+    bypassers[setting].pairs.remove(p)  Remove an existing (module, attr) pair
 
-    bool(bypassers)                     Returns True if at least one setting is
+    bypassers[setting].types()          Same API as bypassers[setting].types
+
+    bypassers[setting].pairs()          Same API as bypassers[setting].pairs
+
+    str(bypassers) | repr(bypassers)    Show all the settings, types, pairs,
+                                        modules and attributes currently active
+
+    len(bypassers)                      Return the total amount of settings
+
+    x in bypassers                      Return True if x is a setting, whether
+                                        bound or not; False otherwise
+
+    for x in bypassers                  Iterate over all settings
+
+    bool(bypassers)                     Return True if at least one setting is
                                         bound, False otherwise
 
-    dir(bypassers)                      Returns a list of all settings
+    dir(bypassers)                      Return a list of all methods
 
-    bypassers.update(setting, iters)    Binds a module and attribute to the
-                                        setting. 'iters' must be an iterable of
-                                        (module, attr). Types are not altered.
+    bypassers.extend(iterable)          Add a new binding; need a five-tuple
 
-    bypassers.append(setting, iters)    Adds a new (module, attr) pair
+    bypassers.update(iterable)          Update an existing binding with a
+                                        five-tuple; setting must exist
 
-    bypassers.remove(setting, iters)    Removes a (module, attr) pair
+    bypassers.add(setting)              Add a new unbound setting
 
-    bypassers.extend(iterable)          Adds a new binding; expects five-tuple
-
-    bypassers.add(setting)              Adds a new unbound setting
-
-    bypassers.insert(setting, items)    Inserts items into the setting; the
-                                        setting must exist. 'items' is an
-                                        iterable of (types, values, module,
-                                        attr); the types will be appended to
-                                        the existing ones, as well as the
-                                        values. To add a new entry, use .extend
-
-    bypassers.pop(setting)              Returns the (types, values, module,
+    bypassers.pop(setting)              Return the (types, pairs, module,
                                         attr) iterable bound to setting and
                                         removes all the setting's bindings.
 
-    bypassers.popitem()                 Removes and returns a random pair of
-                                        (setting, types, values, module, attr)
+    bypassers.popitem()                 Remove and return a random pair of
+                                        (setting, types, pairs, module, attr)
 
-    bypassers.get(setting, fallback)    Returns the (types, values, module,
+    bypassers.get(setting, fallback)    Return the (types, pairs, module,
                                         attr) iterable bound to the setting. If
                                         the setting does not exist, 'fallback'
                                         will be returned; defaults to None.
 
-    bypassers.setdefault(item, fb)      Sets the default fallback for setting
+    bypassers.setdefault(item, fb)      Set the default fallback for setting
                                         'item' to 'fb'; this only affects .get
 
-    bypassers.count(iters)              Returns the number of settings which
+    bypassers.count(iters)              Return the number of settings which
                                         are set to use this (module, attr) pair
 
-    bypassers.keys()                    Returns all existing settings
+    bypassers.keys()                    Return all existing settings
 
-    bypassers.values()                  Returns pairs of (module, attr) tuples
+    bypassers.values()                  Return all (types, pairs, module,
+                                        attr) tuples currently active
 
-    bypassers.items()                   Returns pairs of keys and values in
-                                        (setting, module, attr) tuples
+    bypassers.items()                   Return all existing five-tuples
 
-    bypassers.copy()                    Returns a new instance with the same
+    bypassers.types()                   Return all types
+
+    bypassers.pairs()                   Return all pairs
+
+    bypassers.read()                    Return all (module, attr) pairs
+
+    bypassers.copy()                    Return a new instance with the same
                                         attributes.
 
-    bypassers.clear()                   Removes all bindings
+    bypassers.clear()                   Remove all bindings
 
     Equality testing (== and !=) can be used to compare two different instances
-    of the _Bypassers mapping. If they have exactly the same mapping (same
-    settings bound to the same types, module and attribute), both instances
-    will be considered as equal. This also works even if the other instance is
-    not a _Bypassers instance, provided they have an identical API. To check if
-    two variables are the same instance, use 'is' instead.
-
-"""
+    of the Bypassers mapping. If they have exactly the same mapping (same
+    settings bound to the same types, pairs, module and attribute), both
+    instances will be considered to be equal. This also works even if the other
+    instance is not a Bypassers instance, provided they have an identical API.
+    To check if two variables are the same instance, use 'is' instead.
+    """
 
     def __init__(self, *names):
-        """Creates a new instance of the class."""
-        self.bpdict = {}
+        """Create a new instance of the class."""
+        self._items = {}
         self.fallbacks = {}
-        for setting, types, values, module, attr in names:
-            self.bpdict[setting] = [list(types), list(values), module, attr]
+        for setting, types, pairs, module, attr in names:
+            self._items[setting] = [InnerMapping((types, pairs)), module, attr]
 
     def __getitem__(self, item):
-        """Returns the types of item."""
-        return self.bpdict[item][0]
-
-    def __setitem__(self, item, value):
-        """Sets new types to item."""
-        self.bpdict[item][0] = list(value) # need to keep a mutable object
+        """Return the internal mapping of the setting."""
+        return self._items[item][0]
 
     def __delitem__(self, item):
-        """Removes item and all bindings."""
-        del self.bpdict[item]
-
-    def __contains__(self, item):
-        """Returns True if item is a bound setting, False otherwise."""
-        if item in self.bpdict:
-            if self.bpdict[item][0] or self.bpdict[item][1]:
-                return True
-        return False
-
-    def __len__(self):
-        """Returns the amount of bound settings."""
-        cnt = 0
-        for item in self.bpdict:
-            if self.bpdict[item][0] or self.bpdict[item][1]:
-                cnt += 1
-        return cnt
-
-    def __iter__(self):
-        """Returns an iterable of all active settings, bound or otherwise."""
-        return iter(self.bpdict)
-
-    def __eq__(self, other):
-        """Returns True if self and other are identical, False otherwise."""
-        if hasattr(other, "bpdict") and self.bpdict == other.bpdict:
-            return True
-        return False
-
-    def __ne__(self, other):
-        """Returns True if self and other are not identical, True otherwise."""
-        if not hasattr(other, "bpdict") or self.bpdict == other.bpdict:
-            return False
-        return True
-
-    def __repr__(self):
-        """Returns a string of all active attributes."""
-        args = []
-        for setting in self.bpdict:
-            types, values, module, attr = self.bpdict[setting]
-            args.append("(setting=%r, types=%r, values=%r, module=%r, attr=%r)"
-                       % (setting, types, values, module, attr))
-        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+        """Remove the setting and all its bindings."""
+        del self._items[item]
 
     def __bool__(self):
-        """Returns True if at least one setting is bound, False otherwise."""
-        for item in self.bpdict:
-            if self.bpdict[item][0] or self.bpdict[item][1]:
+        """Return True if at least one setting is bound."""
+        for item in self._items:
+            if self._items[item][0]:
                 return True
         return False
 
+    def __repr__(self):
+        """Return a string of all active attributes."""
+        args = []
+        for setting, ((types, pairs), module, attr) in self._items.items():
+            args.append("(setting=%r, types=%r, pairs=%r, module=%r, attr=%r)"
+                       % (setting, types, pairs, module, attr))
+        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+
     def __dir__(self):
-        """Returns a list of all methods of the class."""
+        """Return a list of all methods of the class."""
         return dir(self.__class__)
 
-    def update(self, setting, bpdict):
-        """Updates setting with module and attribute in bpdict."""
-        module, attr = bpdict
-        if setting not in self.bpdict:
-            self.bpdict[setting] = [[], [], NoValue, NoValue]
-        if module is not NoValue:
-            self.bpdict[setting][2] = module
-        if attr is not NoValue:
-            self.bpdict[setting][3] = attr
-
-    def append(self, setting, iters):
-        """Binds a new (module, attr) pair to setting."""
-        if setting not in self.bpdict:
-            self.bpdict[setting] = [[], [], NoValue, NoValue]
-        self.bpdict[setting][1].append(iters)
-
-    def remove(self, setting, iters):
-        """Removes a (module, attr) pair from setting."""
-        self.bpdict[setting][1].remove(iters)
+    def update(self, new):
+        """Update the setting's bindings."""
+        setting, types, pairs, module, attr = new
+        old_t = list(self._items[setting][0].types)
+        old_p = list(self._items[setting][0].pairs)
+        old_t.extend(types)
+        old_p.extend(pairs)
+        if module is NoValue:
+            module = self._items[setting][1]
+        if attr is NoValue:
+            attr = self._items[setting][2]
+        self._items[setting] = [InnerMapping((old_t, old_p)), module, attr]
 
     def extend(self, items):
-        """Adds a new binding of (setting, types, pairs, module, attr)."""
-        setting, types, values, module, attr = items
-        self.bpdict[setting] = [list(types), list(values), module, attr]
+        """Add a new binding of (setting, types, pairs, module, attr)."""
+        setting, types, pairs, module, attr = items
+        self._items[setting] = [InnerMapping((types, pairs)), module, attr]
 
     def add(self, setting):
-        """Adds a new unbound setting. Ignored if setting exists."""
-        if setting in self.bpdict:
+        """Add a new unbound setting. Ignored if setting exists."""
+        if setting in self._items:
             return
-        self.bpdict[setting] = [[], [], NoValue, NoValue]
-
-    def insert(self, setting, new):
-        """Updates the setting's binding with the provided four-tuple."""
-        types, values, module, attr = new
-        oldt = self.bpdict[setting][0]
-        oldv = self.bpdict[setting][1]
-        oldt.extend(types)
-        oldv.extend(values)
-        self.bpdict[setting][0] = oldt
-        self.bpdict[setting][1] = oldv
-        if module is not NoValue:
-            self.bpdict[setting][2] = module
-        if attr is not NoValue:
-            self.bpdict[setting][3] = attr
+        self._items[setting] = [InnerMapping(), NoValue, NoValue]
 
     def pop(self, item):
-        """Removes and returns the bindings of setting."""
-        return self.bpdict.pop(item)
+        """Remove and return the bindings of setting."""
+        (types, pairs), module, attr = self._items.pop(item)
+        return (types, pairs, module, attr)
 
     def popitem(self):
         """Unbinds and returns all attributes of a random setting."""
-        setting, (types, values, module, attr) = self.bpdict.popitem()
-        return (setting, types, values, module, attr)
+        setting, ((types, pairs), module, attr) = self._items.popitem()
+        return (setting, types, pairs, module, attr)
 
     def get(self, item, fallback=NoValue):
-        """Returns the settings' bindings, or fallback if not available."""
-        if item not in self.bpdict:
+        """Return the settings' bindings, or fallback if not available."""
+        if item not in self._items:
             if item in self.fallbacks and fallback is NoValue:
                 fallback = self.fallbacks[item]
             return fallback
-        return self.bpdict[item]
+        (types, pairs), module, attr = self._items[item]
+        return (types, pairs, module, attr)
 
     def setdefault(self, item, fallback=None):
-        """Sets the default fallback for the get() method."""
+        """Set the default fallback for the get() method."""
         self.fallbacks[item] = fallback
         if fallback is NoValue:
             del self.fallbacks[item]
 
     def count(self, iters):
-        """Returns the amount of (module, attr) bindings in all settings."""
+        """Return the amount of (module, attr) bindings in all settings."""
         cnt = 0
         module, attr = iters
-        for mod, att in self.values():
+        for mod, att in self.read():
             if mod == module and att == attr:
                 cnt += 1
         return cnt
 
     def keys(self):
-        """Returns all settings, bound or otherwise."""
-        return list(self.bpdict.keys())
+        """Return all settings, bound or otherwise."""
+        return _mappers["keys"](self._items)
 
     def values(self):
-        """Returns tuples of all (module, attr) pairs."""
-        val = []
-        for item in self.bpdict.values():
-            val.append((item[2], item[3]))
-        return val
+        """Return all values."""
+        reader = []
+        for (types, pairs), module, attr in self._items.values():
+            reader.append((types, pairs, module, attr))
+        return _mappers["values"](reader)
 
     def items(self):
-        """Returns tuples of all (setting, module, attr) pairs."""
-        module = []
-        attr = []
-        for m, a in self.values():
-            module.append(m)
-            attr.append(a)
-        return list(zip(self.keys(), module, attr))
+        """Return all existing five-tuples."""
+        reader = []
+        for setting, ((types, pairs), module, attr) in self._items.items():
+            reader.append((setting, types, pairs, module, attr))
+        return _mappers["items"](reader)
+
+    def types(self):
+        """Return all types."""
+        reader = []
+        for (types, pairs), module, attr in self._items.values():
+            reader.append(types)
+        return _mappers["types"](reader)
+
+    def pairs(self):
+        """Return all pairs."""
+        reader = []
+        for (types, pairs), module, attr in self._items.values():
+            reader.append(pairs)
+        return _mappers["pairs"](reader)
+
+    def read(self):
+        """Return all (module, attr) tuples."""
+        reader = []
+        for inner, module, attr in self._items.values():
+            reader.append((module, attr))
+        return _mappers["attributes"](reader)
 
     def copy(self):
-        """Returns a new instance with the same attributes."""
+        """Return a new instance with the same attributes."""
         new = []
-        for setting, (types, values, module, attr) in self.bpdict.items():
-            new.append((setting, types, values, module, attr))
+        for setting, ((types, pairs), module, attr) in self._items.items():
+            new.append((setting, types, pairs, module, attr))
         return self.__class__(*new)
 
     def clear(self):
-        """Removes all settings and their bindings."""
-        self.bpdict.clear()
+        """Remove all settings and their bindings."""
+        self._items.clear()
 
 class LoggerMeta(type):
     """Metaclass for the Logger classes.
 
-    The base class' docstring carries over to all subclasses."""
+    The base class' docstring carries over to all subclasses.
+    """
 
     def __new__(metacls, cls, bases, classdict):
+        """Generate the new classes with concatenated docstrings."""
         newcls = type.__new__(metacls, cls, bases, classdict)
         if not hasattr(metacls, "_all"):
             metacls._all = {}
@@ -342,9 +402,9 @@ class LoggerMeta(type):
             for somecls in metacls._all.values():
                 if newcls in somecls.__subclasses__():
                     col = shutil.get_terminal_size()[0]
-                    newdoc = somecls.__doc__ + "\n\n" + " -" * (col // 2 - 1)
+                    newdoc = somecls.__doc__ + "\n\n\n"
                     if newcls.__doc__:
-                        newcls.__doc__ = newdoc + "-\n\n" + newcls.__doc__
+                        newcls.__doc__ = newdoc + newcls.__doc__
                     else:
                         newcls.__doc__ = somecls.__doc__
         return newcls
@@ -412,11 +472,11 @@ class BaseLogger(metaclass=LoggerMeta):
         self.ts_format = ts_format
 
     def _get_timestamp(self, use_utc=None, ts_format=None):
-        """Returns a timestamp with timezone + offset from UTC."""
+        """Return a timestamp with timezone + offset from UTC."""
         if use_utc is None:
             use_utc = self.use_utc
         if ts_format is None:
-            ts = self.ts_format
+            ts_format = self.ts_format
         if use_utc:
             tmf = datetime.utcnow().strftime(ts_format)
             tz = "UTC"
@@ -462,7 +522,7 @@ class BaseLogger(metaclass=LoggerMeta):
     # we use this later for printing to screen
     # we can override the default function in the outer scope
     def _print(self, *output, file=None, sep=None, end=None, split=True):
-        """Safe way to print to screen or to a file.
+        """Print to screen or file in a safer way.
 
         This mimics the built-in print() behaviour and adds versatility.
         This can be used directly, or tweaked for additional functionality."""
@@ -504,7 +564,7 @@ class BaseLogger(metaclass=LoggerMeta):
             objh.close()
 
     def _get_output(self, out, sep, end):
-        """Sanitizes output and joins iterables together."""
+        """Sanitize output and joins iterables together."""
         if not out: # called with no argument, let's support it anyway
             out = ['']
         msg = None
@@ -543,15 +603,6 @@ class Logger(BaseLogger):
 
         Default:    {"normal": "logger.log"}
 
-    ignorers:       Dictionary of {setting:[types]} pairs. This can be used
-                    when instantiating the class to allow more customization
-                    over various calls, to ignore certains settings for
-                    certtain types. This will internally set the setting to
-                    False if and when applicable. See 'bypassers' if you wish
-                    to use any arbitrary value.
-
-        Default:    {"timestamp": [], "all": [], "split": []}
-
     bypassers:      Iterable of (setting, types, module, attr) iterables. Do
                     note that 'types' is an iterable of all types that can
                     match this bypassers. 'setting' is the setting to bypass
@@ -562,11 +613,11 @@ class Logger(BaseLogger):
                     immediate value, without any other lookup.
 
         Default:    () - Converted to a dynamic instance at runtime
-"""
+    """
 
     def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
-                 display=True, logfiles={}, ignorers={}, bypassers=()):
+                 display=True, logfiles={}, bypassers=()):
 
         BaseLogger.__init__(self, separator, ending, file, use_utc, ts_format)
 
@@ -576,22 +627,25 @@ class Logger(BaseLogger):
         self.logfiles = {"normal": "logger.log"}
         self.logfiles.update(logfiles)
 
-        self.ignorers = {"timestamp": [], "all": [], "splitter": []}
-        self.ignorers.update(ignorers)
-
-        # this needs to be list/tuple of (setting, type, module, attr) tuples;
-        # the setting is the setting to bypass; type is the type to check for
-        # to determine if bypassing should occur; module and attr are used
-        # with getattr() to bypass the value of setting with the one found
+        # this needs to be list/tuple of (setting, types, pairs, module, attr)
+        # tuples; the setting is the setting to bypass; types is a list of
+        # types to check for to determine if bypassing should occur, same
+        # about the pairs, except for module/attr matches; module and attr are
+        # used with getattr() to bypass the value of setting with the one found
         # in the given module, for the given attribute; module of None means
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue as None has a special meaning
-        self.bypassers = Bypassers(*bypassers)
+        # for starters, prepare 'ignorers'
+        self.bypassers = Bypassers(("timestamp", [], [], NoValue, NoValue),
+                                   ("splitter", [], [], NoValue, NoValue),
+                                   ("all", [], [], NoValue, NoValue))
+
+        self.bypassers.update(bypassers)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
-        """Logs everything to screen and/or file. Always use this."""
+        """Log everything to screen and/or file. Always use this."""
         if sep is None:
             sep = self.separator
 
