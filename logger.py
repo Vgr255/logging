@@ -318,7 +318,7 @@ class Bypassers(Container):
         (types, pairs), module, attr = self._items[item]
         return (types, pairs, module, attr)
 
-    def setdefault(self, item, fallback=None):
+    def setdefault(self, item, fallback=NoValue):
         """Set the default fallback for the get() method."""
         self.fallbacks[item] = fallback
         if fallback is NoValue:
