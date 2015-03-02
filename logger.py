@@ -114,8 +114,10 @@ class PairsMapping(BaseMapping):
 class InnerMapping(Container):
     """Special mapping used by the Bypassers class for types and pairs."""
 
-    def __init__(self, iters=([], [])):
+    def __init__(self, iters=None):
         """Create a new inner iterable."""
+        if iters is None:
+            iters = (set(), set())
         self.types = TypesMapping(iters[0])
         self.pairs = PairsMapping(iters[1])
 
@@ -631,7 +633,7 @@ class Logger(BaseLogger):
 
     def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
-                 display=True, logfiles={}, bypassers=()):
+                 display=True, logfiles=None, bypassers=()):
 
         BaseLogger.__init__(self, separator, ending, file, use_utc, ts_format)
 
@@ -639,7 +641,8 @@ class Logger(BaseLogger):
         self.write = write
 
         self.logfiles = {"normal": "logger.log"}
-        self.logfiles.update(logfiles)
+        if logfiles is not None:
+            self.logfiles.update(logfiles)
 
         # this needs to be list/tuple of (setting, types, pairs, module, attr)
         # tuples; the setting is the setting to bypass; types is a list of
