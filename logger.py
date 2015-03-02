@@ -79,12 +79,11 @@ class Container:
             return True
         return False
 
-_mappers = {}
+_bps = []
 
-for sub in ("Keys", "Values", "Items", "Types", "Pairs", "Attributes"):
-    _map_doc = """Return all the %s of the class.""" % sub.lower()
-    _mappers[sub.lower()] = type("Bypassers" + sub, (Container,),
-                                {'__doc__': _map_doc})
+for _sub in ("Keys", "Values", "Items", "Types", "Pairs", "Attributes"):
+    _bp_doc = """Return all the %s of the class.""" % _sub.lower()
+    _bps.append(type("Bypassers" + _sub, (Container,), {'__doc__': _bp_doc}))
 
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
@@ -105,11 +104,11 @@ class BaseMapping(Container):
         """Update the set with new."""
         self._items.update(new)
 
-class TypesMapping(BaseMapping):
-    """Subclass for the Types argument."""
+_mps = []
 
-class PairsMapping(BaseMapping):
-    """Subclass for the Pairs argument."""
+for _sub in ("Types", "Pairs"):
+    _mp_doc = """Subclass for the %s argument.""" % _sub.lower()
+    _mps.append(type(_sub + "Mapping", (BaseMapping,), {'__doc__': _mp_doc}))
 
 class InnerMapping(Container):
     """Special mapping used by the Bypassers class for types and pairs."""
@@ -118,8 +117,8 @@ class InnerMapping(Container):
         """Create a new inner iterable."""
         if iters is None:
             iters = (set(), set())
-        self.types = TypesMapping(iters[0])
-        self.pairs = PairsMapping(iters[1])
+        self.types = _mps[0](iters[0])
+        self.pairs = _mps[1](iters[1])
 
     def __iter__(self):
         """Return an iterator over types and pairs."""
@@ -335,42 +334,42 @@ class Bypassers(Container):
 
     def keys(self):
         """Return all settings, bound or otherwise."""
-        return _mappers["keys"](self._items)
+        return _bps[0](self._items)
 
     def values(self):
         """Return all values."""
         reader = []
         for (types, pairs), module, attr in self._items.values():
             reader.append((types, pairs, module, attr))
-        return _mappers["values"](reader)
+        return _bps[1](reader)
 
     def items(self):
         """Return all existing five-tuples."""
         reader = []
         for setting, ((types, pairs), module, attr) in self._items.items():
             reader.append((setting, types, pairs, module, attr))
-        return _mappers["items"](reader)
+        return _bps[2](reader)
 
     def types(self):
         """Return all types."""
         reader = []
         for (types, pairs), module, attr in self._items.values():
             reader.append(types)
-        return _mappers["types"](reader)
+        return _bps[3](reader)
 
     def pairs(self):
         """Return all pairs."""
         reader = []
         for (types, pairs), module, attr in self._items.values():
             reader.append(pairs)
-        return _mappers["pairs"](reader)
+        return _bps[4](reader)
 
     def read(self):
         """Return all (module, attr) tuples."""
         reader = []
         for inner, module, attr in self._items.values():
             reader.append((module, attr))
-        return _mappers["attributes"](reader)
+        return _bps[5](reader)
 
     def copy(self):
         """Return a new instance with the same attributes."""
