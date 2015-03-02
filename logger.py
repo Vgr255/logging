@@ -405,8 +405,7 @@ class LoggerMeta(type):
             newcls._is_base = False
             for somecls in metacls._all.values():
                 if newcls in somecls.__subclasses__():
-                    col = shutil.get_terminal_size()[0]
-                    newdoc = somecls.__doc__ + "\n\n\n"
+                    newdoc = somecls.__doc__ + "\n\n" + (" -" * 36) + "\n\n"
                     if newcls.__doc__:
                         newcls.__doc__ = newdoc + newcls.__doc__
                     else:
