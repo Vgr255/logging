@@ -194,7 +194,7 @@ class Bypassers(Container):
     bypassers.extend(iterable)          Add a new binding; need a five-tuple
 
     bypassers.update(iterable)          Update an existing binding with a
-                                        five-tuple; setting must exist
+                                        five-tuple or add a new binding
 
     bypassers.add(setting)              Add a new unbound setting
 
@@ -279,8 +279,11 @@ class Bypassers(Container):
     def update(self, new):
         """Update the setting's bindings."""
         setting, types, pairs, module, attr = new
-        self._items[setting][0].types.update(types)
-        self._items[setting][0].pairs.update(pairs)
+        if setting in self._items:
+            self._items[setting][0].types.update(types)
+            self._items[setting][0].pairs.update(pairs)
+        else:
+            self._items[setting] = [InnerMapping((types, pairs)), NoValue, NoValue]
         if module is NoValue:
             module = self._items[setting][1]
         if attr is NoValue:
@@ -656,7 +659,8 @@ class Logger(BaseLogger):
                                    ("splitter", set(), set(), NoValue, NoValue),
                                    ("all", set(), set(), NoValue, NoValue))
 
-        self.bypassers.update(bypassers)
+        for bp in bypassers:
+            self.bypassers.update(bp)
 
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
