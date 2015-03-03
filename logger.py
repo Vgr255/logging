@@ -8,11 +8,8 @@ These are here since this module is not complete yet
 - Ability to write to screen as well as one or more files
 - Per-line setting to decide whether to display or not, and to write or not
 - Logging levels (like error, debug, etc)
-- Need a way to call Logger("hello world") to make it print right away
 - This could be done through subclassing
 - Needs a way to be fed a dict of {logtype:file} pairs
-- Needs a way to be fed arbitrary parameters to the class instance
-- Subclassing should allow one to do anything with the subclass (almost)
 
 The default print function was completely remade.
 It can safely override the built-in print() function
@@ -22,7 +19,6 @@ This has the ability to split cleverly on long lines.
 
 Next to-do:
 - Make the logger() method, to do proper all-around logging
-- Implement a way to bypass some settings
 - Implement arbitrary string replacing from within another module (translating)
 - Add ability to view docstrings properly (already implemented elsewhere)
 """
