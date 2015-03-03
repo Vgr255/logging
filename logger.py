@@ -109,12 +109,14 @@ for _sub in ("Types", "Pairs"):
 class InnerMapping(Container):
     """Special mapping used by the Bypassers class for types and pairs."""
 
-    def __init__(self, iters=None):
+    def __init__(self, types=None, pairs=None):
         """Create a new inner iterable."""
-        if iters is None:
-            iters = (set(), set())
-        self.types = _mps[0](iters[0])
-        self.pairs = _mps[1](iters[1])
+        if types is None:
+            types = set()
+        if pairs is None:
+            pairs = set()
+        self.types = _mps[0](types)
+        self.pairs = _mps[1](pairs)
 
     def __iter__(self):
         """Return an iterator over types and pairs."""
@@ -243,7 +245,7 @@ class Bypassers(Container):
         self._items = {}
         self.fallbacks = {}
         for setting, types, pairs, module, attr in names:
-            self._items[setting] = [InnerMapping((types, pairs)), module, attr]
+            self._items[setting] = [InnerMapping(types, pairs), module, attr]
 
     def __getitem__(self, item):
         """Return the internal mapping of the setting."""
@@ -279,7 +281,7 @@ class Bypassers(Container):
             self._items[setting][0].types.update(types)
             self._items[setting][0].pairs.update(pairs)
         else:
-            self._items[setting] = [InnerMapping((types, pairs)), NoValue, NoValue]
+            self._items[setting] = [InnerMapping(types, pairs), NoValue, NoValue]
         if module is NoValue:
             module = self._items[setting][1]
         if attr is NoValue:
@@ -289,7 +291,7 @@ class Bypassers(Container):
     def extend(self, items):
         """Add a new binding of (setting, types, pairs, module, attr)."""
         setting, types, pairs, module, attr = items
-        self._items[setting] = [InnerMapping((types, pairs)), module, attr]
+        self._items[setting] = [InnerMapping(types, pairs), module, attr]
 
     def add(self, setting):
         """Add a new unbound setting. Ignored if setting exists."""
