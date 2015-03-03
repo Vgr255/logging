@@ -54,6 +54,10 @@ class Container:
         """Return the amount if items in self."""
         return len(self._items)
 
+    def __hash__(self):
+        """Return a hash of self."""
+        return hash(tuple(self._items))
+
     def __contains__(self, item):
         """Return True if item is in self."""
         return item in self._items
@@ -65,15 +69,18 @@ class Container:
 
     def __eq__(self, other):
         """Return True if self and other are identical, False otherwise."""
-        if hasattr(other, "_items") and self._items == other._items:
-            return True
+        try:
+            if self._items == other._items:
+                return True
+            if set(self._items) == set(other):
+                return True
+        except:
+            return False
         return False
 
     def __ne__(self, other):
         """Return True if self and other are not identical, True otherwise."""
-        if not hasattr(other, "_items") or self._items != other._items:
-            return True
-        return False
+        return not self.__eq__(other)
 
 _bps = []
 
