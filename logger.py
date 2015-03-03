@@ -395,25 +395,28 @@ def check_bypass(func):
         for setting, types, pairs, module, attr in self.bypassers.items():
             if type is not None and type in types:
                 if module is None:
-                    rest[setting] = attr
+                    self.bypassed[setting] = attr
                 else:
-                    rest[setting] = getattr(module, attr)
+                    self.bypassed[setting] = getattr(module, attr,
+                                                     module[attr])
                 return func(*output, type=type, **rest)
             for mod, att in pairs:
                 if mod is None and att:
                     if module is None:
-                        rest[setting] = attr
+                        self.bypassed[setting] = attr
                     elif module is not NoValue and attr is not NoValue:
-                        rest[setting] = getattr(module, attr)
+                        self.bypassed[setting] = getattr(module, attr,
+                                                         module[attr])
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
                     return func(*output, type=type, **rest)
-                if getattr(mod, att):
+                if getattr(mod, att, mod[att]):
                     if module is None:
-                        rest[setting] = attr
+                        self.bypassed[setting] = attr
                     elif module is not NoValue and attr is not NoValue:
-                        rest[setting] = getattr(module, attr)
+                        self.bypassed[setting] = getattr(module, attr
+                                                         module[attr])
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
@@ -689,13 +692,16 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue as None has a special meaning
-        # for starters, prepare 'ignorers'
-        self.bypassers = Bypassers(("timestamp", set(), set(), NoValue, NoValue),
-                                   ("splitter", set(), set(), NoValue, NoValue),
-                                   ("all", set(), set(), NoValue, NoValue))
+        # for starters, prepare the ignorers
+        self.bypassers = Bypassers(
+                         ("timestamp", set(), set(), NoValue, NoValue),
+                         ("splitter", set(), set(), NoValue, NoValue),
+                         ("all", set(), set(), NoValue, NoValue))
 
         for bp in bypassers:
             self.bypassers.update(bp)
+
+        self.bypassed = {}
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
