@@ -383,6 +383,36 @@ class Bypassers(Container):
         """Remove all settings and their bindings."""
         self._items.clear()
 
+def check_bypass(func):
+    def inner(self, *output, type=None, **rest):
+        for setting, types, pairs, module, attr in self.bypassers.items():
+            if type is not None and type in types:
+                if module is None:
+                    rest[setting] = attr
+                else:
+                    rest[setting] = getattr(module, attr)
+                return func(*output, type=type, **rest)
+            for mod, att in pairs:
+                if mod is None and att:
+                    if module is None:
+                        rest[setting] = attr
+                    elif module is not NoValue and attr is not NoValue:
+                        rest[setting] = getattr(module, attr)
+                    else:
+                        raise AttributeError("no value assigned to the %s" %
+                              "module" if module is NoValue else "attribute")
+                    return func(*output, type=type, **rest)
+                if getattr(mod, att):
+                    if module is None:
+                        rest[setting] = attr
+                    elif module is not NoValue and attr is not NoValue:
+                        rest[setting] = getattr(module, attr)
+                    else:
+                        raise AttributeError("no value assigned to the %s" %
+                              "module" if module is NoValue else "attribute")
+                    return func(*output, type=type, **rest)
+    return inner
+
 class LoggerMeta(type):
     """Metaclass for the Logger classes.
 
@@ -660,6 +690,7 @@ class Logger(BaseLogger):
         for bp in bypassers:
             self.bypassers.update(bp)
 
+    @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
