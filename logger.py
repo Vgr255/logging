@@ -644,7 +644,7 @@ class Logger(BaseLogger):
                     tells the logger to write to. This can be used for dynamic
                     file logging.
 
-        Default:    {"normal": "logger.log"}
+        Default:    {"normal": "logger.log", "all": "mixed.log"}
 
     bypassers:      This is an iterable of (setting, types, pairs, module,
                     attr) iterables. 'types' is an iterable of all types that
@@ -679,7 +679,7 @@ class Logger(BaseLogger):
         self.display = display
         self.write = write
 
-        self.logfiles = {"normal": "logger.log"}
+        self.logfiles = {"normal": "logger.log", "all": "mixed.log"}
         if logfiles is not None:
             self.logfiles.update(logfiles)
 
