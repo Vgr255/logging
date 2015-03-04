@@ -399,7 +399,7 @@ class Bypassers(Container):
         """Return a new instance with the same attributes."""
         new = []
         for setting, ((types, pairs), module, attr) in self._items.items():
-            new.append((setting, types, pairs, module, attr))
+            new.append((setting, set(types), set(pairs), module, attr))
         return self.__class__(*new)
 
     def clear(self):
