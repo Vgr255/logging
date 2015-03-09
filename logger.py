@@ -95,7 +95,7 @@ class Container:
         return False
 
     def __ne__(self, other):
-        """Return True if self and other are not identical, True otherwise."""
+        """Return True if self and other are not identical, False otherwise."""
         return not self.__eq__(other)
 
 _bps = []
