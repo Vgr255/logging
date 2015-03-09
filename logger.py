@@ -293,6 +293,13 @@ class Bypassers(Container):
                        % (setting, types, pairs, module, attr))
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
+    def __eq__(self, other):
+        """Return True if self and other are identical, False otherwise."""
+        try:
+            return self.items() == other.items()
+        except:
+            return False
+
     def __dir__(self):
         """Return a list of all methods of the class."""
         return dir(self.__class__)
