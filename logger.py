@@ -439,36 +439,7 @@ def check_bypass(func):
                     return func(*output, type=type, **rest)
     return inner
 
-class LoggerMeta(type):
-    """Metaclass for the Logger classes.
-
-    The base class' docstring carries over to all subclasses.
-    """
-
-    def __new__(metacls, cls, bases, classdict):
-        """Generate the new classes with concatenated docstrings."""
-        newcls = type.__new__(metacls, cls, bases, classdict)
-        if not hasattr(metacls, "_all"):
-            metacls._all = {}
-        metacls._all[cls] = newcls
-        if not hasattr(metacls, "base"): # care only about the base class
-            newcls._is_base = True
-            metacls.base = newcls
-            metacls.basedoc = newcls.__doc__
-            if metacls.basedoc is None:
-                metacls.basedoc = ""
-        else: # handle subclassing properly
-            newcls._is_base = False
-            for somecls in metacls._all.values():
-                if newcls in somecls.__subclasses__():
-                    newdoc = somecls.__doc__ + "\n\n" + (" -" * 36) + "\n\n"
-                    if newcls.__doc__:
-                        newcls.__doc__ = newdoc + newcls.__doc__
-                    else:
-                        newcls.__doc__ = somecls.__doc__
-        return newcls
-
-class BaseLogger(metaclass=LoggerMeta):
+class BaseLogger:
     r"""Base Logger class for your everyday needs.
 
     This uses the LoggerMeta metaclass to handle subclassing.
