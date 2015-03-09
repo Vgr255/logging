@@ -431,7 +431,7 @@ def check_bypass(func):
                     if module is None:
                         self.bypassed[setting] = attr
                     elif module is not NoValue and attr is not NoValue:
-                        self.bypassed[setting] = getattr(module, attr
+                        self.bypassed[setting] = getattr(module, attr,
                                                          module[attr])
                     else:
                         raise AttributeError("no value assigned to the %s" %
