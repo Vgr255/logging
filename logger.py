@@ -413,39 +413,6 @@ class Bypassers(Container):
         """Remove all settings and their bindings."""
         self._items.clear()
 
-def check_bypass(func):
-    def inner(self, *output, type=None, **rest):
-        for setting, types, pairs, module, attr in self.bypassers.items():
-            if type is not None and type in types:
-                if module is None:
-                    self.bypassed[setting] = attr
-                else:
-                    self.bypassed[setting] = getattr(module, attr,
-                                                     module[attr])
-                return func(*output, type=type, **rest)
-            for mod, att in pairs:
-                if mod is None and att:
-                    if module is None:
-                        self.bypassed[setting] = attr
-                    elif module is not NoValue and attr is not NoValue:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module[attr])
-                    else:
-                        raise AttributeError("no value assigned to the %s" %
-                              "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, **rest)
-                if getattr(mod, att, mod[att]):
-                    if module is None:
-                        self.bypassed[setting] = attr
-                    elif module is not NoValue and attr is not NoValue:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module[attr])
-                    else:
-                        raise AttributeError("no value assigned to the %s" %
-                              "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, **rest)
-    return inner
-
 class BaseLogger:
     r"""Base Logger class for your everyday needs.
 
@@ -615,6 +582,39 @@ class BaseLogger:
                     line = "\n"
                 msg = msg + sep + str(line)
         return msg + end
+
+def check_bypass(func):
+    def inner(self, *output, type=None, **rest):
+        for setting, types, pairs, module, attr in self.bypassers.items():
+            if type is not None and type in types:
+                if module is None:
+                    self.bypassed[setting] = attr
+                else:
+                    self.bypassed[setting] = getattr(module, attr,
+                                                     module[attr])
+                return func(*output, type=type, **rest)
+            for mod, att in pairs:
+                if mod is None and att:
+                    if module is None:
+                        self.bypassed[setting] = attr
+                    elif module is not NoValue and attr is not NoValue:
+                        self.bypassed[setting] = getattr(module, attr,
+                                                         module[attr])
+                    else:
+                        raise AttributeError("no value assigned to the %s" %
+                              "module" if module is NoValue else "attribute")
+                    return func(*output, type=type, **rest)
+                if getattr(mod, att, mod[att]):
+                    if module is None:
+                        self.bypassed[setting] = attr
+                    elif module is not NoValue and attr is not NoValue:
+                        self.bypassed[setting] = getattr(module, attr,
+                                                         module[attr])
+                    else:
+                        raise AttributeError("no value assigned to the %s" %
+                              "module" if module is NoValue else "attribute")
+                    return func(*output, type=type, **rest)
+    return inner
 
 class Logger(BaseLogger):
     """Main Logger class for general and specific logging purposes.
