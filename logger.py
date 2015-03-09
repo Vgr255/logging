@@ -56,7 +56,7 @@ class NoValue:
 NoValue = NoValue()
 
 class Container:
-    """Base container class for printing arguments."""
+    """Base container class for various purposes."""
 
     def __init__(self, items):
         """Create a new items set."""
