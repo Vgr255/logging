@@ -666,11 +666,17 @@ class Logger(BaseLogger):
                     change in the future for a custom object.
 
         Default:    () - Converted to a dynamic instance at runtime
+
+    ignore_all:     Set of types to ignore when using the Logger.multiple
+                    method. It will not write to the files associated with
+                    any type present in this set.
+
+        Default:    set()
     """
 
     def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
-                 display=True, logfiles=None, bypassers=()):
+                 display=True, logfiles=None, bypassers=(), ignore_all=None):
 
         BaseLogger.__init__(self, separator, ending, file, use_utc, ts_format)
 
@@ -690,7 +696,6 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue, as None has a special meaning
-        # for starters, prepare the ignorers
         self.bypassers = Bypassers(
                          ("timestamp", set(), set(), NoValue, NoValue),
                          ("splitter", set(), set(), NoValue, NoValue),
@@ -702,6 +707,10 @@ class Logger(BaseLogger):
 
         for bp in bypassers:
             self.bypassers.update(bp)
+
+        self.ignore_all = set()
+        if ignore_all is not None:
+            self.ignore_all.update(ignore_all)
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
