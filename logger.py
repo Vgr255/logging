@@ -743,20 +743,17 @@ class Logger(BaseLogger):
             file = self.logfiles.get(type, self.logfiles["normal"])
 
         output = self._get_output(output, sep, end)
-        timestamp = self._get_timestamp(use_utc, ts_format)
-        logall = None # file to write everything to, if applicable
+        timestamp = self.bypassed.get("timestamp",
+                    self._get_timestamp(use_utc, ts_format))
+        logall = self.bypassed.get("logall") # file to write everything to
         toget = output.split("\n")
         output = toget.pop(0)
 
-        # check for setting to bypass, if applicable
-        if 'timestamp' in self.bypassed:
-            timestamp = self.bypassed['timestamp']
+        # check for settings to bypass, if applicable
         if 'splitter' in self.bypassed:
             split = self.bypassed['splitter']
         if 'display' in self.bypassed:
             display = self.bypassed['display']
-        if 'logall' in self.bypassed:
-            logall = self.bypassed['logall']
         if 'write' in self.bypassed:
             write = self.bypassed['write']
 
