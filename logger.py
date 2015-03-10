@@ -774,3 +774,24 @@ class Logger(BaseLogger):
                 with open(log, "a", encoding="utf-8") as f:
                     for writer in output.split("\n"):
                         f.write(timestamp + atypes(writer) + "\n")
+
+    def multiple(self, *output, types=None, display=None, write=None, **rest):
+        """Log one or more line to multiple files."""
+        if types is None:
+            types = ["normal"]
+
+        if "*" in types and len(types) == 1:
+            for log in self.logfiles:
+                if log not in self.ignore_all:
+                    self.logger(*output, type=log, display=display,
+                                 write=write, **rest)
+                    display = False # only display once, if applicable
+
+        elif types:
+            for log in types:
+                self.logger(*output, type=log, display=display, write=write,
+                            **rest)
+                display = False
+
+        else:
+            self.logger(*output, display=display, write=write, **rest)
