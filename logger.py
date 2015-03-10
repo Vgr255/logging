@@ -43,6 +43,7 @@ from datetime import datetime
 import shutil
 import time
 import sys
+import os
 
 class NoValue:
     """Used to express the lack of value as None can be a value."""
@@ -693,7 +694,11 @@ class Logger(BaseLogger):
         self.bypassers = Bypassers(
                          ("timestamp", set(), set(), NoValue, NoValue),
                          ("splitter", set(), set(), NoValue, NoValue),
-                         ("all", set(), set(), NoValue, NoValue))
+                         ("display", set(), set(), NoValue, NoValue),
+                         ("logall", set(), set(), NoValue, NoValue),
+                         ("write", set(), set(), NoValue, NoValue),
+                         ("all", set(), set(), NoValue, NoValue),
+                        )
 
         for bp in bypassers:
             self.bypassers.update(bp)
@@ -730,4 +735,36 @@ class Logger(BaseLogger):
 
         output = self._get_output(output, sep, end)
         timestamp = self._get_timestamp(use_utc, ts_format)
-        # todo
+        logall = None # file to write everything to, if applicable
+        toget = output.split("\n")
+        output = toget.pop(0)
+
+        # check for setting to bypass, if applicable
+        if 'timestamp' in self.bypassed:
+            timestamp = self.bypassed['timestamp']
+        if 'splitter' in self.bypassed:
+            split = self.bypassed['splitter']
+        if 'display' in self.bypassed:
+            display = self.bypassed['display']
+        if 'logall' in self.bypassed:
+            logall = self.bypassed['logall']
+        if 'write' in self.bypassed:
+            write = self.bypassed['write']
+
+        if display:
+            self._print(output, file=file, sep=sep, end=end, split=split)
+        if write:
+            alines = [x for x in self.logfiles if x in
+                                 self.bypassers["all"].types]
+            getter = [file]
+            if logall:
+                getter.append(logall)
+            for log in getter:
+                exists = os.path.isfile(log)
+                def atypes(out):
+                    if log == logall and type in alines:
+                        out = "type.%s - %s" % (type, out)
+                    return out
+                with open(log, "a", encoding="utf-8") as f:
+                    for writer in output.split("\n"):
+                        f.write(timestamp + atypes(writer) + "\n")
