@@ -585,6 +585,7 @@ class BaseLogger:
 
 def check_bypass(func):
     def inner(self, *output, type=None, **rest):
+        self.bypassed = {} # reset the bypasses everytime
         for setting, types, pairs, module, attr in self.bypassers.items():
             if type is not None and type in types:
                 if module is None:
@@ -694,8 +695,6 @@ class Logger(BaseLogger):
 
         for bp in bypassers:
             self.bypassers.update(bp)
-
-        self.bypassed = {}
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
