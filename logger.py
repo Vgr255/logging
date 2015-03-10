@@ -688,7 +688,7 @@ class Logger(BaseLogger):
         # in the given module, for the given attribute; module of None means
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
-        # for any parameter, pass NoValue as None has a special meaning
+        # for any parameter, pass NoValue, as None has a special meaning
         # for starters, prepare the ignorers
         self.bypassers = Bypassers(
                          ("timestamp", set(), set(), NoValue, NoValue),
