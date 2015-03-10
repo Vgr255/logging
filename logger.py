@@ -584,6 +584,7 @@ class BaseLogger:
         return msg + end
 
 def check_bypass(func):
+    """Decorator for checking bypassability for the Logger class."""
     def inner(self, *output, type=None, **rest):
         self.bypassed = {} # reset the bypasses everytime
         for setting, types, pairs, module, attr in self.bypassers.items():
@@ -615,6 +616,7 @@ def check_bypass(func):
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
                     return func(*output, type=type, **rest)
+
     return inner
 
 class Logger(BaseLogger):
