@@ -71,10 +71,6 @@ class Container:
         """Return the amount if items in self."""
         return len(self._items)
 
-    def __hash__(self):
-        """Return a hash of self."""
-        return hash(tuple(self._items))
-
     def __contains__(self, item):
         """Return True if item is in self."""
         return item in self._items
