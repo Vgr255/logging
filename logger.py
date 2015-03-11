@@ -108,10 +108,6 @@ for _sub in ("Keys", "Values", "Items", "Types", "Pairs", "Attributes"):
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
 
-    def __call__(self):
-        """Return self to trigger __repr__()."""
-        return self
-
     def add(self, item):
         """Add a new item to the set."""
         self._items.add(item)
@@ -193,10 +189,6 @@ class Bypassers(Container):
     bypassers[setting].pairs.add(pair)  Add a new (module, attr) pair
 
     bypassers[setting].pairs.remove(p)  Remove an existing (module, attr) pair
-
-    bypassers[setting].types()          Same API as bypassers[setting].types
-
-    bypassers[setting].pairs()          Same API as bypassers[setting].pairs
 
     str(bypassers) | repr(bypassers)    Show all the settings, types, pairs,
                                         modules and attributes currently active
