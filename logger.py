@@ -116,6 +116,17 @@ class BaseMapping(Container):
         """Update the set with new."""
         self._items.update(new)
 
+    def __add__(self, other):
+        """Return a new iterable with all items."""
+        new = self._items.copy()
+        new.update(other)
+        return new
+
+    def __iadd__(self, other):
+        """Update self with other."""
+        self._items.update(other)
+        return self._items
+
 _mps = []
 
 for _sub in ("Types", "Pairs"):
