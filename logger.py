@@ -266,7 +266,7 @@ class Bypassers(Container):
     def __init__(self, *names):
         """Create a new instance of the class."""
         self._items = {}
-        self.fallbacks = {}
+        self._fallbacks = {}
         for setting, types, pairs, module, attr in names:
             self._items[setting] = [InnerMapping(types, pairs), module, attr]
 
@@ -342,17 +342,17 @@ class Bypassers(Container):
     def get(self, item, fallback=NoValue):
         """Return the settings' bindings, or fallback if not available."""
         if item not in self._items:
-            if item in self.fallbacks and fallback is NoValue:
-                fallback = self.fallbacks[item]
+            if item in self._fallbacks and fallback is NoValue:
+                fallback = self._fallbacks[item]
             return fallback
         (types, pairs), module, attr = self._items[item]
         return (types, pairs, module, attr)
 
     def setdefault(self, item, fallback=NoValue):
         """Set the default fallback for the get() method."""
-        self.fallbacks[item] = fallback
+        self._fallbacks[item] = fallback
         if fallback is NoValue:
-            del self.fallbacks[item]
+            del self._fallbacks[item]
 
     def count(self, iters):
         """Return the amount of (module, attr) bindings in all settings."""
