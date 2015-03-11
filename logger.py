@@ -784,6 +784,6 @@ class Logger(BaseLogger):
         else:
             self.logger(*output, display=display, write=write, **rest)
 
-    def show(self, *output, type="show", display=False, write=None, **rest):
+    def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
-        self.logger(*output, type=type, display=display, write=False, **rest)
+        self.logger(*output, type=type, display=display, write=write, **rest)
