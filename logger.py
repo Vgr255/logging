@@ -112,19 +112,19 @@ class BaseMapping(Container):
         """Remove an item from the set."""
         self._items.remove(item)
 
-    def update(self, new):
-        """Update the set with new."""
-        self._items.update(new)
+    def update(self, items):
+        """Update self with items."""
+        self._items.update(items)
 
-    def __add__(self, other):
+    def __add__(self, items):
         """Return a new iterable with all items."""
         new = self._items.copy()
-        new.update(other)
+        new.update(items)
         return new
 
-    def __iadd__(self, other):
-        """Update self with other."""
-        self._items.update(other)
+    def __iadd__(self, items):
+        """Update and return self with items."""
+        self._items.update(items)
         return self._items
 
 _mps = []
