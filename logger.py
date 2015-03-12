@@ -160,7 +160,7 @@ class InnerMapping(Container):
     def __repr__(self):
         """Return a representation of the types and pairs."""
         return "%s(types=%s, pairs=%s)" % (self.__class__.__name__, 
-                                            self.types, self.pairs)
+                                           self.types, self.pairs)
 
 class Bypassers(Container):
     """Special mapping used by the bypassers argument of the Logger class.
