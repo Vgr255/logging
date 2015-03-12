@@ -34,9 +34,7 @@ Timestamps are properly implemented.
 This has the ability to split cleverly on long lines.
 
 Next to-do:
-- Make the logger() method, to do proper all-around logging
 - Implement arbitrary string replacing from within another module (translating)
-- Add ability to view docstrings properly (already implemented elsewhere)
 """
 
 from datetime import datetime
