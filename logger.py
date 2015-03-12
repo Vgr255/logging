@@ -120,7 +120,9 @@ class BaseMapping(Container):
         """Return a new iterable with all items."""
         new = self._items.copy()
         new.update(items)
-        return new
+        return self.__class__(new)
+
+    __radd__ = __add__ # same thing
 
     def __iadd__(self, items):
         """Update and return self with items."""
