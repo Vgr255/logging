@@ -62,12 +62,14 @@ import sys
 import os
 
 class NoValue:
-    """Used to express the lack of value as None can be a value."""
+    """Used to express the lack of value, as None has a special meaning."""
 
     def __repr__(self):
+        """Return the explicit NoValue string."""
         return 'NoValue'
 
     def __bool__(self):
+        """Return False no matter what."""
         return False
 
 NoValue = NoValue()
