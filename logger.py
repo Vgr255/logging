@@ -338,6 +338,18 @@ class Bypassers(Container):
         for name in self._names:
             del getattr(self, name)[index_]
 
+    def __iter__(self):
+        """Return an iterator over the items of self."""
+        return iter(self.keys())
+
+    def __len__(self):
+        """Return the total number of items, bound or otherwise."""
+        return len(self.keys())
+
+    def __contains__(self, item):
+        """Return True if item is a setting, False otherwise."""
+        return item in self.keys()
+
     def __bool__(self):
         """Return True if at least one setting is bound, False otherwise."""
         for mapping in (self.types, self.pairs):
@@ -360,10 +372,6 @@ class Bypassers(Container):
             return self.items() == other.items()
         except:
             return False
-
-    def __dir__(self):
-        """Return a list of all methods of the class."""
-        return dir(self.__class__)
 
     def update(self, new):
         """Update the setting's bindings."""
