@@ -55,6 +55,7 @@ to lack of patience. Hopefully I'll get back to it sometime.
 """
 
 from datetime import datetime
+import random
 import shutil
 import time
 import sys
@@ -110,26 +111,14 @@ class Container:
         """Return True if self and other are not identical, False otherwise."""
         return not self.__eq__(other)
 
-_bps = []
-
-for _sub in ("Keys", "Values", "Items", "Types", "Pairs", "Attributes"):
-    _bp_doc = """Return all the %s of the class.""" % _sub.lower()
-    _bps.append(type("Bypassers" + _sub, (Container,), {'__doc__': _bp_doc}))
-
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
 
-    def add(self, item):
-        """Add a new item to the set."""
-        self._items.add(item)
-
-    def remove(self, item):
-        """Remove an item from the set."""
-        self._items.remove(item)
-
-    def update(self, items):
-        """Update self with items."""
-        self._items.update(items)
+    def __init__(self, items=None):
+        """Create a new mapping."""
+        self._items = items
+        if items is None:
+            self._items = set()
 
     def __add__(self, items):
         """Return a new iterable with all items."""
@@ -144,40 +133,79 @@ class BaseMapping(Container):
         self._items.update(items)
         return self._items
 
+    def add(self, item):
+        """Add a new item to the set."""
+        self._items.add(item)
+
+    def remove(self, item):
+        """Remove an item from the set."""
+        self._items.remove(item)
+
+    def update(self, items):
+        """Update self with items."""
+        self._items.update(items)
+
 _mps = []
 
 for _sub in ("Types", "Pairs"):
     _mp_doc = """Subclass for the %s argument.""" % _sub.lower()
     _mps.append(type(_sub + "Mapping", (BaseMapping,), {'__doc__': _mp_doc}))
 
-class InnerMapping(Container):
-    """Special mapping used by the Bypassers class for types and pairs."""
+class Viewer(Container):
+    """Viewer object for the Bypassers mapping."""
 
-    def __init__(self, types=None, pairs=None):
-        """Create a new inner iterable."""
-        if types is None:
-            types = set()
-        if pairs is None:
-            pairs = set()
-        self.types = _mps[0](types)
-        self.pairs = _mps[1](pairs)
-
-    def __iter__(self):
-        """Return an iterator over types and pairs."""
-        return iter((self.types, self.pairs))
-
-    def __len__(self):
-        """Return the total lenght of types and pairs."""
-        return len(self.types) + len(self.pairs)
-
-    def __contains__(self, item):
-        """Return True if item is in self, False otherwise."""
-        return item in self.types or item in self.pairs
+    def __init__(self, __self__):
+        """Create a new viewer handler."""
+        self.__self__ = __self__
+        self._items = __self__._items
 
     def __repr__(self):
-        """Return a representation of the types and pairs."""
-        return "%s(types=%s, pairs=%s)" % (self.__class__.__name__, 
-                                           self.types, self.pairs)
+        """Return a representation of self."""
+        return "%s(%s)" % (self.__self__.__class__.__name__,
+               ", ".join(repr(item) for item in sorted(self._items)))
+
+class BaseViewer:
+    """Base viewer class for the Bypassers mapping."""
+
+    def __init__(self, __self__):
+        """Create a new view object."""
+        self.__self__ = __self__
+        self._items = []
+        self._viewer = Viewer(self)
+
+    def __getitem__(self, index_):
+        """Return the item at the index given."""
+        return self._items[index_]
+
+    def __setitem__(self, index_, item):
+        """Assign the item at the index given."""
+        self._items[index_] = item
+
+    def __delitem__(self, index_):
+        """Remove the item at the index given."""
+        del self._items[index_]
+
+    def __repr__(self):
+        """Return a representation of the viewer."""
+        return "<%s view object of the %s object at %s>" % (
+               self.__class__.__name__,
+               self.__self__.__class__.__name__,
+               "0x" + hex(id(self.__self__))[2:].zfill(16).upper())
+
+    def __call__(self):
+        """Return the view object."""
+        return self._viewer
+
+    def __getattr__(self, attr):
+        """Delegate any attribute not found to the inner list."""
+        return getattr(self._items, attr)
+
+def make_sub(name):
+    subs = []
+    for sub in ("Keys", "Types", "Pairs", "Attributes", "Values", "Items"):
+        doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
+        subs.append(type(name + sub, (BaseViewer,), {'__doc__': doc}))
+    return subs
 
 class Bypassers(Container):
     """Special mapping used by the bypassers argument of the Logger class.
@@ -195,24 +223,12 @@ class Bypassers(Container):
     you must first read this documentation, as some actions do not behave as
     they would be normally expected due to the unique nature of this mapping.
 
-    bypassers = Bypassers((setting, [types], [(module, attr)], module, attr))
+    bypassers = Bypassers((setting, {types}, {(module, attr)}, module, attr))
 
     bypassers[setting]                  Access the internal mapping of types
                                         and pairs
 
     del bypassers[setting]              Remove the setting and all bindings
-
-    bypassers[setting].types            Access the internal mapping of types
-
-    bypassers[setting].types.add(type)  Add a new type
-
-    bypassers[setting].types.remove(t)  Remove an existing type
-
-    bypassers[setting].pairs            Access the internal mapping of pairs
-
-    bypassers[setting].pairs.add(pair)  Add a new (module, attr) pair
-
-    bypassers[setting].pairs.remove(p)  Remove an existing (module, attr) pair
 
     str(bypassers) | repr(bypassers)    Show all the settings, types, pairs,
                                         modules and attributes currently active
@@ -282,30 +298,43 @@ class Bypassers(Container):
 
     def __init__(self, *names):
         """Create a new instance of the class."""
-        self._items = {}
         self._fallbacks = {}
+        self._names = ("keys", "types", "pairs", "read", "values", "items")
+        self._mappers = make_sub(self.__class__.__name__)
+        for i, name in enumerate(self._names):
+            setattr(self, name, self._mappers[i](self))
         for setting, types, pairs, module, attr in names:
-            self._items[setting] = [InnerMapping(types, pairs), module, attr]
+            types = _mps[0](types)
+            pairs = _mps[1](pairs)
+            self.keys.append(setting)
+            self.types.append(types)
+            self.pairs.append(pairs)
+            self.read.append((module, attr))
+            self.values.append((types, pairs, module, attr))
+            self.items.append((setting, types, pairs, module, attr))
 
     def __getitem__(self, item):
         """Return the internal mapping of the setting."""
-        return self._items[item][0]
+        return self.values[self.keys.index(item)]
 
     def __delitem__(self, item):
         """Remove the setting and all its bindings."""
-        del self._items[item]
+        index_ = self.keys.index(item)
+        for name in self._names:
+            del getattr(self, name)[index_]
 
     def __bool__(self):
-        """Return True if at least one setting is bound."""
-        for item in self._items:
-            if self._items[item][0]:
-                return True
+        """Return True if at least one setting is bound, False otherwise."""
+        for mapping in (self.types, self.pairs):
+            for inner in mapping:
+                if inner:
+                    return True
         return False
 
     def __repr__(self):
         """Return a string of all active attributes."""
         args = []
-        for setting, ((types, pairs), module, attr) in self._items.items():
+        for setting, types, pairs, module, attr in self.items():
             args.append("(setting=%r, types=%r, pairs=%r, module=%r, attr=%r)"
                        % (setting, types, pairs, module, attr))
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
@@ -324,45 +353,86 @@ class Bypassers(Container):
     def update(self, new):
         """Update the setting's bindings."""
         setting, types, pairs, module, attr = new
-        if setting in self._items:
-            self._items[setting][0].types.update(types)
-            self._items[setting][0].pairs.update(pairs)
+        if setting in self.keys():
+            index_ = self.keys.index(setting)
+            self.types[index_].update(types)
+            self.pairs[index_].update(pairs)
         else:
-            self._items[setting] = [InnerMapping(types, pairs), NoValue, NoValue]
+            index_ = len(self.keys())
+            types = _mps[0](types)
+            pairs = _mps[1](pairs)
+            self.keys.append(setting)
+            self.types.append(types)
+            self.pairs.append(pairs)
+            self.read.append((NoValue, NoValue))
         if module is NoValue:
-            module = self._items[setting][1]
+            module = self.read[index_][0]
         if attr is NoValue:
-            attr = self._items[setting][2]
-        self._items[setting][1:] = [module, attr]
+            attr = self.read[index_][1]
+        self.read[index_] = (module, attr)
+        self.values[index_][2:] = (module, attr)
+        self.items[index_][3:] = (module, attr)
 
     def extend(self, items):
         """Add a new binding of (setting, types, pairs, module, attr)."""
         setting, types, pairs, module, attr = items
-        self._items[setting] = [InnerMapping(types, pairs), module, attr]
+        if setting in self.keys():
+            index_ = self.keys.index(setting)
+            self.types[index_].update(types)
+            self.pairs[index_].update(pairs)
+            if module is NoValue:
+                module = self.read[index_][0]
+            if attr is NoValue:
+                attr = self.read[index_][1]
+            self.read[index_] = (module, attr)
+            self.values[index_][2:] = (module, attr)
+            self.items[index_][3:] = (module, attr)
+        else:
+            types = _mps[0](types)
+            pairs = _mps[1](pairs)
+            self.keys.append(setting)
+            self.types.append(types)
+            self.pairs.append(pairs)
+            self.read.append((module, attr))
+            self.values.append((types, pairs, module, attr))
+            self.items.append((setting, types, pairs, module, attr))
 
     def add(self, setting):
         """Add a new unbound setting. Ignored if setting exists."""
-        if setting in self._items:
+        if setting in self.keys():
             return
-        self._items[setting] = [InnerMapping(), NoValue, NoValue]
+        types = _mps[0]()
+        pairs = _mps[1]()
+        self.keys.append(setting)
+        self.types.append(types)
+        self.pairs.append(pairs)
+        self.read.append((NoValue, NoValue))
+        self.values.append((types, pairs, NoValue, NoValue))
+        self.items.append((setting, types, pairs, NoValue, NoValue))
 
     def pop(self, item):
         """Remove and return the bindings of setting."""
-        (types, pairs), module, attr = self._items.pop(item)
+        index_ = self.keys.index(item)
+        types, pairs, module, attr = self.values[index_]
+        for name in self._names:
+            del getattr(self, name)[index_]
         return (types, pairs, module, attr)
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
-        setting, ((types, pairs), module, attr) = self._items.popitem()
+        index_ = random.rangrange(len(self.keys()))
+        setting, types, pairs, module, attr = self.items[index_]
+        for name in self._names:
+            del getattr(self, name)[index_]
         return (setting, types, pairs, module, attr)
 
     def get(self, item, fallback=NoValue):
         """Return the settings' bindings, or fallback if not available."""
-        if item not in self._items:
+        if item not in self.keys():
             if item in self._fallbacks and fallback is NoValue:
                 fallback = self._fallbacks[item]
             return fallback
-        (types, pairs), module, attr = self._items[item]
+        types, pairs, module, attr = self.values[self.keys.index(item)]
         return (types, pairs, module, attr)
 
     def setdefault(self, item, fallback=NoValue):
@@ -380,55 +450,17 @@ class Bypassers(Container):
                 cnt += 1
         return cnt
 
-    def keys(self):
-        """Return all settings, bound or otherwise."""
-        return _bps[0](self._items)
-
-    def values(self):
-        """Return all values."""
-        reader = []
-        for (types, pairs), module, attr in self._items.values():
-            reader.append((types, pairs, module, attr))
-        return _bps[1](reader)
-
-    def items(self):
-        """Return all existing five-tuples."""
-        reader = []
-        for setting, ((types, pairs), module, attr) in self._items.items():
-            reader.append((setting, types, pairs, module, attr))
-        return _bps[2](reader)
-
-    def types(self):
-        """Return all types."""
-        reader = []
-        for (types, pairs), module, attr in self._items.values():
-            reader.append(types)
-        return _bps[3](reader)
-
-    def pairs(self):
-        """Return all pairs."""
-        reader = []
-        for (types, pairs), module, attr in self._items.values():
-            reader.append(pairs)
-        return _bps[4](reader)
-
-    def read(self):
-        """Return all (module, attr) tuples."""
-        reader = []
-        for inner, module, attr in self._items.values():
-            reader.append((module, attr))
-        return _bps[5](reader)
-
     def copy(self):
         """Return a new instance with the same attributes."""
         new = []
-        for setting, ((types, pairs), module, attr) in self._items.items():
+        for setting, types, pairs, module, attr in self.items():
             new.append((setting, types.copy(), pairs.copy(), module, attr))
         return self.__class__(*new)
 
     def clear(self):
         """Remove all settings and their bindings."""
-        self._items.clear()
+        for name in self._names:
+            getattr(self, name).clear()
 
 class BaseLogger:
     r"""Base Logger class for your everyday needs.
