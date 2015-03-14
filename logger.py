@@ -393,8 +393,8 @@ class Bypassers(Container):
         if attr is NoValue:
             attr = self.read[index_][1]
         self.read[index_] = (module, attr)
-        self.values[index_][2:] = (module, attr)
-        self.items[index_][3:] = (module, attr)
+        self.values[index_] = self.values[index_][:2] + (module, attr)
+        self.items[index_] = self.items[index_][:3] + (module, attr)
 
     def extend(self, items):
         """Add a new binding of (setting, types, pairs, module, attr)."""
@@ -408,8 +408,8 @@ class Bypassers(Container):
             if attr is NoValue:
                 attr = self.read[index_][1]
             self.read[index_] = (module, attr)
-            self.values[index_][2:] = (module, attr)
-            self.items[index_][3:] = (module, attr)
+            self.values[index_] = self.values[index_][:2] + (module, attr)
+            self.items[index_] = self.items[index_][:3] + (module, attr)
         else:
             types = _mps[0](types)
             pairs = _mps[1](pairs)
