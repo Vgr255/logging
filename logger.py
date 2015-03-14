@@ -200,6 +200,10 @@ class BaseViewer:
         """Remove the item at the index given."""
         del self._items[index_]
 
+    def __dir__(self):
+        """Return a list of all methods."""
+        return dir(self.__class__)
+
     def __repr__(self):
         """Return a representation of the viewer."""
         return "<%s view object of the %s object at %s>" % (
