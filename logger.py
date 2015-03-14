@@ -32,23 +32,6 @@ This has the ability to split cleverly on long lines.
 
 Next to-do:
 - Implement arbitrary string replacing from within another module (translating)
-- Implement changeable view objects for the Bypassers - see below
-
-Bypassers & view objects
-
-The Bypassers class is a special 5-items mapping, providing a well-developed
-public API. However, its view objects, that allow someone to view the items in
-the mapping, are not changeable (with the exception of the keys). This means
-that, after calling them once, it is necessary to call them again to check if
-there was a change in the mapping. This is not convenient. There needs to be a
-way for the view objects to change, to reflect any changes that could occur. I
-haven't found (yet) an efficient way to do this. My preferred way to do this
-would be to have the view objects actually contain each of the items, so they
-would change and reflect any change, being as they hold the actual information.
-The other way to do this would be to have each method actually change the view
-objects themselves. Of course, this isn't optimal, and would need to only be
-done as a last resort. I have attempted something with these, but gave up due
-to lack of patience. Hopefully I'll get back to it sometime.
 """
 
 from datetime import datetime
