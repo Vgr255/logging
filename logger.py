@@ -217,6 +217,7 @@ class BaseViewer:
         return getattr(self._items, attr)
 
 def make_sub(name):
+    """Generate view objects."""
     subs = []
     for sub in ("Keys", "Types", "Pairs", "Attributes", "Values", "Items"):
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
