@@ -98,6 +98,11 @@ class Container:
         return "%s(%s)" % (self.__class__.__name__,
                ", ".join(repr(item) for item in sorted(self._items)))
 
+    def __dir__(self):
+        """Return a list of all methods."""
+        return dir(self.__class__) + list(x for x in self.__dict__
+                                   if x[0] != "_" or x[:2] == x[-2:] == "__")
+
     def __eq__(self, other):
         """Return True if self and other are identical, False otherwise."""
         try:
