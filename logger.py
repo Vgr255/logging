@@ -21,11 +21,8 @@ Documentation string still to-do."""
 Here are notes for what this module should be able to do.
 These are here since this module is not complete yet
 
-- Ability to write to screen as well as one or more files
-- Per-line setting to decide whether to display or not, and to write or not
 - Logging levels (like error, debug, etc)
 - This could be done through subclassing
-- Needs a way to be fed a dict of {logtype:file} pairs
 
 The default print function was completely remade.
 It can safely override the built-in print() function
