@@ -140,23 +140,14 @@ class BaseMapping(Container):
         self._items.update(items)
         return self._items
 
-    def add(self, item):
-        """Add a new item to the set."""
-        self._items.add(item)
     def __lt__(self, other):
         """Return True if self is less than other, False otherwise."""
         return sorted(self._items) < sorted(other)
 
-    def remove(self, item):
-        """Remove an item from the set."""
-        self._items.remove(item)
     def __le__(self, other):
         """Return True if self is less or equal to other, False otherwise."""
         return sorted(self._items) <= sorted(other)
 
-    def update(self, items):
-        """Update self with items."""
-        self._items.update(items)
     def __gt__(self, other):
         """Return True if self is greater than other, False otherwise."""
         return sorted(self._items) > sorted(other)
@@ -164,6 +155,10 @@ class BaseMapping(Container):
     def __ge__(self, other):
         """Return True if self is greater or equal to other, False otherwise."""
         return sorted(self._items) >= sorted(other)
+
+    def __getattr__(self, attr):
+        """Delegate an attribute not found to the items set."""
+        return getattr(self._items, attr)
 
 _mps = []
 
