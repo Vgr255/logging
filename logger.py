@@ -244,7 +244,7 @@ class Bypassers(Container):
     bypassers.update(iterable)          Update an existing binding with a
                                         five-tuple or add a new binding
 
-    bypassers.add(setting)              Add a new unbound setting
+    bypassers.add(setting)              Add new unbound settings
 
     bypassers.pop(setting)              Return the (types, pairs, module,
                                         attr) iterable bound to setting and
@@ -409,18 +409,19 @@ class Bypassers(Container):
             self.values.append((types, pairs, module, attr))
             self.items.append((setting, types, pairs, module, attr))
 
-    def add(self, setting):
-        """Add a new unbound setting. Ignored if setting exists."""
-        if setting in self.keys():
-            return
-        types = _mps[0](set())
-        pairs = _mps[1](set())
-        self.keys.append(setting)
-        self.types.append(types)
-        self.pairs.append(pairs)
-        self.read.append((NoValue, NoValue))
-        self.values.append((types, pairs, NoValue, NoValue))
-        self.items.append((setting, types, pairs, NoValue, NoValue))
+    def add(self, *settings):
+        """Add new unbound settings. Ignored for existing settings."""
+        for setting in settings:
+            if setting in self.keys():
+                continue
+            types = _mps[0](set())
+            pairs = _mps[1](set())
+            self.keys.append(setting)
+            self.types.append(types)
+            self.pairs.append(pairs)
+            self.read.append((NoValue, NoValue))
+            self.values.append((types, pairs, NoValue, NoValue))
+            self.items.append((setting, types, pairs, NoValue, NoValue))
 
     def pop(self, item):
         """Remove and return the bindings of setting."""
