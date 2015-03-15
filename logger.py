@@ -793,9 +793,7 @@ class Logger(BaseLogger):
                          ("all", set(), set(), NoValue, NoValue),
                         )
 
-        self.ignore_all = set()
-        if ignore_all is not None:
-            self.ignore_all = ignore_all
+        self.ignore_all = set() if ignore_all is None else ignore_all
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
