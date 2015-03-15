@@ -634,6 +634,8 @@ class BaseLogger:
         if hasattr(objh, "close") and objh not in (sys.stdout, sys.stderr):
             objh.close()
 
+        return sep.join(output)
+
     def _get_output(self, out, sep, end):
         """Sanitize output and join iterables together."""
         if not out: # called with no argument, let's support it anyway
@@ -828,8 +830,6 @@ class Logger(BaseLogger):
         display = self.bypassed.get("display", display)
         write = self.bypassed.get("write", write)
 
-        if display:
-            self._print("\n".join(output), sep=sep, end=end, split=split)
         if write:
             alines = [x for x in self.logfiles if x in
                                  self.bypassers["all"][0]]
@@ -844,6 +844,11 @@ class Logger(BaseLogger):
                 with open(log, "a", encoding="utf-8") as f:
                     for writer in output:
                         f.write(timestamp + atypes(writer) + "\n")
+
+        if display:
+            return self._print(*output, sep=sep, end=end,
+                                split=split).splitlines()
+        return output
 
     def multiple(self, *output, types=None, display=None, write=None, **rest):
         """Log one or more line to multiple files."""
@@ -864,11 +869,12 @@ class Logger(BaseLogger):
                 display = False
 
         else:
-            self.logger(*output, display=display, write=write, **rest)
+            return self.logger(*output, display=display, write=write, **rest)
 
     def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
-        self.logger(*output, type=type, display=display, write=write, **rest)
+        return self.logger(*output, type=type, display=display, write=write,
+                           **rest)
 
     def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
                   end=None, **rest):
@@ -878,7 +884,7 @@ class Logger(BaseLogger):
         lines = []
 
         if sep is None:
-            sep = self.separator
+            sep = "\n"
 
         if end is None:
             end = self.ending
@@ -904,5 +910,5 @@ class Logger(BaseLogger):
         while lines and not lines[0].strip():
             lines.pop(0)
 
-        self.logger("\n".join(lines), display=display, write=write, sep=sep,
-                    end=end, **rest)
+        return self.logger("\n".join(lines), display=display, write=write,
+                           sep=sep, end=end, **rest)
