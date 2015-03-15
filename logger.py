@@ -858,18 +858,29 @@ class Logger(BaseLogger):
         if "*" in types and len(types) == 1:
             for log in self.logfiles:
                 if log not in self.ignore_all:
-                    self.logger(*output, type=log, display=display,
-                                 write=write, **rest)
-                    display = False # only display once, if applicable
+                    if display:
+                        line = self.logger(*output, type=log, display=True,
+                                            write=write, **rest)
+                        display = False # only display once, if applicable
+                    else:
+                        self.logger(*output, type=log, display=False,
+                                     write=write, **rest)
 
-        elif types:
+            return line
+
+        if types:
             for log in types:
-                self.logger(*output, type=log, display=display, write=write,
-                            **rest)
-                display = False
+                if display:
+                    line = self.logger(*output, type=log, display=True,
+                                 write=write, **rest)
+                    display = False
+                else:
+                    self.logger(*output, type=log, display=False, write=write,
+                                **rest)
 
-        else:
-            return self.logger(*output, display=display, write=write, **rest)
+            return line
+
+        return self.logger(*output, display=display, write=write, **rest)
 
     def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
