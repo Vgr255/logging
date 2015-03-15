@@ -534,6 +534,14 @@ class BaseLogger:
         # and an offset from UTC in the form +0000 or -0500
         self.ts_format = ts_format
 
+    def __dir__(self):
+        """Return a list of all non-private methods and attributes."""
+        items = dir(self.__class__) + list(self.__dict__)
+        for item in items[:]:
+            if item[0] == "_" and not item[:2] == item[-2:] == "__":
+                items.remove(item)
+        return items
+
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Return a timestamp with timezone + offset from UTC."""
         if use_utc is None:
