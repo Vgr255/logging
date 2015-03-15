@@ -303,6 +303,8 @@ class Bypassers(Container):
         self._mappers = make_sub(self.__class__.__name__)
         for i, name in enumerate(self._names):
             setattr(self, name, self._mappers[i](self))
+        if len(names) == 1 and isinstance(names[0], self.__class__):
+            names = names[0].items()
         for setting, types, pairs, module, attr in names:
             types = _mps[0](types)
             pairs = _mps[1](pairs)
@@ -358,28 +360,32 @@ class Bypassers(Container):
         except:
             return False
 
-    def update(self, new):
+    def update(self, *new):
         """Update the setting's bindings."""
-        setting, types, pairs, module, attr = new
-        if setting in self.keys():
-            index_ = self.keys.index(setting)
-            self.types[index_].update(types)
-            self.pairs[index_].update(pairs)
-        else:
-            index_ = len(self.keys())
-            types = _mps[0](types)
-            pairs = _mps[1](pairs)
-            self.keys.append(setting)
-            self.types.append(types)
-            self.pairs.append(pairs)
-            self.read.append((NoValue, NoValue))
-        if module is NoValue:
-            module = self.read[index_][0]
-        if attr is NoValue:
-            attr = self.read[index_][1]
-        self.read[index_] = (module, attr)
-        self.values[index_] = self.values[index_][:2] + (module, attr)
-        self.items[index_] = self.items[index_][:3] + (module, attr)
+        if len(new) == 1 and isinstance(new[0], self.__class__):
+            new = new[0].items()
+        for setting, types, pairs, module, attr in new:
+            if setting in self.keys():
+                index_ = self.keys.index(setting)
+                self.types[index_].update(types)
+                self.pairs[index_].update(pairs)
+            else:
+                index_ = len(self.keys())
+                types = _mps[0](types)
+                pairs = _mps[1](pairs)
+                self.keys.append(setting)
+                self.types.append(types)
+                self.pairs.append(pairs)
+                self.read.append((NoValue, NoValue))
+                self.values.append((types, pairs, NoValue, NoValue))
+                self.items.append((setting, types, pairs, NoValue, NoValue))
+            if module is NoValue:
+                module = self.read[index_][0]
+            if attr is NoValue:
+                attr = self.read[index_][1]
+            self.read[index_] = (module, attr)
+            self.values[index_] = self.values[index_][:2] + (module, attr)
+            self.items[index_] = self.items[index_][:3] + (module, attr)
 
     def extend(self, items):
         """Add a new binding of (setting, types, pairs, module, attr)."""
