@@ -521,19 +521,18 @@ class BaseLogger:
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
     """
 
-    def __init__(self, sep=" ", ending="\n", use_utc=False,
-                 ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"):
+    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None):
         """Create a new base instance."""
 
-        self.separator = sep
-        self.ending = ending
+        self.separator = sep or " "
+        self.ending = ending or "\n"
 
-        self.use_utc = use_utc
+        self.use_utc = use_utc or False
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
         # and an offset from UTC in the form +0000 or -0500
-        self.ts_format = ts_format
+        self.ts_format = ts_format or "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"
 
     def __dir__(self):
         """Return a list of all non-private methods and attributes."""
@@ -599,14 +598,9 @@ class BaseLogger:
         This mimics the built-in print() behaviour and adds versatility.
         This can be used directly, or tweaked for additional functionality."""
 
-        if file is None:
-            file = sys.stdout
-
-        if sep is None:
-            sep = self.separator
-
-        if end is None:
-            end = self.ending
+        file = file or sys.stdout
+        sep = sep or self.separator
+        end = end or self.ending
 
         if split:
             output = self._split_lines(output, sep, end)
@@ -639,8 +633,7 @@ class BaseLogger:
 
     def _get_output(self, out, sep, end):
         """Sanitize output and join iterables together."""
-        if not out: # called with no argument, let's support it anyway
-            out = ['']
+        out = out or [''] # called with no argument, let's support it anyway
         msg = None
         for line in out:
             if isinstance(line, (list, tuple)):
@@ -759,12 +752,12 @@ class Logger(BaseLogger):
         Default:    set()
     """
 
-    def __init__(self, separator=" ", ending="\n", use_utc=False,
-                 ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
-                 display=True, logfiles=None, bypassers=(), ignore_all=None):
+    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None,
+                 write=True, display=True, logfiles=None, bypassers=(),
+                 ignore_all=None):
         """Create a new Logger instance."""
 
-        super().__init__(separator, ending, use_utc, ts_format)
+        super().__init__(sep, ending, use_utc, ts_format)
 
         self.display = display
         self.write = write
@@ -808,11 +801,9 @@ class Logger(BaseLogger):
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, end=None, split=True, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
-        if sep is None:
-            sep = self.separator
 
-        if end is None:
-            end = self.ending
+        sep = sep or self.separator
+        end = end or self.ending
 
         if display is None:
             display = self.display
@@ -895,11 +886,8 @@ class Logger(BaseLogger):
         indent = None
         lines = []
 
-        if sep is None:
-            sep = "\n"
-
-        if end is None:
-            end = self.ending
+        sep = sep or "\n"
+        end = end or self.ending
 
         output = self._get_output(output, sep, end)
         for line in output.expandtabs(tabs).splitlines():
