@@ -785,14 +785,8 @@ class Logger(BaseLogger):
         # for any parameter, pass NoValue, as None has a special meaning
         self.bypassers = Bypassers(*bypassers)
 
-        self.bypassers.update(
-                         ("timestamp", set(), set(), NoValue, NoValue),
-                         ("splitter", set(), set(), NoValue, NoValue),
-                         ("display", set(), set(), NoValue, NoValue),
-                         ("logall", set(), set(), NoValue, NoValue),
-                         ("write", set(), set(), NoValue, NoValue),
-                         ("all", set(), set(), NoValue, NoValue),
-                        )
+        self.bypassers.add("timestamp", "splitter", "display", "write",
+                           "logall", "all")
 
         self.ignore_all = set() if ignore_all is None else ignore_all
 
