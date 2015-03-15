@@ -629,7 +629,7 @@ class BaseLogger:
             objh.close()
 
     def _get_output(self, out, sep, end):
-        """Sanitize output and joins iterables together."""
+        """Sanitize output and join iterables together."""
         if not out: # called with no argument, let's support it anyway
             out = ['']
         msg = None
