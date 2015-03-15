@@ -523,6 +523,7 @@ class BaseLogger:
 
     def __init__(self, sep=" ", ending="\n", use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"):
+        """Create a new base instance."""
 
         self.separator = sep
         self.ending = ending
