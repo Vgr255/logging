@@ -763,7 +763,7 @@ class Logger(BaseLogger):
                  display=True, logfiles=None, bypassers=(), ignore_all=None):
         """Create a new Logger instance."""
 
-        BaseLogger.__init__(self, separator, ending, use_utc, ts_format)
+        super().__init__(separator, ending, use_utc, ts_format)
 
         self.display = display
         self.write = write
