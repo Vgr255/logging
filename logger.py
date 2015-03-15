@@ -857,11 +857,20 @@ class Logger(BaseLogger):
         """Explicit way to only print to screen."""
         self.logger(*output, type=type, display=display, write=write, **rest)
 
-    def docstring(self, *output, tabs=4, display=True, write=False, **rest):
+    def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
+                  end=None, **rest):
         """Print a docstring using proper formatting."""
         newlined = False
         indent = None
         lines = []
+
+        if sep is None:
+            sep = self.separator
+
+        if end is None:
+            end = self.ending
+
+        output = self._get_output(output, sep, end)
         for line in output.expandtabs(tabs).splitlines():
             if not newlined and not line.lstrip(): # first empty line
                 newlined = True
@@ -881,4 +890,5 @@ class Logger(BaseLogger):
         while newlines and not newlines[0]:
             lines.pop(0)
 
-        self.logger(*"\n".join(lines), display=display, write=write, **rest)
+        self.logger("\n".join(lines), display=display, write=write, sep=sep,
+                    end=end, **rest)
