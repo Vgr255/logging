@@ -805,8 +805,7 @@ class Logger(BaseLogger):
         timestamp = self.bypassed.get("timestamp",
                     self._get_timestamp(use_utc, ts_format))
         logall = self.bypassed.get("logall") # file to write everything to
-        toget = output.split("\n")
-        output = toget.pop(0)
+        output = output.splitlines()
 
         # check for settings to bypass, if applicable
         split = self.bypassed.get("splitter", split)
@@ -814,7 +813,7 @@ class Logger(BaseLogger):
         write = self.bypassed.get("write", write)
 
         if display:
-            self._print(output, sep=sep, end=end, split=split)
+            self._print("\n".join(output), sep=sep, end=end, split=split)
         if write:
             alines = [x for x in self.logfiles if x in
                                  self.bypassers["all"][0]]
@@ -828,7 +827,7 @@ class Logger(BaseLogger):
                         out = "type.%s - %s" % (type, out)
                     return out
                 with open(log, "a", encoding="utf-8") as f:
-                    for writer in output.split("\n"):
+                    for writer in output:
                         f.write(timestamp + atypes(writer) + "\n")
 
     def multiple(self, *output, types=None, display=None, write=None, **rest):
