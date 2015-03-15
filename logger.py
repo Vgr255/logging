@@ -735,7 +735,9 @@ class Logger(BaseLogger):
                     sets as parameters, and will fail if not given as such.
                     This is done to allow the values to be modified and for the
                     modifications to carry over to the bypassers. This may
-                    change in the future for a custom object.
+                    change in the future for a custom object. Do note that
+                    this parameter expects an iterable of five-tuples, or
+                    an empty iterable.
 
         Default:    () - Converted to a dynamic instance at runtime
 
@@ -769,7 +771,9 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue, as None has a special meaning
-        self.bypassers = Bypassers(
+        self.bypassers = Bypassers(*bypassers)
+
+        self.bypassers.update(
                          ("timestamp", set(), set(), NoValue, NoValue),
                          ("splitter", set(), set(), NoValue, NoValue),
                          ("display", set(), set(), NoValue, NoValue),
@@ -777,9 +781,6 @@ class Logger(BaseLogger):
                          ("write", set(), set(), NoValue, NoValue),
                          ("all", set(), set(), NoValue, NoValue),
                         )
-
-        for bp in bypassers:
-            self.bypassers.update(bp)
 
         self.ignore_all = set()
         if ignore_all is not None:
