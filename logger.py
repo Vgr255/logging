@@ -818,7 +818,7 @@ class Logger(BaseLogger):
             self._print(output, file=file, sep=sep, end=end, split=split)
         if write:
             alines = [x for x in self.logfiles if x in
-                                 self.bypassers["all"].types]
+                                 self.bypassers["all"][0]]
             getter = [file]
             if logall:
                 getter.append(logall)
