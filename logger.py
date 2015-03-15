@@ -101,12 +101,6 @@ class Container:
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
 
-    def __init__(self, items=None):
-        """Create a new mapping."""
-        self._items = items
-        if items is None:
-            self._items = set()
-
     def __add__(self, items):
         """Return a new iterable with all items."""
         new = self._items.copy()
@@ -415,8 +409,8 @@ class Bypassers(Container):
         """Add a new unbound setting. Ignored if setting exists."""
         if setting in self.keys():
             return
-        types = _mps[0]()
-        pairs = _mps[1]()
+        types = _mps[0](set())
+        pairs = _mps[1](set())
         self.keys.append(setting)
         self.types.append(types)
         self.pairs.append(pairs)
