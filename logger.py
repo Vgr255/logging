@@ -432,7 +432,7 @@ class Bypassers(Container):
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
-        index_ = random.rangrange(len(self.keys()))
+        index_ = random.randrange(len(self.keys()))
         setting, types, pairs, module, attr = self.items[index_]
         for name in self._names:
             del getattr(self, name)[index_]
