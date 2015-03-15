@@ -659,13 +659,6 @@ def check_bypass(func):
             file = self.logfiles.get(type, self.logfiles["normal"])
         self.bypassed = {} # reset the bypasses everytime
         for setting, types, pairs, module, attr in self.bypassers.items():
-            if type in types:
-                if module is None:
-                    self.bypassed[setting] = attr
-                else:
-                    self.bypassed[setting] = getattr(module, attr,
-                                                     module[attr])
-                return func(*output, type=type, file=file, **rest)
             for mod, att in pairs:
                 if mod is None and att:
                     if module is None:
@@ -676,8 +669,9 @@ def check_bypass(func):
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, file=file, **rest)
-                if getattr(mod, att, mod[att]):
+                    break
+
+                elif getattr(mod, att, mod[att]):
                     if module is None:
                         self.bypassed[setting] = attr
                     elif module is not NoValue and attr is not NoValue:
@@ -686,7 +680,16 @@ def check_bypass(func):
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, file=file, **rest)
+                    break
+
+            else:
+                if type in types and module is None:
+                    self.bypassed[setting] = attr
+                elif type in types:
+                    self.bypassed[setting] = getattr(module, attr,
+                                                     module[attr])
+
+        return func(self, *output, type=type, file=file, **rest)
 
     return inner
 
