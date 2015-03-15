@@ -477,7 +477,6 @@ class Bypassers(Container):
 class BaseLogger:
     r"""Base Logger class for your everyday needs.
 
-    This uses the LoggerMeta metaclass to handle subclassing.
     This can be inherited to create custom classes.
     This is not user-faced. For general purposes, please use the Logger class.
 
