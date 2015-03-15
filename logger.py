@@ -522,12 +522,11 @@ class BaseLogger:
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
     """
 
-    def __init__(self, sep=" ", ending="\n", file=sys.stdout, use_utc=False,
+    def __init__(self, sep=" ", ending="\n", use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"):
 
         self.separator = sep
         self.ending = ending
-        self.file = file
 
         self.use_utc = use_utc
 
@@ -593,7 +592,7 @@ class BaseLogger:
         This can be used directly, or tweaked for additional functionality."""
 
         if file is None:
-            file = self.file
+            file = sys.stdout
 
         if sep is None:
             sep = self.separator
@@ -745,11 +744,11 @@ class Logger(BaseLogger):
         Default:    set()
     """
 
-    def __init__(self, separator=" ", ending="\n", file=None, use_utc=False,
+    def __init__(self, separator=" ", ending="\n", use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
                  display=True, logfiles=None, bypassers=(), ignore_all=None):
 
-        BaseLogger.__init__(self, separator, ending, file, use_utc, ts_format)
+        BaseLogger.__init__(self, separator, ending, use_utc, ts_format)
 
         self.display = display
         self.write = write
@@ -812,7 +811,7 @@ class Logger(BaseLogger):
         write = self.bypassed.get("write", write)
 
         if display:
-            self._print(output, file=file, sep=sep, end=end, split=split)
+            self._print(output, sep=sep, end=end, split=split)
         if write:
             alines = [x for x in self.logfiles if x in
                                  self.bypassers["all"][0]]
