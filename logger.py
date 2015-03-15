@@ -646,16 +646,27 @@ class BaseLogger:
 
 def check_bypass(func):
     """Decorator for checking bypassability for the Logger class."""
-    def inner(self, *output, type=None, **rest):
+    def inner(self, *output, type=None, file=None, **rest):
+        if file is type is None:
+            type = "normal"
+        if type is None:
+            for f, t in self.logfiles.items():
+                if f == file:
+                    type = t
+                    break
+            else:
+                type = "normal"
+        if file is None:
+            file = self.logfiles.get(type, self.logfiles["normal"])
         self.bypassed = {} # reset the bypasses everytime
         for setting, types, pairs, module, attr in self.bypassers.items():
-            if type is not None and type in types:
+            if type in types:
                 if module is None:
                     self.bypassed[setting] = attr
                 else:
                     self.bypassed[setting] = getattr(module, attr,
                                                      module[attr])
-                return func(*output, type=type, **rest)
+                return func(*output, type=type, file=file, **rest)
             for mod, att in pairs:
                 if mod is None and att:
                     if module is None:
@@ -666,7 +677,7 @@ def check_bypass(func):
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, **rest)
+                    return func(*output, type=type, file=file, **rest)
                 if getattr(mod, att, mod[att]):
                     if module is None:
                         self.bypassed[setting] = attr
@@ -676,7 +687,7 @@ def check_bypass(func):
                     else:
                         raise AttributeError("no value assigned to the %s" %
                               "module" if module is NoValue else "attribute")
-                    return func(*output, type=type, **rest)
+                    return func(*output, type=type, file=file, **rest)
 
     return inner
 
@@ -787,20 +798,6 @@ class Logger(BaseLogger):
 
         if write is None:
             write = self.write
-
-        if file is type is None:
-            type = "normal"
-
-        if type is None:
-            for f, t in self.logfiles.items():
-                if f == file:
-                    type = t
-                    break
-            else:
-                type = "normal"
-
-        if file is None:
-            file = self.logfiles.get(type, self.logfiles["normal"])
 
         output = self._get_output(output, sep, end)
         timestamp = self.bypassed.get("timestamp",
