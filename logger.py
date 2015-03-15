@@ -807,12 +807,9 @@ class Logger(BaseLogger):
         output = toget.pop(0)
 
         # check for settings to bypass, if applicable
-        if 'splitter' in self.bypassed:
-            split = self.bypassed['splitter']
-        if 'display' in self.bypassed:
-            display = self.bypassed['display']
-        if 'write' in self.bypassed:
-            write = self.bypassed['write']
+        split = self.bypassed.get("splitter", split)
+        display = self.bypassed.get("display", display)
+        write = self.bypassed.get("write", write)
 
         if display:
             self._print(output, file=file, sep=sep, end=end, split=split)
