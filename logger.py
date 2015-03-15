@@ -873,18 +873,19 @@ class Logger(BaseLogger):
                 newlined = True
             elif newlined and indent is None and line.lstrip():
                 indent = len(line) - len(line.lstrip())
+                line = line.lstrip()
             elif indent is not None:
                 if line and line[indent:] == line.lstrip():
                     line = line.lstrip()
                 elif (len(line) - len(line.lstrip())) > indent:
                     line = line[indent:]
-                elif (len(line) - len(line.lsrtip())) < indent:
-                    line = line.lsrtip()
-                lines.append(line)
+                elif (len(line) - len(line.lstrip())) < indent:
+                    line = line.lstrip()
+            lines.append(line)
 
-        while newlines and not newlines[-1]:
+        while lines and not lines[-1].strip():
             lines.pop()
-        while newlines and not newlines[0]:
+        while lines and not lines[0].strip():
             lines.pop(0)
 
         self.logger("\n".join(lines), display=display, write=write, sep=sep,
