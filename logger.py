@@ -443,7 +443,7 @@ class Bypassers(Container):
         if item not in self.keys():
             if item in self._fallbacks and fallback is NoValue:
                 fallback = self._fallbacks[item]
-            return fallback
+            return None if fallback is NoValue else fallback
         types, pairs, module, attr = self.values[self.keys.index(item)]
         return (types, pairs, module, attr)
 
