@@ -758,9 +758,16 @@ class Logger(BaseLogger):
         self.display = display
         self.write = write
 
-        self.logfiles = {"normal": "logger.log", "all": "mixed.log"}
+        files = {"normal": "logger.log", "all": "mixed.log"}
+
         if logfiles is not None:
-            self.logfiles.update(logfiles)
+            self.logfiles = logfiles
+            for type, file in files.items():
+                # if the type is already defined, don't overwrite it
+                # only add to it if it doesn't exist
+                self.logfiles[type] = self.logfiles.get(type, file)
+        else:
+            self.logfiles = files
 
         # this needs to be list/tuple of (setting, types, pairs, module, attr)
         # tuples; the setting is the setting to bypass; types is a list of
