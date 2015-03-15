@@ -822,7 +822,6 @@ class Logger(BaseLogger):
             if logall:
                 getter.append(logall)
             for log in getter:
-                exists = os.path.isfile(log)
                 def atypes(out):
                     if log == logall and type in alines:
                         out = "type.%s - %s" % (type, out)
