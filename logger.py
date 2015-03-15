@@ -750,6 +750,7 @@ class Logger(BaseLogger):
     def __init__(self, separator=" ", ending="\n", use_utc=False,
                  ts_format="[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})", write=True,
                  display=True, logfiles=None, bypassers=(), ignore_all=None):
+        """Create a new Logger instance."""
 
         BaseLogger.__init__(self, separator, ending, use_utc, ts_format)
 
