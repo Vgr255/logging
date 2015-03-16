@@ -568,7 +568,7 @@ class BaseLogger:
         if not isinstance(out, str):
             out = sep.join(out) # make any iterable work
         out = out.strip(" ")
-        lines = out.split("\n")
+        lines = out.splitlines()
         splines = [line.split() for line in lines]
         newlines = [] # newline-separated lines
         for i, line in enumerate(lines):
