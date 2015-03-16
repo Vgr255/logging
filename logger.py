@@ -637,7 +637,7 @@ class BaseLogger:
         out = out or [''] # called with no argument, let's support it anyway
         msg = None
         for line in out:
-            if isinstance(line, (list, tuple)):
+            if not isinstance(line, str):
                 line = sep.join(line)
             if msg is None:
                 msg = line
