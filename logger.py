@@ -910,8 +910,8 @@ class Translater(Logger):
 
     def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None,
                  write=True, display=True, logfiles=None, bypassers=(),
-                 ignore_all=None, languages=None, module=None,
-                 ignore_translate=None):
+                 ignore_all=None, all_languages=None, module=None,
+                 ignore_translate=None, languages=None):
         """Create a new translater object."""
 
         super().__init__(sep, ending, use_utc, ts_format,
@@ -919,12 +919,14 @@ class Translater(Logger):
 
         langs = {"English": "en"}
 
-        if languages is not None:
-            self.languages = languages
+        if all_languages is not None:
+            self.all_languages = all_languages
             for long, short in langs.items():
-                self.languages[long] = self.languages.get(long, short)
+                self.all_languages[long] = self.all_languages.get(long, short)
         else:
-            self.languages = langs
+            self.all_languages = langs
+
+        self.languages = {"English"} if languages is None else languages
 
         self.module = module
 
