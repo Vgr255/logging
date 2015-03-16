@@ -798,11 +798,8 @@ class Logger(BaseLogger):
         sep = sep or self.separator
         end = end or self.ending
 
-        if display is None:
-            display = self.display
-
-        if write is None:
-            write = self.write
+        display = self.display if display is None else display
+        write = self.write if write is None else write
 
         output = self._get_output(output, sep, end)
         timestamp = self.bypassed.get("timestamp",
