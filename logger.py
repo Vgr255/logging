@@ -902,3 +902,32 @@ class Logger(BaseLogger):
 
         return self.logger("\n".join(lines), display=display, write=write,
                            sep=sep, end=end, **rest)
+
+class Translater(Logger):
+    """Logging class to use to translate lines.
+
+    This is inherited from the Logger class."""
+
+    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None,
+                 write=True, display=True, logfiles=None, bypassers=(),
+                 ignore_all=None, languages=None, module=None,
+                 ignore_translate=None):
+        """Create a new translater object."""
+
+        super().__init__(sep, ending, use_utc, ts_format,
+                         write, display, logfiles, bypassers, ignore_all)
+
+        langs = {"English": "en"}
+
+        if languages is not None:
+            self.languages = languages
+            for long, short in langs.items():
+                self.languages[long] = self.languages.get(long, short)
+        else:
+            self.languages = langs
+
+        self.module = module
+
+        self.ignore_translate = ignore_translate
+        if ignore_translate is None:
+            self.ignore_translate = set()
