@@ -39,6 +39,7 @@ import random
 import shutil
 import time
 import sys
+import re
 import os
 
 class NoValue:
@@ -873,16 +874,100 @@ class Logger(BaseLogger):
 class Translater(Logger):
     """Logging class to use to translate lines.
 
-    This is inherited from the Logger class."""
+    This is inherited from the Logger class.
+    The parameters are the same as for the Logger class, with these additions:
 
-    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None,
-                 write=True, display=True, logfiles=None, bypassers=(),
-                 ignore_all=None, all_languages=None, module=None,
-                 ignore_translate=None, languages=None):
+    all_languages:  Dictionary of {language:short} pairs. The language is used
+                    for the standard lookup of the language. The value is the
+                    2-characters abbreviation of the language. The default
+                    value is of "English" for the key, and "en" for the value.
+                    This must contain all languages that this class will be
+                    asked to translate, see below for restrictions.
+
+        Default:    {"English": "en"}
+
+    main:           The main language that will be used. This is considered
+                    the "default" language, and is the one that will be used
+                    to write to the normal files. It will always be written to
+                    the files, no matter what language is being used.
+
+        Default:    "English"
+
+    current:        The current language, used for translating and printing to
+                    screen. When writing to one or more files, the files that
+                    this language's lines are written into will be prepended
+                    with the two-characters short language abbreviation that
+                    was given in the all_languages dict, following by a single
+                    underscore, and the file's name. This will not be done if
+                    the language is the same as the main.
+
+        Default:    "English"
+
+    pattern:        Regex pattern that determines when a line should be given
+                    to the translater for replacing. If a line doesn't match,
+                    it will not be translated.
+
+        Default:    "[A-Z_]*" - UPPERCASE_UNDERSCORED_NAMES
+
+    ignore_trans:   An iterable consisting of two items, the first item is an
+                    iterable of types that will not be translated, and the
+                    second item is an iterable of (module, pair) iterables that
+                    will be used to check if translating should be ignored.
+                    This is done with the Bypassers. For more information, see
+                    the Logger class' documentation on the Bypassers.
+
+        Default:    ((), ()) - Two-tuple of empty tuples
+
+    module:         The module or dictionary where the translations will be
+                    looked up. This can be any arbitrary object, as long as
+                    either the object has an attribute corresponding to the
+                    line to translate (see below for information on how those
+                    are looked up), or it implements indexing via module[attr]
+                    and 'attr' is in object 'module'. If both are true, only
+                    the first will be used. If neither are true, it will print
+                    the string as-is. It will never error. It WILL error,
+                    however, if the language used is not in 'all_languages'.
+                    If it is None, then the 'modules' argument will be
+                    checked instead, see below.
+
+        Default:    None
+
+    modules:        If the above parameter is set to None, this will use this
+                    parameter instead. It is a mapping of {language:module}
+                    pairs that will be used to search for each language. The
+                    keys must be in the all_languages mapping as well. The
+                    value must be a module (or any object) where the attributes
+                    or items are equivalent to the strings that will be passed
+                    in. If both the above and this parameter are None, no
+                    translating will occur.
+
+        Default:    None
+
+    first:          Determines which, of the line or the language, must be
+                    checked first when looking up the translations. The only
+                    valid arguments are "line" and "language". Using 'line',
+                    the translater will look into the module or mapping for
+                    an attribute or item named 'line', and then will look for
+                    an attribute or item named like the current language, and
+                    will return the matching result. Otherwise, it will look
+                    for an item named like the current language, and then for
+                    an item named 'line' in it.
+
+                    Note about custom objects: The lookup uses getattr()
+                    followed by item.get() if the former fails, falling back
+                    to printing the line as-is if it fails.
+
+        Default:    "language"
+"""
+
+    def __init__(self, sep=None, use_utc=None, ts_format=None, display=True,
+                 write=True, logfiles=None, bypassers=(), ignore_all=None,
+                 all_languages=None, main=None, current=None, pattern=None,
+                 ignore_trans=None, module=None, modules=None, first=None):
         """Create a new translater object."""
 
-        super().__init__(sep, ending, use_utc, ts_format,
-                         write, display, logfiles, bypassers, ignore_all)
+        super().__init__(sep, use_utc, ts_format, display, write,
+                         logfiles, bypassers, ignore_all)
 
         langs = {"English": "en"}
 
@@ -893,10 +978,16 @@ class Translater(Logger):
         else:
             self.all_languages = langs
 
-        self.languages = {"English"} if languages is None else languages
+        self.main = main or "English"
+        self.current = current or "English"
+
+        if ignore_trans:
+            self.bypassers.update(("translate", ignore_trans[0], 
+                                   ignore_trans[1], None, True))
 
         self.module = module
+        self.modules = modules
 
-        self.ignore_translate = ignore_translate
-        if ignore_translate is None:
-            self.ignore_translate = set()
+        self.first = first or "language"
+        self.pattern = pattern or "[A-Z_]*"
+
