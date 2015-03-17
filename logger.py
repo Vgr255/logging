@@ -241,7 +241,7 @@ class Container:
         return iter(self._items)
 
     def __len__(self):
-        """Return the amount if items in self."""
+        """Return the amount of items in self."""
         return len(self._items)
 
     def __contains__(self, item):
