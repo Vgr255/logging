@@ -590,45 +590,22 @@ class BaseLogger:
                 newlines.append(newstr)
         return newlines
 
-    # this is the re-implementation of the built-in print function
-    # we use this later for printing to screen
-    # we can override the default function in the outer scope
-    def _print(self, *output, file=None, sep=None, end=None, split=True):
-        """Print to screen or file in a safer way.
+    def _print(self, *output, sep=None, end=None, split=True):
+        """Print to screen and remove all invalid characters."""
 
-        This mimics the built-in print() behaviour and adds versatility.
-        This can be used directly, or tweaked for additional functionality."""
-
-        file = file or sys.stdout
         sep = sep or self.separator
         end = end or self.ending
 
         if split:
             output = self._split_lines(output, sep, end)
 
-        # create a file object handler to write to.
-        # if 'file' has a write() method, don't ask questions and use it
-        # it's up to the end user if that method fails
-        if hasattr(file, "write"):
-            objh = file
-        else:
-            # if a str or bytes, assume it's a file
-            # otherwise, assume stdout or similar
-            if isinstance(file, (str, bytes)):
-                objh = open(file, "a", errors="replace")
-            else: # likely int
-                objh = open(file, "w", errors="replace", closefd=False)
+        file = open(sys.stdout.fileno(), "w", errors="replace",
+                    encoding="utf-8", closefd=False)
 
-        objh.write(sep.join(output) + end) # mimic built-in print() behaviour
+        file.write(sep.join(output) + end) # mimic built-in print() behaviour
 
-        # instead of asking for it, flush the stream if we can
-        if hasattr(objh, "flush"):
-            objh.flush()
-
-        # close the used resources if we can, again no need to ask for it
-        # however, make sure sys.stdout is NOT closed
-        if hasattr(objh, "close") and objh not in (sys.stdout, sys.stderr):
-            objh.close()
+        file.flush()
+        file.close()
 
         return sep.join(output)
 
