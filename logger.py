@@ -619,27 +619,23 @@ def check_bypass(func):
             file = self.logfiles.get(type, self.logfiles["normal"])
         self.bypassed = {} # reset the bypasses everytime
         for setting, types, pairs, module, attr in self.bypassers.items():
+            if module is NoValue or attr is NoValue:
+                continue
             for mod, att in pairs:
                 if mod is None and att:
                     if module is None:
                         self.bypassed[setting] = attr
-                    elif module is not NoValue and attr is not NoValue:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module[attr])
                     else:
-                        raise AttributeError("no value assigned to the %s" %
-                              "module" if module is NoValue else "attribute")
+                        self.bypassed[setting] = getattr(module, attr,
+                                                         module.get(attr))
                     break
 
-                elif getattr(mod, att, mod[att]):
+                elif getattr(mod, att, mod.get(att)):
                     if module is None:
                         self.bypassed[setting] = attr
-                    elif module is not NoValue and attr is not NoValue:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module[attr])
                     else:
-                        raise AttributeError("no value assigned to the %s" %
-                              "module" if module is NoValue else "attribute")
+                        self.bypassed[setting] = getattr(module, attr,
+                                                         module.get(attr))
                     break
 
             else:
@@ -647,7 +643,7 @@ def check_bypass(func):
                     self.bypassed[setting] = attr
                 elif type in types:
                     self.bypassed[setting] = getattr(module, attr,
-                                                     module[attr])
+                                                     module.get(attr))
 
         return func(self, *output, type=type, file=file, **rest)
 
