@@ -15,24 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """Improved Logger module by Vgr v0.1
-Documentation string still to-do."""
-
-"""Notes:
-Here are notes for what this module should be able to do.
-These are here since this module is not complete yet
-
-- Logging levels (like error, debug, etc)
-- This could be done through subclassing
-
-The default print function was completely remade.
-It can safely override the built-in print() function
-
-Timestamps are properly implemented.
-This has the ability to split cleverly on long lines.
-
-Next to-do:
-- Implement arbitrary string replacing from within another module (translating)
-"""
+Documentation string still to-do.
+This module is complete, but bugs might be lying around.
+Next up is writing this docstring, then a lot of testing."""
 
 from datetime import datetime
 import random
