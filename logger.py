@@ -1094,39 +1094,38 @@ class Translater(Logger):
         # for loops are amazing and incredible
         for iterable in (format, format_dict, format_mod, output):
             for i, line in enum(iterable):
-                if re.fullmatch(self.pattern, line):
-                    original = line
-                    module = line
-                    lang = None
-                    if self.module is not None:
+                if re.fullmatch(self.pattern, line) is None:
+                    continue
+                original = line
+                module = None
+                lang = None
+                if self.module is not None:
+                    if first == "line":
+                        module = getattr(self.module, line, module.get(line))
+                    else:
+                        module = getattr(self.module, language,
+                                              module.get(language))
+
+                if module is None and self.modules is not None:
+                    lang = self.modules.get(language)
+                    if lang is not None:
+                        module = getattr(lang, line, lang.get(line))
+
+                if module is not None:
+                    if lang is None:
                         if first == "line":
-                            module = getattr(self.module, line,
-                                                  module.get(line, line))
+                            line = getattr(module, language,
+                                           module.get(language))
                         else:
-                            module = getattr(self.module, language,
-                                                  module.get(language, line))
+                            line = getattr(module, line, module.get(line))
 
-                    if module == line and self.modules is not None:
-                        lang = self.modules.get(language)
-                        if lang is not None:
-                            module = getattr(lang, line, lang.get(line, line))
+                    else:
+                        line = module
 
-                    if module != line:
-                        if lang is None:
-                            if first == "line":
-                                line = getattr(module, language,
-                                               module.get(language, line))
-                            else:
-                                line = getattr(module, line,
-                                               module.get(line, line))
+                if line != original and iterable == output:
+                    line = line.format(*format, **format_dict) % format_mod
 
-                        else:
-                            line = module
-
-                    if line != original and iterable == output:
-                        line = line.format(*format, **format_dict) % format_mod
-
-                    iterable[i] = line
+                iterable[i] = line
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
