@@ -696,18 +696,61 @@ class Logger(BaseLogger):
                     this parameter expects an iterable of five-tuples, or
                     an empty iterable.
 
-        Default:    () - Converted to a dynamic instance at runtime
+        Default:    See below (converted to a dynamic instance at runtime)
 
-    ignore_all:     Set of types to ignore when using the Logger.multiple
-                    method. It will not write to the files associated with
-                    any type present in this set.
+    Available settings for the bypassers:
 
-        Default:    set()
+    These are the available settings to bypass. Do note that the default of
+    all these settings is to not do anything, and must be explicitely set
+    otherwise.
+
+    "timestamp":    Will be used to replace the standard timestamp when
+                    writing to file. It will not use that value to perform
+                    the timestamp getting operation. Rather, it will use the
+                    string given directly. If a different timestamp for certain
+                    conditions is the desired result, a manual call to the
+                    _get_timestamp method will need to be done. This is
+                    typically used to remove a timestamp, so it will be used
+                    with the pair of (None, ''), effectively removing the
+                    timestamp.
+
+    "splitter":     This will be used to determine if clever splitting should
+                    occur when printing to screen. Clever splitting splits the
+                    line at the latest space before the line gets to the end of
+                    the terminal's length. By default, this is True, and can be
+                    changed on a per-line basis. This bypasser overrides that.
+
+    "display":      This is used to override the per-line setting that decides
+                    whether the line should be printed to the screen. This is
+                    set to True by default, and can be overriden on a per-line
+                    basis. This bypasser can be used to bypass this setting.
+
+    "write":        This is used to override the per-line setting that decides
+                    whether the line should be written to the file or not. This
+                    is set to True by default, and can be overriden on a per-
+                    line basis. This bypasser can override that parameter.
+
+    "logall":       Defaulting to None, this setting's bypassed value must be
+                    a string object, which, if the bypassing occurs, will be
+                    used as a file to write everything to.
+
+    The following parameters are not actual bypassers. Only the types bound to
+    the setting are of relevance. The pairs are ignored, and so are the
+    module and attribute.
+
+    "files":        The types bound to this setting will be used to determine
+                    when to write and not to write to certain files. This is
+                    only used when using the Logger.multiple method, which will
+                    write to all files except those bound to the types in this
+                    bypasser.
+
+    "all":          The types bound to this setting will not be written as when
+                    writing to the file defined through the 'logall' bypasser,
+                    if available.
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None,
-                 write=None, display=None, logfiles=None, bypassers=None,
-                 ignore_all=None):
+                 write=None, display=None, logfiles=None, bypassers=None):
         """Create a new Logger instance."""
 
         super().__init__(sep, use_utc, ts_format)
@@ -741,9 +784,7 @@ class Logger(BaseLogger):
         self.bypassers = Bypassers(*bypassers)
 
         self.bypassers.add("timestamp", "splitter", "display", "write",
-                           "logall", "all")
-
-        self.ignore_all = set() if ignore_all is None else ignore_all
+                           "logall", "files", "all")
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
@@ -793,7 +834,7 @@ class Logger(BaseLogger):
 
         if "*" in types and len(types) == 1:
             for log in self.logfiles:
-                if log not in self.ignore_all:
+                if log not in self.bypassers["files"][0]:
                     if display:
                         line = self.logger(*output, type=log, display=True,
                                             write=write, **rest)
@@ -967,9 +1008,9 @@ class Translater(Logger):
 """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
-                 write=None, logfiles=None, bypassers=None, ignore_all=None,
-                 all_languages=None, main=None, current=None, pattern=None,
-                 ignore_trans=None, module=None, modules=None, first=None):
+                 write=None, logfiles=None, bypassers=None, all_languages=None,
+                 main=None, current=None, module=None, modules=None,
+                 first=None, pattern=None):
         """Create a new translater object."""
 
         super().__init__(sep, use_utc, ts_format, display, write,
@@ -987,9 +1028,7 @@ class Translater(Logger):
         self.main = main or "English"
         self.current = current or "English"
 
-        if ignore_trans:
-            self.bypassers.update(("translate", ignore_trans[0], 
-                                   ignore_trans[1], None, True))
+        self.bypassers.update(("translate", set(), set(), None, True))
 
         self.module = module
         self.modules = modules
