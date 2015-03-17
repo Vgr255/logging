@@ -24,6 +24,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+__author__ = "Emanuel 'Vgr' Barry"
+__version__ = "0.1"
+
 __doc__ = """Improved Logger module
 
 This is an advanced logger module for various purposes. This is intended as a
