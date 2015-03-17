@@ -549,7 +549,7 @@ class BaseLogger:
             offset += str(time.timezone // 36).zfill(4)
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
 
-    def _split_lines(self, out, sep=" "):
+    def _split_lines(self, out, sep):
         """Split long lines at clever points to avoid weird clipping."""
         col = shutil.get_terminal_size()[0]
         if not isinstance(out, str):
@@ -608,7 +608,7 @@ class BaseLogger:
                 if line == "":
                     line = "\n"
                 msg = msg + sep + str(line)
-        return msg + "\n"
+        return msg
 
 def check_bypass(func):
     """Decorator for checking bypassability for the Logger class."""
