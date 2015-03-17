@@ -1008,3 +1008,95 @@ class Translater(Logger):
         self.first = first or "language"
         self.pattern = pattern or "[A-Z_]*"
 
+    def translate(self, output, language, format, format_dict, format_mod):
+        """Translate a line into the desired language."""
+
+        format = list(format)
+        format_mod = list(format_mod)
+
+        def enum(iterable):
+            if hasattr(iterable, "items"):
+                return iterable.items()
+            return enumerate(iterable)
+
+        lines = []
+        # for loops are amazing and incredible
+        for iterable in (format, format_dict, format_mod, output):
+            for i, line in enum(iterable):
+                if re.fullmatch(self.pattern, line):
+                    original = line
+                    module = line
+                    lang = None
+                    if self.module is not None:
+                        if first == "line":
+                            module = getattr(self.module, line,
+                                                  module.get(line, line))
+                        else:
+                            module = getattr(self.module, language,
+                                                  module.get(language, line))
+
+                    if module == line and self.modules is not None:
+                        lang = self.modules.get(language)
+                        if lang is not None:
+                            module = getattr(lang, line, lang.get(line, line))
+
+                    if module != line:
+                        if lang is None:
+                            if first == "line":
+                                line = getattr(module, language,
+                                               module.get(language, line))
+                            else:
+                                line = getattr(module, line,
+                                               module.get(line, line))
+
+                        else:
+                            line = module
+
+                    if line != original and iterable == output:
+                        line = line.format(*format, **format_dict) % format_mod
+
+                    elif iterable != output:
+                        iterable[i] = line
+
+                if iterable == output:
+                    lines.append(line)
+
+        return lines
+
+    @check_bypass
+    def logger(self, *output, file=None, type=None, display=None, write=None,
+               sep=None, split=None, use_utc=None, ts_format=None,
+               language=None, format=None, format_dict=None, format_mod=None):
+        """Log a line after translating it."""
+
+        sep = self.separator if sep is None else sep
+
+        language = language or self.current
+
+        format = format or ()
+        format_dict = format_dict or {}
+        format_mod = format_mod or ()
+
+        output = self._get_output(output, sep).split(sep)
+
+        if not self.bypassed.get("translate") and language != self.main:
+            trout = self.translate(output, language,
+                                   format, format_dict, format_mod)
+
+        output = self.translate(output, self.main,
+                                format, format_dict, format_mod)
+
+        if self.bypassed.get("translate") or language == self.main:
+            return super().logger(*output, file=file, type=type, write=write,
+                                   display=display, sep=sep, split=split,
+                                   use_utc=use_utc, ts_format=ts_format)
+
+        trfile = self.all_languages[language] + "_" + file
+
+        super().logger(*trout, file=trfile, type=type, display=display,
+                        write=write, sep=sep, split=split,
+                        use_utc=use_utc, ts_format=ts_format)
+
+        return super().logger(*output, file=file, display=False, write=write,
+                               sep=sep, split=split, use_utc=use_utc,
+                               ts_format=ts_format)
