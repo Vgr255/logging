@@ -1042,15 +1042,15 @@ class Translater(Logger):
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
 
-        format = list(format)
-        format_mod = list(format_mod)
+        format = getattr(format.__class__, "copy", list)(format)
+        format_dict = getattr(format_dict.__class__, "copy", dict)(format_dict)
+        format_mod = getattr(format_mod.__class__, "copy", list)(format_mod)
 
         def enum(iterable):
             if hasattr(iterable, "items"):
                 return iterable.items()
             return enumerate(iterable)
 
-        lines = []
         # for loops are amazing and incredible
         for iterable in (format, format_dict, format_mod, output):
             for i, line in enum(iterable):
@@ -1086,13 +1086,7 @@ class Translater(Logger):
                     if line != original and iterable == output:
                         line = line.format(*format, **format_dict) % format_mod
 
-                    elif iterable != output:
-                        iterable[i] = line
-
-                if iterable == output:
-                    lines.append(line)
-
-        return lines
+                    iterable[i] = line
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
@@ -1110,24 +1104,20 @@ class Translater(Logger):
 
         output = self._get_output(output, sep).split(sep)
 
-        if not self.bypassed.get("translate") and language != self.main:
-            trout = self.translate(output, language,
-                                   format, format_dict, format_mod)
+        if self.bypassed.get("translate") is None and language != self.main:
+            trout = output[:]
+            self.translate(trout, language, format, format_dict, format_mod)
 
-        output = self.translate(output, self.main,
-                                format, format_dict, format_mod)
+            trfile = self.all_languages[language] + "_" + file
 
-        if self.bypassed.get("translate") or language == self.main:
-            return super().logger(*output, file=file, type=type, write=write,
-                                   display=display, sep=sep, split=split,
-                                   use_utc=use_utc, ts_format=ts_format)
+            super().logger(*trout, file=trfile, type=type, display=display,
+                            write=write, sep=sep, split=split,
+                            use_utc=use_utc, ts_format=ts_format)
 
-        trfile = self.all_languages[language] + "_" + file
+            display = False
 
-        super().logger(*trout, file=trfile, type=type, display=display,
-                        write=write, sep=sep, split=split,
-                        use_utc=use_utc, ts_format=ts_format)
+        self.translate(output, self.main, format, format_dict, format_mod)
 
-        return super().logger(*output, file=file, display=False, write=write,
+        return super().logger(*output, file=file, display=display, write=write,
                                sep=sep, split=split, use_utc=use_utc,
                                ts_format=ts_format)
