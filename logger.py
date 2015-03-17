@@ -272,10 +272,9 @@ class Bypassers(Container):
 
     bypassers.read()                    Return all (module, attr) pairs
 
-    bypassers.copy()                    Return a new instance with the same
-                                        attributes.
+    bypassers.copy()                    Return a deep copy of the mapping
 
-    bypassers.clear()                   Remove all bindings
+    bypassers.clear()                   Remove all settings and their bindings
 
     Equality testing (== and !=) can be used to compare two different instances
     of the Bypassers mapping. If they have exactly the same mapping (same
@@ -283,6 +282,10 @@ class Bypassers(Container):
     instances will be considered to be equal. This also works even if the other
     instance is not a Bypassers instance, provided they have an identical API.
     To check if two variables are the same instance, use 'is' instead.
+
+    The view objects of this class are changeable. This means that they reflect
+    any changes that happened to the mapping. It is also guaranteed that the
+    view objects' items will be sorted in alphabetical order.
     """
 
     def __init__(self, *names):
