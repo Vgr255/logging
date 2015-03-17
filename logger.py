@@ -40,7 +40,6 @@ import shutil
 import time
 import sys
 import re
-import os
 
 class NoValue:
     """Used to express the lack of value, as None has a special meaning."""
