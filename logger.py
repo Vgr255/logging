@@ -924,18 +924,19 @@ class Translater(Logger):
                     the string as-is. It will never error. It WILL error,
                     however, if the language used is not in 'all_languages'.
                     If it is None, then the 'modules' argument will be
-                    checked instead, see below.
+                    checked instead, see below. It will also be checked if the
+                    module defined here fails to find the appropriate line.
 
         Default:    None
 
-    modules:        If the above parameter is set to None, this will use this
-                    parameter instead. It is a mapping of {language:module}
-                    pairs that will be used to search for each language. The
-                    keys must be in the all_languages mapping as well. The
-                    value must be a module (or any object) where the attributes
-                    or items are equivalent to the strings that will be passed
-                    in. If both the above and this parameter are None, no
-                    translating will occur.
+    modules:        If the above parameter is set to None or otherwise fails,
+                    it will use this parameter instead. It is a mapping of
+                    {language:module} pairs that will be used to search for
+                    each language. The keys must be in the all_languages
+                    mapping as well. The value must be a module (or any object)
+                    where the attributes or items are equivalent to the strings
+                    that will be passed in. If both the above and this
+                    parameter are None, no translating will occur.
 
         Default:    None
 
@@ -947,13 +948,33 @@ class Translater(Logger):
                     an attribute or item named like the current language, and
                     will return the matching result. Otherwise, it will look
                     for an item named like the current language, and then for
-                    an item named 'line' in it.
+                    an item named 'line' in it. If 'module' is not defined or
+                    fails but 'modules' is, this parameter will be ignored and
+                    a single value lookup will be performed.
 
                     Note about custom objects: The lookup uses getattr()
                     followed by item.get() if the former fails, falling back
                     to printing the line as-is if it fails.
 
         Default:    "language"
+
+    Note on translating: The translated lines can take new-style formatting
+    with {0} or similar; it can use list indexes, regular indexes or named
+    indexes like {foo}. Assign an ordered iterable for the numeric indexes
+    with the 'format' argument of the logger method, and a mapping to the
+    'format_dict' argument of the logger method. Old-style formatting using
+    the modulus (%) operand may still be used, by passing a sequence or mapping
+    to the 'format_mod' argument of the logger method. It is up to the user to
+    make sure that the proper type of iterable is given, with the proper
+    arguments in the string. Numerical and named arguments cannot be mixed for
+    old-style formatting. The new-style formatting is the recommended method.
+    Unlike new-style formatting, the modulus method can fail if the incorrect
+    amount of parameters are given. Both formatting methods can be used at the
+    same time. Also, do note that it IS possible to give strings matching the
+    regex pattern to format, and they will be properly translated as well. It
+    is not, however, possible to loop through these recursively. The formatting
+    rules would become too complicated for the small benefit that such a
+    feature would provide.
 """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
