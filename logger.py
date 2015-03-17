@@ -981,7 +981,7 @@ class Translater(Logger):
                     to the translater for replacing. If a line doesn't match,
                     it will not be translated.
 
-        Default:    "[A-Z_]*" - UPPERCASE_UNDERSCORED_NAMES
+        Default:    "[A-Z0-9_]*" - UPPERCASE_UNDERSCORED_NAMES
 
     Note on ignoring translation for certain lines: To prevent certain lines
     from being translated, use the "translate" setting for the bypassers,
@@ -1074,7 +1074,7 @@ class Translater(Logger):
         self.modules = modules
 
         self.first = first or "language"
-        self.pattern = pattern or "[A-Z_]*"
+        self.pattern = pattern or "[A-Z0-9_]*"
 
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
