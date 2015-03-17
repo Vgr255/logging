@@ -929,21 +929,6 @@ class Translater(Logger):
 
         Default:    "English"
 
-    pattern:        Regex pattern that determines when a line should be given
-                    to the translater for replacing. If a line doesn't match,
-                    it will not be translated.
-
-        Default:    "[A-Z_]*" - UPPERCASE_UNDERSCORED_NAMES
-
-    ignore_trans:   An iterable consisting of two items, the first item is an
-                    iterable of types that will not be translated, and the
-                    second item is an iterable of (module, pair) iterables that
-                    will be used to check if translating should be ignored.
-                    This is done with the Bypassers. For more information, see
-                    the Logger class' documentation on the Bypassers.
-
-        Default:    ((), ()) - Two-tuple of empty tuples
-
     module:         The module or dictionary where the translations will be
                     looked up. This can be any arbitrary object, as long as
                     either the object has an attribute corresponding to the
@@ -988,6 +973,24 @@ class Translater(Logger):
 
         Default:    "language"
 
+    pattern:        Regex pattern that determines when a line should be given
+                    to the translater for replacing. If a line doesn't match,
+                    it will not be translated.
+
+        Default:    "[A-Z_]*" - UPPERCASE_UNDERSCORED_NAMES
+
+    Note on ignoring translation for certain lines: To prevent certain lines
+    from being translated, use the "translate" setting for the bypassers,
+    passing a five-tuple with the first item being "translate". The second item
+    is an iterable (a set is the supported type) of types that should not be
+    translated. The third item is another iterable (again, the Bypassers were
+    made to support a set), consisting of (module, attr) pairs, where the
+    module can be any object or None, and the attribute can be an attribute or
+    item of the module or, if the module is None, the direct value will be
+    looked up instead. The last two parameters can be anything (but must be
+    present), they will be replaced at runtime. They are only used internally
+    to determine when not to translate.
+
     Note on translating: The translated lines can take new-style formatting
     with {0} or similar; it can use list indexes, regular indexes or named
     indexes like {foo}. Assign an ordered iterable for the numeric indexes
@@ -1004,7 +1007,8 @@ class Translater(Logger):
     regex pattern to format, and they will be properly translated as well. It
     is not, however, possible to loop through these recursively. The formatting
     rules would become too complicated for the small benefit that such a
-    feature would provide.
+    feature would provide. If one really needs to do so, they can call the
+    logger method recursively on their own.
 """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
