@@ -1066,7 +1066,7 @@ class Translater(Logger):
             self.all_languages = langs
 
         self.main = main or "English"
-        self.current = current or "English"
+        self.current = current or main
 
         self.bypassers.update(("translate", set(), set(), None, True))
 
