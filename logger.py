@@ -1079,9 +1079,12 @@ class Translater(Logger):
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
 
-        format = getattr(format.__class__, "copy", list)(format)
-        format_dict = getattr(format_dict.__class__, "copy", dict)(format_dict)
-        format_mod = getattr(format_mod.__class__, "copy", list)(format_mod)
+        def copy(name, new):
+            return getattr(name.__class__, "copy", new)(name)
+
+        format = copy(format, list)
+        format_dict = copy(format_dict, dict)
+        format_mod = copy(format_mod, list)
 
         def enum(iterable):
             if hasattr(iterable, "items"):
