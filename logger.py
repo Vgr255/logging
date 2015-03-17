@@ -171,7 +171,7 @@ class BaseViewer:
 
     def __dir__(self):
         """Return a list of all methods."""
-        return dir(self.__class__)
+        return dir(self.__class__) + ["__self__"]
 
     def __repr__(self):
         """Return a representation of the viewer."""
