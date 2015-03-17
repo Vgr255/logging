@@ -814,13 +814,12 @@ class Logger(BaseLogger):
             if logall:
                 getter.append(logall)
             for log in getter:
-                def atypes(out):
-                    if log == logall and type in alines:
-                        out = "type.%s - %s" % (type, out)
-                    return out
+                if log == logall and type not in alines:
+                    continue
+                atypes = "type.%s - " % type if log == logall else ""
                 with open(log, "a", encoding="utf-8") as f:
                     for writer in output:
-                        f.write(timestamp + atypes(writer) + "\n")
+                        f.write(timestamp + atypes + writer + "\n")
 
         if display:
             return self._print(*output, sep=sep, end=end,
