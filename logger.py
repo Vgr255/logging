@@ -1141,20 +1141,24 @@ class Translater(Logger):
 
         output = self._get_output(output, sep).split(sep)
 
+        trline = None
+
         if self.bypassed.get("translate") is None and language != self.main:
             trout = output[:]
             self.translate(trout, language, format, format_dict, format_mod)
 
             trfile = self.all_languages[language] + "_" + file
 
-            super().logger(*trout, file=trfile, type=type, display=display,
-                            write=write, sep=sep, split=split,
-                            use_utc=use_utc, ts_format=ts_format)
+            trline = super().logger(*trout, file=trfile, type=type, sep=sep,
+                                    display=display, write=write, split=split,
+                                    use_utc=use_utc, ts_format=ts_format)
 
             display = False
 
         self.translate(output, self.main, format, format_dict, format_mod)
 
-        return super().logger(*output, file=file, display=display, write=write,
-                               sep=sep, split=split, use_utc=use_utc,
-                               ts_format=ts_format)
+        line = super().logger(*output, file=file, type=type, display=display,
+                              write=write, sep=sep, split=split,
+                              use_utc=use_utc, ts_format=ts_format)
+
+        return trline if trline is not None else line
