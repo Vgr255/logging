@@ -3,24 +3,26 @@ Copyright (c) 2015, Emanuel Barry
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+modification, are permitted provided that the following conditions are
+met:
 
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
 
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
@@ -29,128 +31,141 @@ __version__ = "0.1"
 
 __doc__ = """Improved Logger module
 
-This is an advanced logger module for various purposes. This is intended as a
-third-party library for software dealing with a general userbase, where there
-is a need to log what the program does, or even simply as a general logger to
-note down what the program did at some point, errors that occurred and so on.
+This is an advanced logger module for various purposes. This is
+intended as a third-party library for software dealing with a general
+userbase, where there is a need to log what the program does, or even
+simply as a general logger to note down what the program did at some
+point, errors that occurred and so on.
 
-This module exposes four classes and one singleton. They are described below.
+This module exposes four classes and one singleton.
+The two main classes and the singleton are described below.
 
-Logger:     Basic class to use for general logging purposes. See the Logger's
-            documentation for a list and explanation of each argument. This
-            class defines the following methods:
+Logger:     Basic class to use for general logging purposes. See the
+            Logger's documentation for a list and explanation of each
+            argument. This class defines the following methods:
 
-            logger:     Basic logger, used for writing and printing to screen
-                        based on settings defined on call, defaulting to the
-                        class' default (defined when instantiating).
+            logger:     Basic logger, used for writing and printing to
+                        screen based on settings defined on call,
+                        defaulting to the class' default (defined when
+                        instantiating).
 
-            multiple:   Small wrapper around the logger method, used to write
-                        to more than one file at a time. The types given have
-                        to be an iterable, and passing '*' means to write to
-                        all possible files.
+            multiple:   Small wrapper around the logger method, used to
+                        write to more than one file at a time. The
+                        types given have to be an iterable, and passing
+                        '*' means to write to all possible files.
 
-            show:       Small wrapper around the logger method, used solely to
-                        not write to any file. This is a shortcut of having to
-                        do write=False on many lines.
+            show:       Small wrapper around the logger method, used
+                        solely to not write to any file. This is a
+                        shortcut of having to do write=False on many
+                        calls.
 
             docstring:  Wrapper around the logger method, used to print
-                        documentation strings. It handles tabs and spaces in a
-                        proper manner.
+                        documentation strings. It handles tabs and
+                        spaces in a proper manner.
 
-Translater: Advanced class used to translate lines matching a certain pattern,
-            by replacing the line by the one found under the module or modules
-            given, through some lookup rules. These rules can be viewed by
-            accessing the Translater's documentation itself. This class
-            defines the following methods:
+Translater: Advanced class used to translate lines matching a certain
+            pattern, by replacing the line by the one found under the
+            module or modules given, through some lookup rules. These
+            rules can be viewed by accessing the Translater's
+            documentation itself. It defines the following methods:
 
             translate:  A method used to translate the output using the
-                        corresponding lines, and then formatting the resulting
-                        output using the provided formatting options. This
-                        method operates through side effect, which means it
-                        directly alters the output, and returns None. For a
-                        more detailed explanation, see the Translater class'
+                        corresponding lines, and then formatting the
+                        resulting output using the provided formatting
+                        options. This method operates through side
+                        effect, which means it directly alters the
+                        output, and returns None. For a more detailed
+                        explanation, see the Translater class'
                         documentation.
 
-            logger:     Wrapper around the Logger's logger method, which will
-                        translate the lines using the aforementioned translate
-                        method, then call super().logger to do the logging
-                        operations accordingly.
+            logger:     Wrapper around the Logger's logger method,
+                        which will translate the lines using the
+                        aforementioned translate method, then call
+                        super().logger to do the logging operations.
 
-NoValue:    This is the sole instance of the class of the same name. It has no
-            value other than its string representation, 'NoValue', and its
-            always False boolean value. This is used with the Bypassers
-            through the Logger class. A default bypasser setting has NoValue
-            assigned to both the module and attribute. This is used when
-            checking for settings to bypass; if either is NoValue, then no
-            bypassing will occur. It's not possible to assign or re-assign
-            NoValue to any setting. Rather, passing NoValue will tell the
-            Bypassers to use the already-stored value. The Bypassers will
-            never return it.
+NoValue:    This is the sole instance of the class with the same name.
+            It has no value other than its string representation,
+            'NoValue', and its always False boolean value. This is used
+            with the Bypassers through the Logger class. A default
+            bypasser setting has NoValue assigned to both the module
+            and attribute. This is used when checking for settings to
+            bypass; if either is NoValue, then no bypassing will occur.
+            It's not possible to assign or re-assign NoValue to any
+            setting. Rather, passing NoValue will tell the Bypassers to
+            use the already-stored value. The Bypassers will never
+            return this value.
 
-There are also two other publicly-available classes, BaseLogger and Bypassers.
+Here are the two other public classes available:
 
-The BaseLogger class can be used to make custom classes, useful for multiple
-inheritence. It defines a few private methods, that should only be ever used
-by its subclasses, and not from outside.
+The BaseLogger class can be used to make custom classes, useful for
+multiple inheritence. It defines a few private methods, that should
+only be ever used by itself or its subclasses, and not from outside.
 
-The Bypassers class is a five-item mapping, used by the Logger class (and, by
-extention, any of its subclasses). Documentation on the mapping can be viewed
-through its documentation.
+The Bypassers class is a five-item mapping, used by the Logger class
+(and, by extention, any of its subclasses). Documentation on the
+mapping can be viewed through its documentation.
 
-To use this module, you will need to write a small wrapper around it. An
-example of such a wrapper can be found below. See each of the individual
-classes' documentation for more detailed explanation on each of the different
-parameters.
+------------
 
-myLogger = Logger(ts_format="Fake timestamp here", logfiles={"hello": "world"})
+To use this module, you will need to write a small wrapper around it.
+An example of such a wrapper can be found below. See each of the
+individual classes' documentation for more detailed explanation on each
+of the different parameters.
+
+myLogger = Logger(ts_format="Fake timestamp here",
+                  logfiles={"hello": "world"})
 
 logged = myLogger.logger("hello there!", type="hello")
 
-This will print "hello there!" to the screen, and write the following to the
-file "world":
+This will print "hello there!" to the screen, and write the following
+to the file "world":
 
 Fake timestamp here hello there!
 
 The 'logged' variable will hold the "hello there!" string
 
-That was simple enough. Now let's say we want it to write to the file only if
-the value assigned to the key "foo" in the mapping "bar" evaluates to True.
-We'll do it like this:
+That was simple enough. Now let's say we want it to write to the file
+only if the value assigned to the key "foo" in the mapping "bar"
+evaluates to True. We'll do it like this:
 
 bar = {"foo": False}
 
-myLogger = Logger(bypassers=[("write", set(), {(bar, "foo")}, None, True)])
+myLogger = Logger(bypassers=[("write", set(), {(bar, "foo")},
+                                                None, True)])
 
-The syntax for the bypassers is slightly complicated when first looking at it,
-but it's actually easy once you learn it. The documentation for how to use
-this parameter can be found under the Logger's documentation.
+The syntax for the bypassers may seem slightly complicated when first
+looking at it, but it's actually easy once you learn how to use it. The
+documentation for how to use this parameter can be found under the
+Logger's documentation.
 
 myLogger.logger("hello there!", type="hello", write=False)
 
-The call will check for any possible bypasses. However, the value of bar["foo"]
-is False, therefore, no bypassing happens. It will print to screen, but the
-result will not be written to a file. Remember that we passed the 'bar' dict
-in one of the parameters? Let's alter it now.
+This call will check for any possible bypasses. However, the value of
+bar["foo"] is False, therefore, no bypassing happens. It will print to
+screen, but the result will not be written to a file. Remember that we
+passed the 'bar' dict in one of the parameters? Let's alter it now.
 
 bar["foo"] = True
 
 myLogger.logger("hello there!", type="hello", write=False)
 
-Now, however, the value of bar["foo"] is True, and the bypassing happens. It
-again prints to screen, but this time it will also write to the file named
-"world".
+Now, however, the value of bar["foo"] is True, and the bypassing
+happens. It again prints to screen, but this time it will also write to
+the file named "world".
 
-There is currently no way to make the bypassers look to see if a certain
-variable is of a certain value, it will only care about its boolean result,
-True or False. To check for specific values, you will need to write a wrapper
-around it and make it toggle another value between True and False.
+There is currently no way to make the bypassers look to see if a
+certain variable is of a certain value, it will only care about its
+boolean value, True or False. To check for specific values, you will
+need to write a wrapper around it and make it toggle another value
+between True and False.
 
-Now, let's take it a step further. Let's say you deal with a larger userbase,
-and you need to have some lines automatically translated in the user's
-language, which may not be the language your program was programmed in. You
-will need to use the Translater class for that. The lines that will need to be
-translated need to match a regex pattern. It can be customized to fit your
-needs, and defaults to UNDERSCORED_UPPERCASE names.
+Now, let's take it a step further. Let's say you deal with a larger
+userbase, and you need to have some lines automatically translated in
+the user's language, which may or may not be the language your program
+was programmed in. You will need to use the Translater class for that.
+The lines that will need to be translated need to match a regex
+pattern. It can be customized to fit your needs, and defaults to
+UNDERSCORED_UPPERCASE names.
 
 translaterDict = {"English": {"LINE1": "This is the first line.",
                               "LINE2": "This is the {0} line.",
@@ -159,13 +174,13 @@ translaterDict = {"English": {"LINE1": "This is the first line.",
                               "LINE5": "{0} is {t} %s line.",
                               "LINE6": "They can even {0}!"}}
 
-myTranslater = Translater(logfiles={"foo": "bar"},
-                          all_languages={"English": "en"}, main="English",
+myTranslater = Translater(all_languages={"English": "en"},
+                          main="English",
                           module=translaterDict)
 
-myTranslater.logger("LINE1", type="foo")
+myTranslater.logger("LINE1")
 
-Will print "This is the first line." to the screen, and write it to "bar"
+Will print "This is the first line." to the screen
 
 myTranslater.logger("LINE2", format=["second"])
 
@@ -188,8 +203,8 @@ myTranslater.logger("LINE6", format=["be %s"], format_mod=["combined"])
 
 Will result in "They can even be combined!"
 
-Refer to the Translater documentation for more in-depth documentation on the
-Translater class.
+Refer to the Translater documentation for more in-depth documentation
+on the Translater class.
 """
 
 __all__ = ["Bypassers", "BaseLogger", "Logger", "Translater", "NoValue"]
@@ -202,7 +217,7 @@ import sys
 import re
 
 class NoValue:
-    """Used to express the lack of value, as None has a special meaning."""
+    """Express the lack of value, as None has a special meaning."""
 
     def __repr__(self):
         """Return the explicit NoValue string."""
@@ -244,7 +259,7 @@ class Container:
                                    if x[0] != "_" or x[:2] == x[-2:] == "__")
 
     def __eq__(self, other):
-        """Return True if self and other are identical, False otherwise."""
+        """Return self == other."""
         try:
             if self._items == other._items:
                 return True
@@ -255,7 +270,7 @@ class Container:
         return False
 
     def __ne__(self, other):
-        """Return True if self and other are not identical, False otherwise."""
+        """Return self != other."""
         return not self.__eq__(other)
 
 class BaseMapping(Container):
@@ -275,19 +290,19 @@ class BaseMapping(Container):
         return self._items
 
     def __lt__(self, other):
-        """Return True if self is less than other, False otherwise."""
+        """Return self < other."""
         return sorted(self._items) < sorted(other)
 
     def __le__(self, other):
-        """Return True if self is less or equal to other, False otherwise."""
+        """Return self <= other."""
         return sorted(self._items) <= sorted(other)
 
     def __gt__(self, other):
-        """Return True if self is greater than other, False otherwise."""
+        """Return self > other."""
         return sorted(self._items) > sorted(other)
 
     def __ge__(self, other):
-        """Return True if self is greater or equal to other, False otherwise."""
+        """Return self >= other."""
         return sorted(self._items) >= sorted(other)
 
     def __getattr__(self, attr):
@@ -362,74 +377,82 @@ def make_sub(name):
     return subs
 
 class Bypassers(Container):
-    """Special mapping used by the bypassers argument of the Logger class.
+    """Special mapping used by the bypassers argument of Logger.
 
-    This mapping is aimed at emulating a dictionnary, and as such has the same
-    methods that a dictionnary has. However, due to the fact this mapping takes
-    exactly five arguments instead of the standard one or two, more methods
-    were added, named after standard methods from other objects, such as sets
-    and lists. This can be subclassed for more functionality.
+    This mapping is aimed at emulating a dictionnary, and as such has
+    the same methods that a dictionnary has. However, due to the fact
+    that this mapping takes exactly five arguments instead of the
+    standard one or two, more methods were added, named after standard
+    methods from other objects, such as sets and lists. This can be
+    subclassed for more functionality.
 
     Functional API:
 
-    Notes: This API provides functionality to allow any of the five arguments
-    to be read and modified. If you want to use this functional API yourself,
-    you must first read this documentation, as some actions do not behave as
-    they would be normally expected due to the unique nature of this mapping.
+    Note: This API provides functionality to allow any of the five
+    arguments to be read and modified. If you want to use this
+    functional API yourself, you must first read this documentation,
+    as some methods do not behave as you would expect them to due to
+    the unique nature of this mapping.
 
-    bypassers = Bypassers((setting, {types}, {(module, attr)}, module, attr))
+    bypassers = Bypassers((setting, {types}, {pairs}, module, attr))
 
-    bypassers[setting]                  Access the internal mapping of types
-                                        and pairs
+    bypassers[setting]                  Access the internal mapping
 
-    del bypassers[setting]              Remove the setting and all bindings
+    del bypassers[setting]              Remove the setting's bindings
 
-    str(bypassers) | repr(bypassers)    Show all the settings, types, pairs,
-                                        modules and attributes currently active
+    str(bypassers) | repr(bypassers)    Show all the settings, types,
+                                        pairs, modules and attributes
+                                        that are currently active
 
-    len(bypassers)                      Return the total amount of settings
+    len(bypassers)                      Return the number of settings
 
-    x in bypassers                      Return True if x is a setting, whether
-                                        bound or not; False otherwise
+    x in bypassers                      Return True if x is a setting,
+                                        False otherwise
 
     for x in bypassers                  Iterate over all settings
 
-    bool(bypassers)                     Return True if at least one setting is
-                                        bound, False otherwise
+    bool(bypassers)                     Return True if at least one 
+                                        setting is bound, False
+                                        otherwise
 
     dir(bypassers)                      Return a list of all methods
 
-    bypassers.extend(iterable)          Add a new binding; need a five-tuple
+    bypassers.extend(iterable)          Add a new binding; need a
+                                        five-tuple
 
-    bypassers.update(iterable)          Update an existing binding with a
-                                        five-tuple or add a new binding
+    bypassers.update(iterable)          Update existing bindings with
+                                        five-tuples or add new bindings
 
     bypassers.add(setting)              Add new unbound settings
 
-    bypassers.pop(setting)              Return the (types, pairs, module,
-                                        attr) iterable bound to setting and
-                                        removes all the setting's bindings.
+    bypassers.pop(setting)              Return the (types, pairs,
+                                        module, attr) iterable bound to
+                                        the setting and remove all the
+                                        setting's bindings
 
-    bypassers.popitem()                 Remove and return a random pair of
-                                        (setting, types, pairs, module, attr)
+    bypassers.popitem()                 Remove and return a random
+                                        binding, five-tuple
 
-    bypassers.get(setting, fallback)    Return the (types, pairs, module,
-                                        attr) iterable bound to the setting. If
-                                        the setting does not exist, 'fallback'
-                                        will be returned; defaults to None.
+    bypassers.get(setting, fallback)    Return the (types, pairs,
+                                        module, attr) iterable bound to
+                                        the setting. If the setting
+                                        does not exist, 'fallback' will
+                                        be returned; defaults to None
 
-    bypassers.setdefault(item, fb)      Set the default fallback for setting
-                                        'item' to 'fb'; this only affects .get
+    bypassers.setdefault(item, fb)      Set the default fallback for
+                                        setting 'item' to 'fb'; this
+                                        only affects .get
 
-    bypassers.count(iters)              Return the number of settings which
-                                        are set to use this (module, attr) pair
+    bypassers.count(iters)              Return the number of settings
+                                        which are set to use this
+                                        (module, attr) pair
 
     bypassers.keys()                    Return all existing settings
 
-    bypassers.values()                  Return all (types, pairs, module,
-                                        attr) tuples currently active
+    bypassers.values()                  Return all (types, pairs,
+                                        module, attr) pairs
 
-    bypassers.items()                   Return all existing five-tuples
+    bypassers.items()                   Return all existing bindings
 
     bypassers.types()                   Return all types
 
@@ -437,20 +460,22 @@ class Bypassers(Container):
 
     bypassers.read()                    Return all (module, attr) pairs
 
-    bypassers.copy()                    Return a deep copy of the mapping
+    bypassers.copy()                    Return a deep copy
 
-    bypassers.clear()                   Remove all settings and their bindings
+    bypassers.clear()                   Remove all settings and their
+                                        bindings
 
-    Equality testing (== and !=) can be used to compare two different instances
-    of the Bypassers mapping. If they have exactly the same mapping (same
-    settings bound to the same types, pairs, module and attribute), both
-    instances will be considered to be equal. This also works even if the other
-    instance is not a Bypassers instance, provided they have an identical API.
-    To check if two variables are the same instance, use 'is' instead.
+    Equality testing (== and !=) can be used to compare two different
+    instances of the Bypassers mapping. If they have exactly the same
+    mapping (same settings bound to the same types, pairs, module and
+    attribute), both instances will be considered to be equal. This
+    also works even if the other instance is not a Bypassers instance,
+    provided they have a similar API. To check if two variables are the
+    same instance, use 'is' instead.
 
-    The view objects of this class are changeable. This means that they reflect
-    any changes that happened to the mapping. It is also guaranteed that the
-    view objects' items will be sorted in alphabetical order.
+    The view objects of this class are changeable. This means that they
+    reflect any changes that happened to the mapping. It is also
+    guaranteed that the view objects' items will be sorted.
     """
 
     def __init__(self, *names):
@@ -497,7 +522,7 @@ class Bypassers(Container):
         return item in self.keys()
 
     def __bool__(self):
-        """Return True if at least one setting is bound, False otherwise."""
+        """Return True if at least one setting is bound."""
         for mapping in (self.types, self.pairs):
             for inner in mapping:
                 if inner:
@@ -513,7 +538,7 @@ class Bypassers(Container):
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
     def __eq__(self, other):
-        """Return True if self and other are identical, False otherwise."""
+        """Return self == other."""
         try:
             return self.items() == other.items()
         except:
@@ -538,8 +563,8 @@ class Bypassers(Container):
                     self.types.append(types)
                     self.pairs.append(pairs)
                     self.read.append((NoValue, NoValue))
-                    self.values.append((types, pairs, NoValue, NoValue))
-                    self.items.append((setting, types, pairs, NoValue, NoValue))
+                    self.values.append((types, pairs) + self.read[index_])
+                    self.items.append((setting,) + self.values[index_])
                 if module is NoValue:
                     module = self.read[index_][0]
                 if attr is NoValue:
@@ -549,7 +574,7 @@ class Bypassers(Container):
                 self.items[index_] = self.items[index_][:3] + (module, attr)
 
     def extend(self, items):
-        """Add a new binding of (setting, types, pairs, module, attr)."""
+        """Add a new binding from a five-tuple."""
         setting, types, pairs, module, attr = items
         if setting in self.keys():
             index_ = self.keys.index(setting)
@@ -603,7 +628,7 @@ class Bypassers(Container):
         return (setting, types, pairs, module, attr)
 
     def get(self, item, fallback=NoValue):
-        """Return the settings' bindings, or fallback if not available."""
+        """Return the settings' bindings or fallback."""
         if item not in self.keys():
             if item in self._fallbacks and fallback is NoValue:
                 fallback = self._fallbacks[item]
@@ -618,7 +643,7 @@ class Bypassers(Container):
             del self._fallbacks[item]
 
     def count(self, iters):
-        """Return the amount of (module, attr) bindings in all settings."""
+        """Return the amount of (module, attr) pairs."""
         cnt = 0
         module, attr = iters
         for mod, att in self.read():
@@ -642,33 +667,36 @@ class BaseLogger:
     """Base Logger class for your everyday needs.
 
     This can be inherited to create custom classes.
-    This is not user-faced. For general purposes, please use the Logger class.
-    All arguments have a default value of None, and their stated default value
-    is assigned after the call. This can be used to pass None for a parameter
-    to ensure it always uses the correct default value, should it change.
-    Subclasses defined in this module follow this rule, and any other class
-    subclassing it should follow it too. It is also recommended that any method
-    defined under such classes follow this rule, although it is not enforced.
+    This is not user-faced. For general purposes, please use the Logger
+    class. All arguments have a default value of None, and their stated
+    default value is assigned after the call. This can be used to pass
+    None for a parameter to ensure it always uses the correct default
+    value, should it change. Subclasses defined in this module follow
+    this rule, and any other class subclassing it should follow it too.
+    It is also recommended that any method defined under such classes
+    follow this rule, although it is not strongly enforced.
 
     sep:            String to be used to join the lines together.
 
         Default:    " "
 
-    use_utc:        Boolean value to determine whether timestamps should use
-                    Universal Coordinated Time or the local time.
+    use_utc:        Boolean value to determine if the timestamps should
+                    use Universal Coordinated Time or the local time.
 
         Default:    False
 
-    ts_format:      Format string for timestamps. The parameters are the same
-                    as the time module's 'strftime' method. However, for the
-                    time zone name and offset, use {tzname} and {tzoffset}
-                    respectively. This is done to account for the use_utc
-                    parameter as well as allow full cross-platformity (some
-                    platforms, such as certain versions of Windows, fail to
-                    interpret %z properly). The timezone name will be the
-                    uppercased three-letters abbreviation. The time zone offset
-                    is a string with + or - following by 4 digits, like +0000
-                    or -0500, the digits being HHMM.
+    ts_format:      Format string for timestamps. The parameters are
+                    the same as the time module's 'strftime' function.
+                    However, for the time zone name and offset, use
+                    {tzname} and {tzoffset} respectively. This is done
+                    to account for the use_utc parameter as well as
+                    allow full cross-platformity (some platforms, such
+                    as certain versions of Windows, fail to interpret
+                    %z properly). The timezone name will be the
+                    three-letters abbreviation of the timezone,
+                    uppercased.. The time zone offset is a string with
+                    + or - following by 4 digits, like +0000 or -0500,
+                    the digits being HHMM.
 
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
     """
@@ -713,7 +741,7 @@ class BaseLogger:
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
 
     def _split_lines(self, out, sep):
-        """Split long lines at clever points to avoid weird clipping."""
+        """Split long lines at clever points."""
         col = shutil.get_terminal_size()[0]
         out = out.strip(" ")
         lines = out.splitlines()
@@ -749,7 +777,7 @@ class BaseLogger:
         file = open(sys.stdout.fileno(), "w", errors="replace",
                     encoding="utf-8", closefd=False)
 
-        file.write(sep.join(output) + "\n") # mimic built-in print() behaviour
+        file.write(sep.join(output) + "\n")
 
         file.flush()
         file.close()
@@ -758,7 +786,7 @@ class BaseLogger:
 
     def _get_output(self, out, sep):
         """Sanitize output and join iterables together."""
-        out = out or [''] # called with no argument, let's support it anyway
+        out = out or [''] # called with no argument, support it anyway
         msg = None
         for line in out:
             if msg is None:
@@ -822,97 +850,108 @@ class Logger(BaseLogger):
 
     The options are the same as the base class, with these additions:
 
-    display:        Default parameter to determine if the loggers should
-                    print to screen. This can be overriden on a per-call basis.
+    display:        Default parameter to determine if the loggers
+                    should print to screen. This can be overriden when
+                    calling the method, on a per-line basis.
 
         Default:    True
 
-    write:          Default parameter to determine if the loggers should
-                    write to a file. This can be overriden on a per-call basis.
+    write:          Default parameter to determine if the loggers
+                    should write to a file. This can be overriden when
+                    calling the method, on a per-line basis.
 
         Default:    True
 
-    logfiles:       Dictionary of {type:file} pairs. The type is the logging
-                    type that the logger expects. The file is the file that
-                    tells the logger to write to. This can be used for dynamic
-                    file logging.
+    logfiles:       Dictionary of {type:file} pairs. The type is the
+                    logging type that the logger expects. The file is
+                    the file that tells the logger to write to. This
+                    can be used for dynamic file logging.
 
         Default:    {"normal": "logger.log", "all": "mixed.log"}
 
-    bypassers:      This is an iterable of (setting, types, pairs, module,
-                    attr) iterables. 'types' is an iterable of all types that
-                    can match this bypasser. 'pairs' is an iterable of
-                    two-tuples, the first argument is the module, a
-                    dictionary or None, the second argument is the attribute
-                    to search for in the module or dict; if the module is None,
-                    the bypassers will use the attribute as its direct value
-                    look-up. After this mangling, if the value is True in a
-                    boolean context, then the override will occur, and the
-                    setting's value will be overridden by the module and
-                    attribute's look-up, in the same way that the pairs are
-                    check for truth testing. 'setting' is the setting to bypass
-                    when the previously-mentioned conditionals evaluate to
-                    True, so if at least one of the types matches the type that
-                    the logger was called with, or if the value evaluates to
-                    True. Do note that the types and pairs parameters expect
-                    sets as parameters, and will fail if not given as such.
-                    This is done to allow the values to be modified and for the
-                    modifications to carry over to the bypassers. This may
-                    change in the future for a custom object. Do note that
-                    this parameter expects an iterable of five-tuples, or
-                    an empty iterable.
+    bypassers:      This is an iterable of (setting, types, pairs,
+                    module, attr) iterables. 'types' is an iterable of
+                    all types that can match this bypasser. 'pairs' is
+                    an iterable of two-tuples, the first argument is
+                    the module, a dictionary or None, the second
+                    argument is the attribute to search for in the
+                    module or dict; if the module is None, the
+                    bypassers will use the attribute as its direct
+                    value look-up. After this mangling, if the value is
+                    True in a boolean context, then the override will
+                    occur, and the setting's value will be overridden
+                    by the module and attribute's look-up, in the same
+                    way that the pairs are check for truth testing.
+                    'setting' is the setting to bypass when the
+                    previously-mentioned conditionals evaluate to True,
+                    so if at least one of the types matches the type
+                    that the logger was called with, or if the value
+                    evaluates to True. Do note that the types and pairs
+                    parameters expect sets as parameters, and will fail
+                    if not given as such. They can, however, be any
+                    other object with the same API as sets. This is
+                    done to allow the values to be modified and for the
+                    modifications to carry over to the bypassers. Do
+                    note that this parameter expects an iterable of
+                    five-tuples, or an empty iterable.
 
-        Default:    See below (converted to a dynamic instance at runtime)
+        Default:    See below
 
     Available settings for the bypassers:
 
-    These are the available settings to bypass. Do note that the default of
-    all these settings is to not do anything, and must be explicitely set
-    otherwise.
+    These are the available settings to bypass. Do note that the
+    default of all these settings is to not do anything, and must be
+    explicitely set otherwise.
 
     "timestamp":    Will be used to replace the standard timestamp when
-                    writing to file. It will not use that value to perform
-                    the timestamp getting operation. Rather, it will use the
-                    string given directly. If a different timestamp for certain
-                    conditions is the desired result, a manual call to the
-                    _get_timestamp method will need to be done. This is
-                    typically used to remove a timestamp, so it will be used
-                    with the pair of (None, ''), effectively removing the
+                    writing to file. It will not use that value to
+                    perform the timestamp getting operation. Rather, it
+                    will use the string given directly. If a different
+                    timestamp for various reasons is the desired
+                    result, a manual call to the _get_timestamp method
+                    will need to be done. This is typically used to
+                    remove a timestamp, so it will be used with the
+                    pair of (None, ''), effectively removing the
                     timestamp.
 
-    "splitter":     This will be used to determine if clever splitting should
-                    occur when printing to screen. Clever splitting splits the
-                    line at the latest space before the line gets to the end of
-                    the terminal's length. By default, this is True, and can be
-                    changed on a per-line basis. This bypasser overrides that.
+    "splitter":     This will be used to determine if clever splitting
+                    should occur when printing to screen. Clever
+                    splitting splits the line at the latest space
+                    before the line gets to the end of the terminal's
+                    length. By default, this is True, and can be
+                    changed when calling, on a per-line basis. This
+                    bypasser overrides that.
 
-    "display":      This is used to override the per-line setting that decides
-                    whether the line should be printed to the screen. This is
-                    set to True by default, and can be overriden on a per-line
-                    basis. This bypasser can be used to bypass this setting.
+    "display":      This is used to override the per-line setting that
+                    decides whether the line should be printed to the
+                    screen. This is set to True by default, and can be
+                    overriden when calling on a per-line basis. This
+                    bypasser can be used to bypass this setting.
 
-    "write":        This is used to override the per-line setting that decides
-                    whether the line should be written to the file or not. This
-                    is set to True by default, and can be overriden on a per-
-                    line basis. This bypasser can override that parameter.
+    "write":        This is used to override the per-line setting that
+                    decides whether the line should be written to the
+                    file or not. This is set to True by default, and
+                    can be overriden when calling on a per-line basis.
+                    This bypasser can override that parameter.
 
-    "logall":       Defaulting to None, this setting's bypassed value must be
-                    a string object, which, if the bypassing occurs, will be
-                    used as a file to write everything to.
+    "logall":       Defaulting to None, this setting's bypassed value
+                    must be a string object, which, if the bypassing
+                    occurs, will be the file to write everything to.
 
-    The following parameters are not actual bypassers. Only the types bound to
-    the setting are of relevance. The pairs are ignored, and so are the
-    module and attribute.
+    The following parameters are not actual bypassers. Only the types
+    bound to the setting are of relevance. The pairs are ignored, and
+    so are the module and attribute.
 
-    "files":        The types bound to this setting will be used to determine
-                    when to write and not to write to certain files. This is
-                    only used when using the Logger.multiple method, which will
-                    write to all files except those bound to the types in this
-                    bypasser.
+    "files":        The types bound to this setting will be used to
+                    determine when to write and not to write to certain
+                    files. This is only used when using the
+                    Logger.multiple method, which will write to all
+                    files specified, except those bound to the types
+                    of this bypasser.
 
-    "all":          The types bound to this setting will not be written as when
-                    writing to the file defined through the 'logall' bypasser,
-                    if available.
+    "all":          The types bound to this setting will not be written
+                    as when writing to the file defined through the
+                    'logall' bypasser, if available.
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None,
@@ -935,15 +974,17 @@ class Logger(BaseLogger):
         else:
             self.logfiles = files
 
-        # this needs to be list/tuple of (setting, types, pairs, module, attr)
-        # tuples; the setting is the setting to bypass; types is a list of
-        # types to check for to determine if bypassing should occur, same
-        # about the pairs, except for module/attr matches; module and attr are
-        # used with getattr() to bypass the value of setting with the one found
-        # in the given module, for the given attribute; module of None means
-        # to use the attr as the direct value; making the type None will also
-        # indicate that any type can be triggered. to indicate a lack of value
-        # for any parameter, pass NoValue, as None has a special meaning
+        # this needs to be list/tuple of (setting, types, pairs,
+        # module, attr) tuples; the setting is the setting to bypass;
+        # types is a list of types to check for to determine if
+        # bypassing should occur, same about the pairs, except for
+        # module/attr matches; module and attr are used with getattr()
+        # to bypass the value of setting with the one found in the
+        # given module, for the given attribute; module of None means
+        # to use the attr as the direct value; making the type None
+        # will also indicate that any type can be triggered. To
+        # indicate a lack of value for any parameter, pass NoValue, as
+        # None has a special meaning
         if bypassers is None:
             bypassers = ()
 
@@ -965,7 +1006,8 @@ class Logger(BaseLogger):
         output = self._get_output(output, sep, end)
         timestamp = self.bypassed.get("timestamp",
                     self._get_timestamp(use_utc, ts_format))
-        logall = self.bypassed.get("logall") # file to write everything to
+        # this is the file to write everything to
+        logall = self.bypassed.get("logall")
         output = output.splitlines()
 
         # check for settings to bypass, if applicable
@@ -1003,7 +1045,7 @@ class Logger(BaseLogger):
                     if display:
                         line = self.logger(*output, type=log, display=True,
                                             write=write, **rest)
-                        display = False # only display once, if applicable
+                        display = False # display only once
                     else:
                         self.logger(*output, type=log, display=False,
                                      write=write, **rest)
@@ -1066,152 +1108,166 @@ class Translater(Logger):
     """Logging class to use to translate lines.
 
     This is inherited from the Logger class.
-    The parameters are the same as for the Logger class, with these additions:
+    The parameters are the same as for the Logger class, plus these:
 
-    all_languages:  Dictionary of {language:short} pairs. The language is used
-                    for the standard lookup of the language. The value is the
-                    2-characters abbreviation of the language. The default
-                    value is of "English" for the key, and "en" for the value.
-                    This must contain all languages that this class will be
-                    asked to translate, see below for restrictions.
+    all_languages:  Dictionary of {language:short} pairs. The language
+                    is used for the standard lookup of the language.
+                    The value is the 2-characters abbreviation of the
+                    language. The default value is "English" for the
+                    key, and "en" for the value. This must contain all
+                    languages that this class will be asked to
+                    translate to, see below for restrictions.
 
         Default:    {"English": "en"}
 
-    main:           The main language that will be used. This is considered
-                    the "default" language, and is the one that will be used
-                    to write to the normal files. It will always be written to
-                    the files, no matter what language is being used.
+    main:           The main language that will be used. This is
+                    considered the "default" language, and is the one
+                    that will be used to write to the normal files. It
+                    will always be written to the files, no matter what
+                    language is being used.
 
         Default:    "English"
 
-    current:        The current language, used for translating and printing to
-                    screen. When writing to one or more files, the files that
-                    this language's lines are written into will be prepended
-                    with the two-characters short language abbreviation that
-                    was given in the all_languages dict, following by a single
-                    underscore, and the file's name. This will not be done if
-                    the language is the same as the main.
+    current:        The current language, used for translating and
+                    printing to screen. When writing to one or more
+                    files, the files that this language's lines are
+                    written into will be prepended with the
+                    two-characters short language abbreviation that was
+                    given in the all_languages dict, followed by a
+                    single underscore and the file's name. This will
+                    not be done if the language is the same as 'main'.
 
         Default:    "English"
 
-    module:         The module or dictionary where the translations will be
-                    looked up. This can be any arbitrary object, as long as
-                    either the object has an attribute corresponding to the
-                    line to translate (see below for information on how those
-                    are looked up), or it implements indexing via module[attr]
-                    and 'attr' is in object 'module'. If both are true, only
-                    the first will be used. If neither are true, it will print
-                    the string as-is. It will never error. It WILL error,
-                    however, if the language used is not in 'all_languages'.
-                    If it is None, then the 'modules' argument will be
-                    checked instead, see below. It will also be checked if the
-                    module defined here fails to find the appropriate line.
+    module:         The module or dictionary where the translations
+                    will be looked up. This can be any arbitrary
+                    object, as long as either the object has an
+                    attribute corresponding to the line to translate
+                    (see below for information on how those are looked
+                    up), or it implements indexing via module[attr] and
+                    'attr' is in object 'module'. If both are true,
+                    only the first will be used. If neither are true,
+                    it will print the string as-is. It will never
+                    error. It WILL error, however, if the language used
+                    is not in 'all_languages'. If it is None, then the
+                    'modules' argument will be checked instead, see
+                    below. It will also be checked if the module
+                    defined here fails to find the appropriate line.
 
         Default:    None
 
-    modules:        If the above parameter is set to None or otherwise fails,
-                    it will use this parameter instead. It is a mapping of
-                    {language:module} pairs that will be used to search for
-                    each language. The keys must be in the all_languages
-                    mapping as well. The value must be a module (or any object)
-                    where the attributes or items are equivalent to the strings
+    modules:        If the above parameter is set to None or otherwise
+                    fails, it will use this parameter instead. It is a
+                    mapping of {language:module} pairs that will be
+                    used to search for each language. The keys must be
+                    in the all_languages mapping as well. The value
+                    must be a module (or any object) where the
+                    attributes or items are equivalent to the strings
                     that will be passed in. If both the above and this
                     parameter are None, no translating will occur.
 
         Default:    None
 
-    first:          Determines which, of the line or the language, must be
-                    checked first when looking up the translations. The only
-                    valid arguments are "line" and "language". Using 'line',
-                    the translater will look into the module or mapping for
-                    an attribute or item named 'line', and then will look for
-                    an attribute or item named like the current language, and
-                    will return the matching result. Otherwise, it will look
-                    for an item named like the current language, and then for
-                    an item named 'line' in it. If 'module' is not defined or
-                    fails but 'modules' is, this parameter will be ignored and
-                    a single value lookup will be performed.
+    first:          Determines which, of the line or the language, must
+                    be checked first when looking up the translations.
+                    The only valid arguments are "line" and "language".
+                    Using 'line', the translater will look into the
+                    module or mapping for an attribute or item named
+                    'line', and then will look for an attribute or item
+                    named like the current language, and will return
+                    the matching result. Otherwise, it will look for an
+                    item named like the current language, and then for
+                    an item named like the line in it. If 'module' is
+                    left undefined or fails but 'modules' is, this
+                    parameter will be ignored and a single value lookup
+                    will be performed.
 
-                    Note about custom objects: The lookup uses getattr()
-                    followed by item.get() if the former fails, falling back
-                    to printing the line as-is if it fails.
+                    Note about custom objects: The lookup uses getattr
+                    followed by item.get if the former fails, falling
+                    back to printing the line as-is if it fails.
 
         Default:    "language"
 
-    pattern:        Regex pattern that determines when a line should be given
-                    to the translater for replacing. If a line doesn't match,
-                    it will not be translated.
+    pattern:        Regex pattern that determines when a line should be
+                    given to the translater for replacing. If a line
+                    doesn't match, it will not be translated.
 
         Default:    "[A-Z0-9_]*" - UPPERCASE_UNDERSCORED_NAMES
 
-    Note on ignoring translation for certain lines: To prevent certain lines
-    from being translated, use the "translate" setting for the bypassers,
-    passing a five-tuple with the first item being "translate". The second item
-    is an iterable (a set is the supported type) of types that should not be
-    translated. The third item is another iterable (again, the Bypassers were
-    made to support a set), consisting of (module, attr) pairs, where the
-    module can be any object or None, and the attribute can be an attribute or
-    item of the module or, if the module is None, the direct value will be
-    looked up instead. The last two parameters can be anything (but must be
-    present), they will be replaced at runtime. They are only used internally
-    to determine when not to translate.
+    Note on ignoring translation for certain lines: To prevent certain
+    lines from being translated, use the "translate" setting for the
+    bypassers, passing a five-tuple with the first item being
+    "translate". The second item is an iterable (a set is the supported
+    and recommended type) of types that should not be translated. The
+    third item is another iterable (again, the Bypassers are meant to
+    support a set), consisting of (module, attr) pairs, where the
+    module can be any object or None, and the attribute can be an
+    attribute or item of the module or, if the module is None, the
+    direct value will be looked up instead. The last two parameters can
+    be anything (but must be present), they will be replaced at runtime
+    as they are only used internally to decide when not to translate.
 
-    Note on translating: The translated lines can take new-style formatting
-    with {0} or similar; it can use list indexes, regular indexes or named
-    indexes like {foo}. Assign an ordered iterable for the numeric indexes
-    with the 'format' argument of the logger method, and a mapping to the
-    'format_dict' argument of the logger method. Old-style formatting using
-    the modulus (%) operand may still be used, by passing a sequence or mapping
-    to the 'format_mod' argument of the logger method. It is up to the user to
-    make sure that the proper type of iterable is given, with the proper
-    arguments in the string. Numerical and named arguments cannot be mixed for
-    old-style formatting. The new-style formatting is the recommended method.
-    Unlike new-style formatting, the modulus method can fail if the incorrect
-    amount of parameters are given. Both formatting methods can be used at the
-    same time. Also, do note that it IS possible to give strings matching the
-    regex pattern to format, and they will be properly translated as well. It
-    is not, however, possible to loop through these recursively. The formatting
-    rules would become too complicated for the small benefit that such a
-    feature would provide. If one really needs to do so, they can call the
-    logger method recursively on their own.
+    Note on translating: The translated lines can take new-style
+    formatting with {0} or similar; it can use list indexes, regular
+    indexes or named indexes like {foo}. Assign an ordered iterable for
+    the numeric indexes to the 'format' argument of the logger method,
+    and a mapping to the 'format_dict' argument of the logger method.
+    Old-style formatting using the modulus (%) operand may still be
+    used, by passing a sequence or mapping to the 'format_mod' argument
+    of the logger method. It is up to the user to make sure that the
+    proper type of iterable is given, with the proper arguments in the
+    string. Numerical and named arguments cannot be mixed for old-style
+    formatting. The new-style formatting is the recommended method.
+    Unlike new-style formatting, the modulus method can fail if the
+    incorrect amount of parameters are given. Both formatting methods
+    can be used at the same time. Also, do note that it IS possible to
+    give strings matching the regex pattern to format, and they will be
+    properly translated as well. It is not, however, possible to loop
+    through these recursively. The formatting rules would become too
+    complicated for the small benefit that such a feature would
+    provide. If one really needs to do so, they can call the logger
+    method recursively on their own.
 
-    Worth of note: The modulus-style formatting is applied after the new-style
-    formatting. This makes it easier to go one layer deeper into the
-    formatting, and allow for formatting from inside the previsouly-formatted
-    lines.
+    Worth of note: The modulus-style formatting is applied after the
+    new-style formatting. This makes it easier to go one layer deeper
+    into the formatting, and allow for formatting from inside the
+    previsouly-formatted lines.
 
-    If translating directly without using the logger method, here are a few
-    useful bits of information:
+    If translating directly without using the logger method, here are a
+    few useful bits of information:
 
-    - It operates through side-effect. This means that it doesn't return any
-      value, rather, it directly alters the list given. If the object passed
-      in as the first parameter is not mutable, an exception will occur. This
-      restriction does not apply to the formats.
+    - It operates through side-effect. This means that it doesn't
+      return any value, rather, it directly alters the list given. If
+      the object passed in as the first parameter is not mutable, an
+      exception will occur. This restriction does not apply to the
+      formats.
 
-    - It takes five arguments (besides self). The first argument is the mutable
-      object used for the output (and which will be altered). The second
-      argument is the language. This will be used for looking up which line
-      lines to use. The 3 other arguments are used for formatting, post-
-      translation. All 3 arguments must be given. The first of the three
-      is to be used as the numerical formatting using new-style string
-      formatting (the str.format method). The second is a mapping to be used
-      in the new-style formatting as well. The third one can be either a
-      (mutable) sequence or mapping, and is used for old-style formatting
-      (modulus formatting with the % operand). It will be applied after the
-      new-style formatting has been applied.
+    - It takes five arguments (besides self). The first argument is
+      the mutable object used for the output (and which will be
+      altered). The second argument is the language. This will be used
+      for looking up which line lines to use. The 3 other arguments are
+      used for formatting, post-translation. All 3 arguments must be
+      given. The first of the three is to be used as the numerical
+      formatting using new-style string formatting (the str.format
+      method). The second is a mapping to be used in the new-style
+      formatting as well. The third one can be either a (mutable)
+      sequence or mapping, and is used for old-style formatting
+      (modulus formatting with the % operand). It will be applied after
+      the new-style formatting has been applied.
 
-    - It makes sure to retain the original class of the formats iterables
-      passed in, if it can. The class of each variable needs to define a copy
-      method, if it does, it will be used. If there are no copy methods, it
-      will use the default expectation of what the iterable should be; a list
-      for 'format' and 'format_mod', and a dict for 'format_dict'; this is done
-      to accept any object, not just built-in ones.
+    - It makes sure to retain the original class of the formats
+      iterables passed in, if it can. The class of each variable needs
+      to define a copy method, if it does, it will be used. If there
+      are no copy methods, it will use the default expectation of what
+      the iterable should be; a list for 'format' and 'format_mod', and
+      a dict for 'format_dict'; this is done to accept any object, not
+      just built-in ones.
 """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
-                 write=None, logfiles=None, bypassers=None, all_languages=None,
-                 main=None, current=None, module=None, modules=None,
-                 first=None, pattern=None):
+                 write=None, logfiles=None, bypassers=None,
+                 all_languages=None, main=None, current=None, module=None,
+                 modules=None, first=None, pattern=None):
         """Create a new translater object."""
 
         super().__init__(sep, use_utc, ts_format, display, write,
