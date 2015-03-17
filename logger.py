@@ -480,23 +480,16 @@ class BaseLogger:
 
     This can be inherited to create custom classes.
     This is not user-faced. For general purposes, please use the Logger class.
-
-    Usage: BaseLogger(
-           sep = " ",
-           file = None,
-           use_utc = False,
-           ts_format = "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})",
-           )
+    All arguments have a default value of None, and their stated default value
+    is assigned after the call. This can be used to pass None for a parameter
+    to ensure it always uses the correct default value, should it change.
+    Subclasses defined in this module follow this rule, and any other class
+    subclassing it should follow it too. It is also recommended that any method
+    defined under such classes follow this rule, although it is not enforced.
 
     sep:            String to be used to join the lines together.
 
         Default:    " "
-
-    file:           Default file to use for anything (both for printing to
-                    screen and writing to a file). This should not be altered
-                    when instantiating the class and be left None.
-
-        Default:    None
 
     use_utc:        Boolean value to determine whether timestamps should use
                     Universal Coordinated Time or the local time.
@@ -724,14 +717,14 @@ class Logger(BaseLogger):
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None,
-                 write=True, display=True, logfiles=None, bypassers=(),
+                 write=None, display=None, logfiles=None, bypassers=None,
                  ignore_all=None):
         """Create a new Logger instance."""
 
         super().__init__(sep, use_utc, ts_format)
 
-        self.display = display
-        self.write = write
+        self.display = True if display is None else display
+        self.write = True if write is None else write
 
         files = {"normal": "logger.log", "all": "mixed.log"}
 
@@ -753,6 +746,9 @@ class Logger(BaseLogger):
         # to use the attr as the direct value; making the type None will also
         # indicate that any type can be triggered. to indicate a lack of value
         # for any parameter, pass NoValue, as None has a special meaning
+        if bypassers is None:
+            bypassers = ()
+
         self.bypassers = Bypassers(*bypassers)
 
         self.bypassers.add("timestamp", "splitter", "display", "write",
@@ -762,10 +758,11 @@ class Logger(BaseLogger):
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
-               sep=None, split=True, use_utc=None, ts_format=None):
+               sep=None, split=None, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
 
         sep = self.separator if sep is None else sep
+        split = True if split is None else split
         display = self.display if display is None else display
         write = self.write if write is None else write
 
@@ -959,8 +956,8 @@ class Translater(Logger):
         Default:    "language"
 """
 
-    def __init__(self, sep=None, use_utc=None, ts_format=None, display=True,
-                 write=True, logfiles=None, bypassers=(), ignore_all=None,
+    def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
+                 write=None, logfiles=None, bypassers=None, ignore_all=None,
                  all_languages=None, main=None, current=None, pattern=None,
                  ignore_trans=None, module=None, modules=None, first=None):
         """Create a new translater object."""
