@@ -22,10 +22,170 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Improved Logger module by Vgr v0.1
-Documentation string still to-do.
-This module is complete, but bugs might be lying around.
-Next up is writing this docstring, then a lot of testing."""
+__doc__ = """Improved Logger module
+
+This is an advanced logger module for various purposes. This is intended as a
+third-party library for software dealing with a general userbase, where there
+is a need to log what the program does, or even simply as a general logger to
+note down what the program did at some point, errors that occurred and so on.
+
+This module exposes four classes and one singleton. They are described below.
+
+Logger:     Basic class to use for general logging purposes. See the Logger's
+            documentation for a list and explanation of each argument. This
+            class defines the following methods:
+
+            logger:     Basic logger, used for writing and printing to screen
+                        based on settings defined on call, defaulting to the
+                        class' default (defined when instantiating).
+
+            multiple:   Small wrapper around the logger method, used to write
+                        to more than one file at a time. The types given have
+                        to be an iterable, and passing '*' means to write to
+                        all possible files.
+
+            show:       Small wrapper around the logger method, used solely to
+                        not write to any file. This is a shortcut of having to
+                        do write=False on many lines.
+
+            docstring:  Wrapper around the logger method, used to print
+                        documentation strings. It handles tabs and spaces in a
+                        proper manner.
+
+Translater: Advanced class used to translate lines matching a certain pattern,
+            by replacing the line by the one found under the module or modules
+            given, through some lookup rules. These rules can be viewed by
+            accessing the Translater's documentation itself. This class
+            defines the following methods:
+
+            translate:  A method used to translate the output using the
+                        corresponding lines, and then formatting the resulting
+                        output using the provided formatting options. This
+                        method operates through side effect, which means it
+                        directly alters the output, and returns None. For a
+                        more detailed explanation, see the Translater class'
+                        documentation.
+
+            logger:     Wrapper around the Logger's logger method, which will
+                        translate the lines using the aforementioned translate
+                        method, then call super().logger to do the logging
+                        operations accordingly.
+
+NoValue:    This is the sole instance of the class of the same name. It has no
+            value other than its string representation, 'NoValue', and its
+            always False boolean value. This is used with the Bypassers
+            through the Logger class. A default bypasser setting has NoValue
+            assigned to both the module and attribute. This is used when
+            checking for settings to bypass; if either is NoValue, then no
+            bypassing will occur. It's not possible to assign or re-assign
+            NoValue to any setting. Rather, passing NoValue will tell the
+            Bypassers to use the already-stored value. The Bypassers will
+            never return it.
+
+There are also two other publicly-available classes, BaseLogger and Bypassers.
+
+The BaseLogger class can be used to make custom classes, useful for multiple
+inheritence. It defines a few private methods, that should only be ever used
+by its subclasses, and not from outside.
+
+The Bypassers class is a five-item mapping, used by the Logger class (and, by
+extention, any of its subclasses). Documentation on the mapping can be viewed
+through its documentation.
+
+To use this module, you will need to write a small wrapper around it. An
+example of such a wrapper can be found below. See each of the individual
+classes' documentation for more detailed explanation on each of the different
+parameters.
+
+myLogger = Logger(ts_format="Fake timestamp here", logfiles={"hello": "world"})
+
+logged = myLogger.logger("hello there!", type="hello")
+
+This will print "hello there!" to the screen, and write the following to the
+file "world":
+
+Fake timestamp here hello there!
+
+The 'logged' variable will hold the "hello there!" string
+
+That was simple enough. Now let's say we want it to write to the file only if
+the value assigned to the key "foo" in the mapping "bar" evaluates to True.
+We'll do it like this:
+
+bar = {"foo": False}
+
+myLogger = Logger(bypassers=[("write", set(), {(bar, "foo")}, None, True)])
+
+The syntax for the bypassers is slightly complicated when first looking at it,
+but it's actually easy once you learn it. The documentation for how to use
+this parameter can be found under the Logger's documentation.
+
+myLogger.logger("hello there!", type="hello", write=False)
+
+The call will check for any possible bypasses. However, the value of bar["foo"]
+is False, therefore, no bypassing happens. It will print to screen, but the
+result will not be written to a file. Remember that we passed the 'bar' dict
+in one of the parameters? Let's alter it now.
+
+bar["foo"] = True
+
+myLogger.logger("hello there!", type="hello", write=False)
+
+Now, however, the value of bar["foo"] is True, and the bypassing happens. It
+again prints to screen, but this time it will also write to the file named
+"world".
+
+There is currently no way to make the bypassers look to see if a certain
+variable is of a certain value, it will only care about its boolean result,
+True or False. To check for specific values, you will need to write a wrapper
+around it and make it toggle another value between True and False.
+
+Now, let's take it a step further. Let's say you deal with a larger userbase,
+and you need to have some lines automatically translated in the user's
+language, which may not be the language your program was programmed in. You
+will need to use the Translater class for that. The lines that will need to be
+translated need to match a regex pattern. It can be customized to fit your
+needs, and defaults to UNDERSCORED_UPPERCASE names.
+
+translaterDict = {"English": {"LINE1": "This is the first line.",
+                              "LINE2": "This is the {0} line.",
+                              "LINE3": "This is the {pos} line.",
+                              "LINE4": "This is the %s line.",
+                              "LINE5": "{0} is {t} %s line.",
+                              "LINE6": "They can even {0}!"}}
+
+myTranslater = Translater(logfiles={"foo": "bar"},
+                          all_languages={"English": "en"}, main="English",
+                          module=translaterDict)
+
+myTranslater.logger("LINE1", type="foo")
+
+Will print "This is the first line." to the screen, and write it to "bar"
+
+myTranslater.logger("LINE2", format=["second"])
+
+Will result in "This is the second line."
+
+myTranslater.logger("LINE3", format_dict={"pos": "third"})
+
+Will output "This is the third line."
+
+myTranslater.logger("LINE4", format_mod=["fourth"])
+
+Will output "This is the fourth line."
+
+myTranslater.logger("LINE5", format=["This"], format_dict={"t": "the"},
+                             format_mod=["fifth"])
+
+Will print "This is the fifth line."
+
+myTranslater.logger("LINE6", format=["be %s"], format_mod=["combined"])
+
+Will result in "They can even be combined!"
+
+Refer to the Translater documentation for more in-depth documentation on the
+Translater class.
+"""
 
 __all__ = ["Bypassers", "BaseLogger", "Logger", "Translater", "NoValue"]
 
