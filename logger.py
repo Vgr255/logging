@@ -476,14 +476,13 @@ class Bypassers(Container):
             getattr(self, name).clear()
 
 class BaseLogger:
-    r"""Base Logger class for your everyday needs.
+    """Base Logger class for your everyday needs.
 
     This can be inherited to create custom classes.
     This is not user-faced. For general purposes, please use the Logger class.
 
     Usage: BaseLogger(
            sep = " ",
-           ending = "\n",
            file = None,
            use_utc = False,
            ts_format = "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})",
@@ -492,10 +491,6 @@ class BaseLogger:
     sep:            String to be used to join the lines together.
 
         Default:    " "
-
-    ending:         String to be appended at the end of the lines.
-
-        Default:    "\n"
 
     file:           Default file to use for anything (both for printing to
                     screen and writing to a file). This should not be altered
@@ -522,11 +517,10 @@ class BaseLogger:
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
     """
 
-    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None):
+    def __init__(self, sep=None, use_utc=None, ts_format=None):
         """Create a new base instance."""
 
         self.separator = sep or " "
-        self.ending = ending or "\n"
 
         self.use_utc = use_utc or False
 
@@ -562,7 +556,7 @@ class BaseLogger:
             offset += str(time.timezone // 36).zfill(4)
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
 
-    def _split_lines(self, out, sep=" ", end="\n"):
+    def _split_lines(self, out, sep=" "):
         """Split long lines at clever points to avoid weird clipping."""
         col = shutil.get_terminal_size()[0]
         if not isinstance(out, str):
@@ -590,26 +584,25 @@ class BaseLogger:
                 newlines.append(newstr)
         return newlines
 
-    def _print(self, *output, sep=None, end=None, split=True):
+    def _print(self, *output, sep=None, split=True):
         """Print to screen and remove all invalid characters."""
 
         sep = sep or self.separator
-        end = end or self.ending
 
         if split:
-            output = self._split_lines(output, sep, end)
+            output = self._split_lines(output, sep)
 
         file = open(sys.stdout.fileno(), "w", errors="replace",
                     encoding="utf-8", closefd=False)
 
-        file.write(sep.join(output) + end) # mimic built-in print() behaviour
+        file.write(sep.join(output) + "\n") # mimic built-in print() behaviour
 
         file.flush()
         file.close()
 
         return sep.join(output)
 
-    def _get_output(self, out, sep, end):
+    def _get_output(self, out, sep):
         """Sanitize output and join iterables together."""
         out = out or [''] # called with no argument, let's support it anyway
         msg = None
@@ -622,7 +615,7 @@ class BaseLogger:
                 if line == "":
                     line = "\n"
                 msg = msg + sep + str(line)
-        return msg + end
+        return msg + "\n"
 
 def check_bypass(func):
     """Decorator for checking bypassability for the Logger class."""
@@ -730,12 +723,12 @@ class Logger(BaseLogger):
         Default:    set()
     """
 
-    def __init__(self, sep=None, ending=None, use_utc=None, ts_format=None,
+    def __init__(self, sep=None, use_utc=None, ts_format=None,
                  write=True, display=True, logfiles=None, bypassers=(),
                  ignore_all=None):
         """Create a new Logger instance."""
 
-        super().__init__(sep, ending, use_utc, ts_format)
+        super().__init__(sep, use_utc, ts_format)
 
         self.display = display
         self.write = write
@@ -769,11 +762,10 @@ class Logger(BaseLogger):
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
-               sep=None, end=None, split=True, use_utc=None, ts_format=None):
+               sep=None, split=True, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
 
         sep = sep or self.separator
-        end = end or self.ending
 
         display = self.display if display is None else display
         write = self.write if write is None else write
@@ -847,16 +839,15 @@ class Logger(BaseLogger):
                            **rest)
 
     def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
-                  end=None, **rest):
+                        **rest):
         """Print a docstring using proper formatting."""
         newlined = False
         indent = None
         lines = []
 
         sep = sep or "\n"
-        end = end or self.ending
 
-        output = self._get_output(output, sep, end)
+        output = self._get_output(output, sep)
         for line in output.expandtabs(tabs).splitlines():
             if not newlined and not line.lstrip(): # first empty line
                 newlined = True
@@ -878,7 +869,7 @@ class Logger(BaseLogger):
             lines.pop(0)
 
         return self.logger("\n".join(lines), display=display, write=write,
-                           sep=sep, end=end, **rest)
+                           sep=sep, **rest)
 
 class Translater(Logger):
     """Logging class to use to translate lines.
