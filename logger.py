@@ -1008,6 +1008,38 @@ class Translater(Logger):
     rules would become too complicated for the small benefit that such a
     feature would provide. If one really needs to do so, they can call the
     logger method recursively on their own.
+
+    Worth of note: The modulus-style formatting is applied after the new-style
+    formatting. This makes it easier to go one layer deeper into the
+    formatting, and allow for formatting from inside the previsouly-formatted
+    lines.
+
+    If translating directly without using the logger method, here are a few
+    useful bits of information:
+
+    - It operates through side-effect. This means that it doesn't return any
+      value, rather, it directly alters the list given. If the object passed
+      in as the first parameter is not mutable, an exception will occur. This
+      restriction does not apply to the formats.
+
+    - It takes five arguments (besides self). The first argument is the mutable
+      object used for the output (and which will be altered). The second
+      argument is the language. This will be used for looking up which line
+      lines to use. The 3 other arguments are used for formatting, post-
+      translation. All 3 arguments must be given. The first of the three
+      is to be used as the numerical formatting using new-style string
+      formatting (the str.format method). The second is a mapping to be used
+      in the new-style formatting as well. The third one can be either a
+      (mutable) sequence or mapping, and is used for old-style formatting
+      (modulus formatting with the % operand). It will be applied after the
+      new-style formatting has been applied.
+
+    - It makes sure to retain the original class of the formats iterables
+      passed in, if it can. The class of each variable needs to define a copy
+      method, if it does, it will be used. If there are no copy methods, it
+      will use the default expectation of what the iterable should be; a list
+      for 'format' and 'format_mod', and a dict for 'format_dict'; this is done
+      to accept any object, not just built-in ones.
 """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
