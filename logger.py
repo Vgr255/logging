@@ -898,8 +898,8 @@ class Logger(BaseLogger):
         while lines and not lines[0].strip():
             lines.pop(0)
 
-        return self.logger("\n".join(lines), display=display, write=write,
-                           sep=sep, **rest)
+        return self.logger(*lines, display=display, write=write, sep=sep
+                           **rest)
 
 class Translater(Logger):
     """Logging class to use to translate lines.
