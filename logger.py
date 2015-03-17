@@ -715,8 +715,6 @@ class BaseLogger:
     def _split_lines(self, out, sep):
         """Split long lines at clever points to avoid weird clipping."""
         col = shutil.get_terminal_size()[0]
-        if not isinstance(out, str):
-            out = sep.join(out) # make any iterable work
         out = out.strip(" ")
         lines = out.splitlines()
         splines = [line.split() for line in lines]
@@ -763,8 +761,6 @@ class BaseLogger:
         out = out or [''] # called with no argument, let's support it anyway
         msg = None
         for line in out:
-            if not isinstance(line, str):
-                line = sep.join(line)
             if msg is None:
                 msg = line
             else:
