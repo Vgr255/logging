@@ -520,7 +520,7 @@ class BaseLogger:
     def __init__(self, sep=None, use_utc=None, ts_format=None):
         """Create a new base instance."""
 
-        self.separator = sep or " "
+        self.separator = " " if sep is None else sep
 
         self.use_utc = use_utc or False
 
@@ -587,7 +587,7 @@ class BaseLogger:
     def _print(self, *output, sep=None, split=True):
         """Print to screen and remove all invalid characters."""
 
-        sep = sep or self.separator
+        sep = self.separator if sep is None else sep
 
         if split:
             output = self._split_lines(output, sep)
@@ -765,8 +765,7 @@ class Logger(BaseLogger):
                sep=None, split=True, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
 
-        sep = sep or self.separator
-
+        sep = self.separator if sep is None else sep
         display = self.display if display is None else display
         write = self.write if write is None else write
 
@@ -845,7 +844,7 @@ class Logger(BaseLogger):
         indent = None
         lines = []
 
-        sep = sep or "\n"
+        sep = "\n" if sep is None else sep
 
         output = self._get_output(output, sep)
         for line in output.expandtabs(tabs).splitlines():
