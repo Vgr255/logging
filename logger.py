@@ -355,10 +355,10 @@ class BaseViewer:
 
     def __repr__(self):
         """Return a representation of the viewer."""
-        return "<%s view object of the %s object at %s>" % (
+        return "<%s view object of the %s object at 0x%X>" % (
                self.__class__.__name__,
                self.__self__.__class__.__name__,
-               "0x" + hex(id(self.__self__))[2:].zfill(16).upper())
+               id(self.__self__))
 
     def __call__(self):
         """Return the view object."""
