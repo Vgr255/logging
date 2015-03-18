@@ -812,32 +812,31 @@ def check_bypass(func):
         if file is None:
             file = self.logfiles.get(type, self.logfiles["normal"])
         self.bypassed = {} # reset the bypasses everytime
+        def get_setting(module, attr, catch=False):
+            if module is None:
+                return attr
+            try:
+                value = getattr(module, attr)
+            except AttributeError:
+                try:
+                    value = module[attr]
+                except (TypeError, KeyError, IndexError):
+                    if catch:
+                        return False
+                    raise
+            return value
+
         for setting, types, pairs, module, attr in self.bypassers.items():
             if module is NoValue or attr is NoValue:
                 continue
             for mod, att in pairs:
-                if mod is None and att:
-                    if module is None:
-                        self.bypassed[setting] = attr
-                    else:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module.get(attr))
+                if get_setting(mod, att, True):
+                    self.bypassed[setting] = get_setting(module, attr)
                     break
-
-                elif getattr(mod, att, mod.get(att)):
-                    if module is None:
-                        self.bypassed[setting] = attr
-                    else:
-                        self.bypassed[setting] = getattr(module, attr,
-                                                         module.get(attr))
-                    break
-
             else:
-                if type in types and module is None:
-                    self.bypassed[setting] = attr
-                elif type in types:
-                    self.bypassed[setting] = getattr(module, attr,
-                                                     module.get(attr))
+                if type in types:
+                    if get_setting(module, attr):
+                        self.bypassed[setting] = get_setting(module, attr)
 
         return func(self, *output, type=type, file=file, **rest)
 
@@ -1308,6 +1307,13 @@ class Translater(Logger):
                 return iterable.items()
             return enumerate(iterable)
 
+        def get_line(module, other):
+            try:
+                value = getattr(module, other)
+            except AttributeError:
+                value = module[other]
+            return value
+
         # for loops are amazing and incredible
         for iterable in (format, format_dict, format_mod, output):
             for i, line in enum(iterable):
@@ -1317,24 +1323,22 @@ class Translater(Logger):
                 module = None
                 lang = None
                 if self.module is not None:
-                    if first == "line":
-                        module = getattr(self.module, line, module.get(line))
+                    if self.first == "line":
+                        module = get_line(self.module, line)
                     else:
-                        module = getattr(self.module, language,
-                                              module.get(language))
+                        module = get_line(self.module, language)
 
                 if module is None and self.modules is not None:
                     lang = self.modules.get(language)
                     if lang is not None:
-                        module = getattr(lang, line, lang.get(line))
+                        module = get_line(lang, line)
 
                 if module is not None:
                     if lang is None:
-                        if first == "line":
-                            line = getattr(module, language,
-                                           module.get(language))
+                        if self.first == "line":
+                            line = get_line(module, language)
                         else:
-                            line = getattr(module, line, module.get(line))
+                            line = get_line(module, line)
 
                     else:
                         line = module
