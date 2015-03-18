@@ -1002,7 +1002,7 @@ class Logger(BaseLogger):
         display = self.display if display is None else display
         write = self.write if write is None else write
 
-        output = self._get_output(output, sep, end)
+        output = self._get_output(output, sep)
         timestamp = self.bypassed.get("timestamp",
                     self._get_timestamp(use_utc, ts_format))
         # this is the file to write everything to
@@ -1029,8 +1029,7 @@ class Logger(BaseLogger):
                         f.write(timestamp + atypes + writer + "\n")
 
         if display:
-            return self._print(*output, sep=sep, end=end,
-                                split=split).splitlines()
+            return self._print(*output, sep=sep, split=split).splitlines()
         return output
 
     def multiple(self, *output, types=None, display=None, write=None, **rest):
@@ -1270,7 +1269,7 @@ class Translater(Logger):
         """Create a new translater object."""
 
         super().__init__(sep, use_utc, ts_format, display, write,
-                         logfiles, bypassers, ignore_all)
+                         logfiles, bypassers)
 
         langs = {"English": "en"}
 
