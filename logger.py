@@ -770,6 +770,7 @@ class BaseLogger:
         """Print to screen and remove all invalid characters."""
 
         sep = self.separator if sep is None else sep
+        output = self._get_output(output, sep)
 
         if split:
             output = self._split_lines(output, sep)
