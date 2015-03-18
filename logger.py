@@ -524,7 +524,7 @@ class Bypassers(Container):
     def __bool__(self):
         """Return True if at least one setting is bound."""
         for mapping in (self.types, self.pairs):
-            for inner in mapping:
+            for inner in mapping():
                 if inner:
                     return True
         return False
