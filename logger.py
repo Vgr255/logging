@@ -1255,7 +1255,7 @@ class Translater(Logger):
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
                  write=None, logfiles=None, bypassers=None,
                  all_languages=None, main=None, current=None, module=None,
-                 modules=None, first=None, pattern=None):
+                 modules=None, check=None, first=None, pattern=None):
         """Create a new translater object."""
 
         super().__init__(sep, use_utc, ts_format, display, write,
@@ -1278,6 +1278,7 @@ class Translater(Logger):
         self.module = module
         self.modules = modules
 
+        self.check = True if check is None else check
         self.first = first or "language"
         self.pattern = pattern or "[A-Z0-9_]*"
 
@@ -1344,13 +1345,14 @@ class Translater(Logger):
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
-               sep=None, split=None, use_utc=None, ts_format=None,
+               sep=None, split=None, use_utc=None, ts_format=None, check=None,
                language=None, format=None, format_dict=None, format_mod=None):
         """Log a line after translating it."""
 
         sep = self.separator if sep is None else sep
 
         language = language or self.current
+        check = self.check if check is None else check
 
         format = format or ()
         format_dict = format_dict or {}
@@ -1358,7 +1360,7 @@ class Translater(Logger):
 
         output = self._get_output(output, sep).split(sep if sep else " ")
 
-        if self.bypassed.get("translate") is None and language != self.main:
+        if not "translate" in self.bypassed and check and language != self.main:
             trout = output[:]
             self.translate(trout, language, format, format_dict, format_mod)
 
