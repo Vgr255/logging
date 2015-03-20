@@ -783,8 +783,6 @@ class BaseLogger:
         file.flush()
         file.close()
 
-        return sep.join(output)
-
     def _get_output(self, out, sep):
         """Sanitize output and join iterables together."""
         out = out or [''] # called with no argument, support it anyway
@@ -1003,19 +1001,20 @@ class Logger(BaseLogger):
         display = self.display if display is None else display
         write = self.write if write is None else write
 
-        output = self._get_output(output, sep)
         timestamp = self.bypassed.get("timestamp",
                     self._get_timestamp(use_utc, ts_format))
         # this is the file to write everything to
         logall = self.bypassed.get("logall")
-        output = output.splitlines()
 
         # check for settings to bypass, if applicable
         split = self.bypassed.get("splitter", split)
         display = self.bypassed.get("display", display)
         write = self.bypassed.get("write", write)
 
+        if display:
+            self._print(*output, sep=sep, split=split)
         if write:
+            output = self._get_output(output, sep).splitlines()
             alines = [x for x in self.logfiles if x in
                                  self.bypassers["all"][0]]
             getter = [file]
@@ -1029,10 +1028,6 @@ class Logger(BaseLogger):
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
 
-        if display:
-            return self._print(*output, sep=sep, split=split).splitlines()
-        return output
-
     def multiple(self, *output, types=None, display=None, write=None, **rest):
         """Log one or more line to multiple files."""
         if types is None:
@@ -1042,33 +1037,28 @@ class Logger(BaseLogger):
             for log in self.logfiles:
                 if log not in self.bypassers["files"][0]:
                     if display:
-                        line = self.logger(*output, type=log, display=True,
-                                            write=write, **rest)
+                        self.logger(*output, type=log, display=True,
+                                    write=write, **rest)
                         display = False # display only once
                     else:
                         self.logger(*output, type=log, display=False,
-                                     write=write, **rest)
-
-            return line
+                                    write=write, **rest)
 
         if types:
             for log in types:
                 if display:
-                    line = self.logger(*output, type=log, display=True,
-                                 write=write, **rest)
+                    self.logger(*output, type=log, display=True, write=write,
+                                **rest)
                     display = False
                 else:
-                    self.logger(*output, type=log, display=False, write=write,
-                                **rest)
+                    self.logger(*output, type=log, display=False,
+                                     write=write, **rest)
 
-            return line
-
-        return self.logger(*output, display=display, write=write, **rest)
+        self.logger(*output, display=display, write=write, **rest)
 
     def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
-        return self.logger(*output, type=type, display=display, write=write,
-                           **rest)
+        self.logger(*output, type=type, display=display, write=write, **rest)
 
     def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
                         **rest):
@@ -1100,8 +1090,7 @@ class Logger(BaseLogger):
         while lines and not lines[0].strip():
             lines.pop(0)
 
-        return self.logger(*lines, display=display, write=write, sep=sep
-                           **rest)
+        self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
 class Translater(Logger):
     """Logging class to use to translate lines.
@@ -1367,9 +1356,7 @@ class Translater(Logger):
         format_dict = format_dict or {}
         format_mod = format_mod or ()
 
-        output = self._get_output(output, sep).split(sep)
-
-        trline = None
+        output = self._get_output(output, sep).split(sep if sep else " ")
 
         if self.bypassed.get("translate") is None and language != self.main:
             trout = output[:]
@@ -1377,16 +1364,14 @@ class Translater(Logger):
 
             trfile = self.all_languages[language] + "_" + file
 
-            trline = super().logger(*trout, file=trfile, type=type, sep=sep,
-                                    display=display, write=write, split=split,
-                                    use_utc=use_utc, ts_format=ts_format)
+            super().logger(*trout, file=trfile, type=type, sep=sep,
+                            display=display, write=write, split=split,
+                            use_utc=use_utc, ts_format=ts_format)
 
             display = False
 
         self.translate(output, self.main, format, format_dict, format_mod)
 
-        line = super().logger(*output, file=file, type=type, display=display,
-                              write=write, sep=sep, split=split,
-                              use_utc=use_utc, ts_format=ts_format)
-
-        return trline if trline is not None else line
+        super().logger(*output, file=file, type=type, display=display,
+                        write=write, sep=sep, split=split,
+                        use_utc=use_utc, ts_format=ts_format)
