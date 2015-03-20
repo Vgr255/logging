@@ -1261,7 +1261,7 @@ class Translater(Logger):
       the iterable should be; a list for 'format' and 'format_mod', and
       a dict for 'format_dict'; this is done to accept any object, not
       just built-in ones.
-"""
+    """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
                  write=None, logfiles=None, bypassers=None,
