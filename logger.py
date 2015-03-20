@@ -764,7 +764,7 @@ class BaseLogger:
                     newstr = new
             if newstr:
                 newlines.append(newstr)
-        return newlines
+        return "\n".join(newlines)
 
     def _print(self, *output, sep=None, split=True):
         """Print to screen and remove all invalid characters."""
