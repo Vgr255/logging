@@ -207,7 +207,7 @@ Refer to the Translater documentation for more in-depth documentation
 on the Translater class.
 """
 
-__all__ = ["Bypassers", "BaseLogger", "Logger", "Translater", "NoValue"]
+__all__ = ["BaseLogger", "Logger", "Translater", "NoValue"]
 
 from datetime import datetime
 import random
