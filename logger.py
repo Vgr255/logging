@@ -773,12 +773,12 @@ class BaseLogger:
         output = self._get_output(output, sep)
 
         if split:
-            output = self._split_lines(output, sep)
+            output = self._split_lines(output)
 
         file = open(sys.stdout.fileno(), "w", errors="replace",
                     encoding="utf-8", closefd=False)
 
-        file.write(sep.join(output) + "\n")
+        file.write(output + "\n")
 
         file.flush()
         file.close()
