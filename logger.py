@@ -1307,11 +1307,14 @@ class Translater(Logger):
                 return iterable.items()
             return enumerate(iterable)
 
-        def get_line(module, other):
+        def get_line(module, other, fallback):
             try:
                 value = getattr(module, other)
             except AttributeError:
-                value = module[other]
+                try:
+                    value = module[other]
+                except (TypeError, KeyError, IndexError):
+                    return fallback
             return value
 
         # for loops are amazing and incredible
@@ -1324,21 +1327,23 @@ class Translater(Logger):
                 lang = None
                 if self.module is not None:
                     if self.first == "line":
-                        module = get_line(self.module, line)
+                        module = get_line(self.module, line, original)
                     else:
-                        module = get_line(self.module, language)
+                        module = get_line(self.module, language,
+                                 get_line(self.module, self.main, original))
 
                 if module is None and self.modules is not None:
                     lang = self.modules.get(language)
                     if lang is not None:
-                        module = get_line(lang, line)
+                        module = get_line(lang, line, original)
 
                 if module is not None:
                     if lang is None:
                         if self.first == "line":
-                            line = get_line(module, language)
+                            line = get_line(module, language,
+                                   get_line(module, self.main, original))
                         else:
-                            line = get_line(module, line)
+                            line = get_line(module, line, original)
 
                     else:
                         line = module
