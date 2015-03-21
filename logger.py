@@ -787,12 +787,11 @@ class BaseLogger:
         out = out or [''] # called with no argument, support it anyway
         msg = None
         for line in out:
+            line = str(line)
             if msg is None:
                 msg = line
             else:
-                if line == "":
-                    line = "\n"
-                msg = msg + sep + str(line)
+                msg = sep.join((msg, line))
         return msg
 
 def check_bypass(func):
