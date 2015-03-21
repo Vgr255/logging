@@ -751,10 +751,9 @@ class BaseLogger:
 
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Return a timestamp with timezone + offset from UTC."""
-        if use_utc is None:
-            use_utc = self.use_utc
-        if ts_format is None:
-            ts_format = self.ts_format
+        use_utc = self.use_utc if use_utc is None else use_utc
+        ts_format = self.ts_format if ts_format is None else ts_format
+
         if use_utc:
             tmf = datetime.utcnow().strftime(ts_format)
             tz = "UTC"
