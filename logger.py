@@ -740,7 +740,7 @@ class BaseLogger:
             offset += str(time.timezone // 36).zfill(4)
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
 
-    def _split_lines(self, out, sep):
+    def _split_lines(self, out):
         """Split long lines at clever points."""
         col = shutil.get_terminal_size()[0]
         out = out.strip(" ")
