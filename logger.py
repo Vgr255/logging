@@ -44,22 +44,26 @@ Logger:     Basic class to use for general logging purposes. See the
             Logger's documentation for a list and explanation of each
             argument. This class defines the following methods:
 
-            logger:     Basic logger, used for writing and printing to
+            logger:
+                        Basic logger, used for writing and printing to
                         screen based on settings defined on call,
                         defaulting to the class' default (defined when
                         instantiating).
 
-            multiple:   Small wrapper around the logger method, used to
+            multiple:
+                        Small wrapper around the logger method, used to
                         write to more than one file at a time. The
                         types given have to be an iterable, and passing
                         '*' means to write to all possible files.
 
-            show:       Small wrapper around the logger method, used
+            show:
+                        Small wrapper around the logger method, used
                         solely to not write to any file. This is a
                         shortcut of having to do write=False on many
                         calls.
 
-            docstring:  Wrapper around the logger method, used to print
+            docstring: 
+                        Wrapper around the logger method, used to print
                         documentation strings. It handles tabs and
                         spaces in a proper manner.
 
@@ -69,7 +73,8 @@ Translater: Advanced class used to translate lines matching a certain
             rules can be viewed by accessing the Translater's
             documentation itself. It defines the following methods:
 
-            translate:  A method used to translate the output using the
+            translate:
+                        A method used to translate the output using the
                         corresponding lines, and then formatting the
                         resulting output using the provided formatting
                         options. This method operates through side
@@ -78,7 +83,8 @@ Translater: Advanced class used to translate lines matching a certain
                         explanation, see the Translater class'
                         documentation.
 
-            logger:     Wrapper around the Logger's logger method,
+            logger:
+                        Wrapper around the Logger's logger method,
                         which will translate the lines using the
                         aforementioned translate method, then call
                         super().logger to do the logging operations.
@@ -396,73 +402,97 @@ class Bypassers(Container):
 
     bypassers = Bypassers((setting, {types}, {pairs}, module, attr))
 
-    bypassers[setting]                  Access the internal mapping
+    bypassers[setting]
+                                        Access the internal mapping
 
-    del bypassers[setting]              Remove the setting's bindings
+    del bypassers[setting]
+                                        Remove the setting's bindings
 
-    str(bypassers) | repr(bypassers)    Show all the settings, types,
+    str(bypassers) | repr(bypassers)
+                                        Show all the settings, types,
                                         pairs, modules and attributes
                                         that are currently active
 
-    len(bypassers)                      Return the number of settings
+    len(bypassers)
+                                        Return the number of settings
 
-    x in bypassers                      Return True if x is a setting,
+    x in bypassers
+                                        Return True if x is a setting,
                                         False otherwise
 
-    for x in bypassers                  Iterate over all settings
+    for x in bypassers
+                                        Iterate over all settings
 
-    bool(bypassers)                     Return True if at least one 
+    bool(bypassers)
+                                        Return True if at least one 
                                         setting is bound, False
                                         otherwise
 
-    dir(bypassers)                      Return a list of all methods
+    dir(bypassers)
+                                        Return a list of all methods
 
-    bypassers.extend(iterable)          Add a new binding; need a
+    bypassers.extend(iterable)
+                                        Add a new binding; need a
                                         five-tuple
 
-    bypassers.update(iterable)          Update existing bindings with
+    bypassers.update(iterable)
+                                        Update existing bindings with
                                         five-tuples or add new bindings
 
-    bypassers.add(setting)              Add new unbound settings
+    bypassers.add(setting)
+                                        Add new unbound settings
 
-    bypassers.pop(setting)              Return the (types, pairs,
+    bypassers.pop(setting)
+                                        Return the (types, pairs,
                                         module, attr) iterable bound to
                                         the setting and remove all the
                                         setting's bindings
 
-    bypassers.popitem()                 Remove and return a random
+    bypassers.popitem()
+                                        Remove and return a random
                                         binding, five-tuple
 
-    bypassers.get(setting, fallback)    Return the (types, pairs,
+    bypassers.get(setting, fallback)
+                                        Return the (types, pairs,
                                         module, attr) iterable bound to
                                         the setting. If the setting
                                         does not exist, 'fallback' will
                                         be returned; defaults to None
 
-    bypassers.setdefault(item, fb)      Set the default fallback for
+    bypassers.setdefault(item, fb)
+                                        Set the default fallback for
                                         setting 'item' to 'fb'; this
                                         only affects .get
 
-    bypassers.count(iters)              Return the number of settings
+    bypassers.count(iters)
+                                        Return the number of settings
                                         which are set to use this
                                         (module, attr) pair
 
-    bypassers.keys()                    Return all existing settings
+    bypassers.keys()
+                                        Return all existing settings
 
-    bypassers.values()                  Return all (types, pairs,
+    bypassers.values()
+                                        Return all (types, pairs,
                                         module, attr) pairs
 
-    bypassers.items()                   Return all existing bindings
+    bypassers.items()
+                                        Return all existing bindings
 
-    bypassers.types()                   Return all types
+    bypassers.types()
+                                        Return all types
 
-    bypassers.pairs()                   Return all pairs
+    bypassers.pairs()
+                                        Return all pairs
 
-    bypassers.read()                    Return all (module, attr) pairs
+    bypassers.read()
+                                        Return all (module, attr) pairs
 
-    bypassers.copy()                    Return a deep copy
+    bypassers.copy()
+                                        Return a deep copy
 
-    bypassers.clear()                   Remove all settings and their
+    bypassers.clear()
+                                        Remove all settings and their
                                         bindings
 
     Equality testing (== and !=) can be used to compare two different
@@ -676,16 +706,19 @@ class BaseLogger:
     It is also recommended that any method defined under such classes
     follow this rule, although it is not strongly enforced.
 
-    sep:            String to be used to join the lines together.
+    sep:
+                    String to be used to join the lines together.
 
         Default:    " "
 
-    use_utc:        Boolean value to determine if the timestamps should
+    use_utc:
+                    Boolean value to determine if the timestamps should
                     use Universal Coordinated Time or the local time.
 
         Default:    False
 
-    ts_format:      Format string for timestamps. The parameters are
+    ts_format:
+                    Format string for timestamps. The parameters are
                     the same as the time module's 'strftime' function.
                     However, for the time zone name and offset, use
                     {tzname} and {tzoffset} respectively. This is done
@@ -699,6 +732,7 @@ class BaseLogger:
                     the digits being HHMM.
 
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
+
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None):
@@ -846,26 +880,30 @@ class Logger(BaseLogger):
 
     The options are the same as the base class, with these additions:
 
-    display:        Default parameter to determine if the loggers
+    display:
+                    Default parameter to determine if the loggers
                     should print to screen. This can be overriden when
                     calling the method, on a per-line basis.
 
         Default:    True
 
-    write:          Default parameter to determine if the loggers
+    write:
+                    Default parameter to determine if the loggers
                     should write to a file. This can be overriden when
                     calling the method, on a per-line basis.
 
         Default:    True
 
-    logfiles:       Dictionary of {type:file} pairs. The type is the
+    logfiles:
+                    Dictionary of {type:file} pairs. The type is the
                     logging type that the logger expects. The file is
                     the file that tells the logger to write to. This
                     can be used for dynamic file logging.
 
         Default:    {"normal": "logger.log", "all": "mixed.log"}
 
-    bypassers:      This is an iterable of (setting, types, pairs,
+    bypassers:
+                    This is an iterable of (setting, types, pairs,
                     module, attr) iterables. 'types' is an iterable of
                     all types that can match this bypasser. 'pairs' is
                     an iterable of two-tuples, the first argument is
@@ -899,7 +937,8 @@ class Logger(BaseLogger):
     default of all these settings is to not do anything, and must be
     explicitely set otherwise.
 
-    "timestamp":    Will be used to replace the standard timestamp when
+    "timestamp":
+                    Will be used to replace the standard timestamp when
                     writing to file. It will not use that value to
                     perform the timestamp getting operation. Rather, it
                     will use the string given directly. If a different
@@ -910,7 +949,8 @@ class Logger(BaseLogger):
                     pair of (None, ''), effectively removing the
                     timestamp.
 
-    "splitter":     This will be used to determine if clever splitting
+    "splitter":
+                    This will be used to determine if clever splitting
                     should occur when printing to screen. Clever
                     splitting splits the line at the latest space
                     before the line gets to the end of the terminal's
@@ -918,19 +958,22 @@ class Logger(BaseLogger):
                     changed when calling, on a per-line basis. This
                     bypasser overrides that.
 
-    "display":      This is used to override the per-line setting that
+    "display":
+                    This is used to override the per-line setting that
                     decides whether the line should be printed to the
                     screen. This is set to True by default, and can be
                     overriden when calling on a per-line basis. This
                     bypasser can be used to bypass this setting.
 
-    "write":        This is used to override the per-line setting that
+    "write":
+                    This is used to override the per-line setting that
                     decides whether the line should be written to the
                     file or not. This is set to True by default, and
                     can be overriden when calling on a per-line basis.
                     This bypasser can override that parameter.
 
-    "logall":       Defaulting to None, this setting's bypassed value
+    "logall":
+                    Defaulting to None, this setting's bypassed value
                     must be a string object, which, if the bypassing
                     occurs, will be the file to write everything to.
 
@@ -938,16 +981,19 @@ class Logger(BaseLogger):
     bound to the setting are of relevance. The pairs are ignored, and
     so are the module and attribute.
 
-    "files":        The types bound to this setting will be used to
+    "files":
+                    The types bound to this setting will be used to
                     determine when to write and not to write to certain
                     files. This is only used when using the
                     Logger.multiple method, which will write to all
                     files specified, except those bound to the types
                     of this bypasser.
 
-    "all":          The types bound to this setting will not be written
+    "all":
+                    The types bound to this setting will not be written
                     as when writing to the file defined through the
                     'logall' bypasser, if available.
+
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None,
@@ -1096,7 +1142,8 @@ class Translater(Logger):
     This is inherited from the Logger class.
     The parameters are the same as for the Logger class, plus these:
 
-    all_languages:  Dictionary of {language:short} pairs. The language
+    all_languages:
+                    Dictionary of {language:short} pairs. The language
                     is used for the standard lookup of the language.
                     The value is the 2-characters abbreviation of the
                     language. The default value is "English" for the
@@ -1106,7 +1153,8 @@ class Translater(Logger):
 
         Default:    {"English": "en"}
 
-    main:           The main language that will be used. This is
+    main:
+                    The main language that will be used. This is
                     considered the "default" language, and is the one
                     that will be used to write to the normal files. It
                     will always be written to the files, no matter what
@@ -1114,7 +1162,8 @@ class Translater(Logger):
 
         Default:    "English"
 
-    current:        The current language, used for translating and
+    current:
+                    The current language, used for translating and
                     printing to screen. When writing to one or more
                     files, the files that this language's lines are
                     written into will be prepended with the
@@ -1125,7 +1174,8 @@ class Translater(Logger):
 
         Default:    "English"
 
-    module:         The module or dictionary where the translations
+    module:
+                    The module or dictionary where the translations
                     will be looked up. This can be any arbitrary
                     object, as long as either the object has an
                     attribute corresponding to the line to translate
@@ -1142,7 +1192,8 @@ class Translater(Logger):
 
         Default:    None
 
-    modules:        If the above parameter is set to None or otherwise
+    modules:
+                    If the above parameter is set to None or otherwise
                     fails, it will use this parameter instead. It is a
                     mapping of {language:module} pairs that will be
                     used to search for each language. The keys must be
@@ -1154,7 +1205,8 @@ class Translater(Logger):
 
         Default:    None
 
-    first:          Determines which, of the line or the language, must
+    first:
+                    Determines which, of the line or the language, must
                     be checked first when looking up the translations.
                     The only valid arguments are "line" and "language".
                     Using 'line', the translater will look into the
@@ -1174,7 +1226,8 @@ class Translater(Logger):
 
         Default:    "language"
 
-    pattern:        Regex pattern that determines when a line should be
+    pattern:
+                    Regex pattern that determines when a line should be
                     given to the translater for replacing. If a line
                     doesn't match, it will not be translated.
 
@@ -1248,6 +1301,7 @@ class Translater(Logger):
       the iterable should be; a list for 'format' and 'format_mod', and
       a dict for 'format_dict'; this is done to accept any object, not
       just built-in ones.
+
     """
 
     def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
