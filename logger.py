@@ -37,7 +37,7 @@ userbase, where there is a need to log what the program does, or even
 simply as a general logger to note down what the program did at some
 point, errors that occurred and so on.
 
-This module exposes four classes and one singleton.
+This module exposes three classes and one singleton.
 The two main classes and the singleton are described below.
 
 Logger:     Basic class to use for general logging purposes. See the
@@ -101,15 +101,9 @@ NoValue:    This is the sole instance of the class with the same name.
             use the already-stored value. The Bypassers will never
             return this value.
 
-Here are the two other public classes available:
-
 The BaseLogger class can be used to make custom classes, useful for
 multiple inheritence. It defines a few private methods, that should
 only be ever used by itself or its subclasses, and not from outside.
-
-The Bypassers class is a five-item mapping, used by the Logger class
-(and, by extention, any of its subclasses). Documentation on the
-mapping can be viewed through its documentation.
 
 ------------
 
