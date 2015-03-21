@@ -743,9 +743,8 @@ class BaseLogger:
     def _split_lines(self, out):
         """Split long lines at clever points."""
         col = shutil.get_terminal_size()[0]
-        out = out.strip(" ")
-        lines = out.splitlines()
-        splines = [line.split() for line in lines]
+        lines = [line.rstrip(" ") for line in out.splitlines()]
+        splines = [line.split(" ") for line in lines]
         newlines = [] # newline-separated lines
         for i, line in enumerate(lines):
             if len(line) <= col:
