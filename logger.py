@@ -1199,6 +1199,14 @@ class Translater(Logger):
 
         Default:    None
 
+    check:
+                    Boolean value that will determine if a line should
+                    be checked for translation or not. If False, the
+                    line will not be checked and will be printed or
+                    writen to the file as-is
+
+        Default:    True
+
     first:
                     Determines which, of the line or the language, must
                     be checked first when looking up the translations.
