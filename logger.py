@@ -1292,7 +1292,7 @@ class Translater(Logger):
 
         def enum(iterable):
             if hasattr(iterable, "items"):
-                return iterable.items()
+                return list(iterable.items())
             return enumerate(iterable)
 
         def get_line(module, other, fallback):
