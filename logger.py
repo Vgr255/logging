@@ -1419,7 +1419,8 @@ class Translater(Logger):
 
         output = self._get_output(output, sep, True)
 
-        if not "translate" in self.bypassed and check and language != self.main:
+        if ("translate" not in self.bypassed and check and
+                               language != self.main):
             trout = output[:]
             self.translate(trout, language, format, format_dict, format_mod)
 
