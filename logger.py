@@ -1426,7 +1426,8 @@ class Translater(Logger):
 
             display = False
 
-        self.translate(output, self.main, format, format_dict, format_mod)
+        if check:
+            self.translate(output, self.main, format, format_dict, format_mod)
 
         super().logger(*output, file=file, type=type, display=display,
                         write=write, sep=sep, split=split,
