@@ -1073,7 +1073,7 @@ class Logger(BaseLogger):
         if types is None:
             types = ["normal"]
 
-        if len(types) == 1 and types[0] == "*":
+        if len(types) == 1 and "*" in types: # allows any iterable
             for log in self.logfiles:
                 if log not in self.bypassers["files"][0]:
                     if display:
