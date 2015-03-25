@@ -40,7 +40,8 @@ point, errors that occurred and so on.
 This module exposes three classes and one singleton.
 The two main classes and the singleton are described below.
 
-Logger:     Basic class to use for general logging purposes. See the
+Logger:
+            Basic class to use for general logging purposes. See the
             Logger's documentation for a list and explanation of each
             argument. This class defines the following methods:
 
@@ -67,7 +68,8 @@ Logger:     Basic class to use for general logging purposes. See the
                         documentation strings. It handles tabs and
                         spaces in a proper manner.
 
-Translater: Advanced class used to translate lines matching a certain
+Translater:
+            Advanced class used to translate lines matching a certain
             pattern, by replacing the line by the one found under the
             module or modules given, through some lookup rules. These
             rules can be viewed by accessing the Translater's
@@ -89,7 +91,8 @@ Translater: Advanced class used to translate lines matching a certain
                         aforementioned translate method, then call
                         super().logger to do the logging operations.
 
-NoValue:    This is the sole instance of the class with the same name.
+NoValue:
+            This is the sole instance of the class with the same name.
             It has no value other than its string representation,
             'NoValue', and its always False boolean value. This is used
             with the Bypassers through the Logger class. A default
