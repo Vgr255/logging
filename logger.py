@@ -37,8 +37,8 @@ userbase, where there is a need to log what the program does, or even
 simply as a general logger to note down what the program did at some
 point, errors that occurred and so on.
 
-This module exposes three classes and one singleton.
-The two main classes and the singleton are described below.
+This module exposes five classes and one singleton.
+They are described below.
 
 Logger:
             Basic class to use for general logging purposes. See the
@@ -90,6 +90,26 @@ Translater:
                         which will translate the lines using the
                         aforementioned translate method, then call
                         super().logger to do the logging operations.
+
+LevelLogger:
+            Light wrapper around the Logger class, which uses integers
+            to determine if a line should be logger. This supports the
+            "level" argument for the bypassers. It has the exact same
+            methods as the Logger class, but the logger method is
+            tweaked to care about level.
+
+            logger:
+                        Wrapper around Logger's logger method, which
+                        accepts only one more positional argument,
+                        level, and must be an integer or None. If
+                        undefined or None, it will log no matter
+                        what.
+
+TranslatedLevelLogger:
+            Wrapper around LevelLogger and Translater, in that order.
+            It is highly recommended to use named parameters instead of
+            positional ones, to ensure the parameters are passed to
+            the correct arguments.
 
 NoValue:
             This is the sole instance of the class with the same name.
@@ -220,7 +240,8 @@ responsibility to make sure that all arguments will be consumed by the
 time it reaches object.
 """
 
-__all__ = ["BaseLogger", "Logger", "Translater", "NoValue"]
+__all__ = ["BaseLogger", "Logger", "Translater", "LevelLogger",
+           "TranslatedLevelLogger", "NoValue"]
 
 from datetime import datetime
 import random
@@ -1441,3 +1462,42 @@ class Translater(Logger):
             self.translate(output, self.main, format, format_dict, format_mod)
 
         super().logger(*output, file=file, type=type, sep=sep, **kwargs)
+
+class LevelLogger(Logger):
+    """Implement levelled logging.
+
+    "level":
+                    Number specifying the default level at which lines
+                    will be logged.
+
+        Default:    0
+
+    Bypassers arguments:
+
+    "level":
+                    Bypasser to override the "level" parameter given to
+                    the logger method. The resulting value must be a
+                    number or None.
+
+    """
+
+    def __init__(self, *, level=None, **kwargs)
+        """Create a new levelled logging instance."""
+
+        super().__init__(**kwargs)
+
+        self.bypassers.add("level")
+
+        self.level = pick(level, 0)
+
+    @check_bypass
+    def logger(self, *output, level=None, **kwargs):
+        """Log a line based on level given."""
+
+        level = self.bypassed.get("level", level)
+
+        if level is None or level >= self.level:
+            super().logger(*output, **kwargs)
+
+class TranslatedLevelLogger(LevelLogger, Translater):
+    """Implement a way to have levelled logging with translating."""
