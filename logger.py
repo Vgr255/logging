@@ -1081,7 +1081,7 @@ class Logger(BaseLogger):
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
 
-    def multiple(self, *output, types=None, display=None, write=None, **rest):
+    def multiple(self, *output, types=None, display=None, **rest):
         """Log one or more line to multiple files."""
         types = pick(types, ["normal"])
 
@@ -1089,24 +1089,21 @@ class Logger(BaseLogger):
             for log in self.logfiles:
                 if log not in self.bypassers["files"][0]:
                     if display:
-                        self.logger(*output, type=log, display=True,
-                                    write=write, **rest)
+                        self.logger(*output, type=log, display=True, **rest)
                         display = False # display only once
                     else:
-                        self.logger(*output, type=log, display=False,
-                                    write=write, **rest)
+                        self.logger(*output, type=log, display=False, **rest)
 
-        if types:
+        elif types:
             for log in types:
                 if display:
-                    self.logger(*output, type=log, display=True, write=write,
-                                **rest)
+                    self.logger(*output, type=log, display=True, **rest)
                     display = False
                 else:
-                    self.logger(*output, type=log, display=False,
-                                     write=write, **rest)
+                    self.logger(*output, type=log, display=False, **rest)
 
-        self.logger(*output, display=display, write=write, **rest)
+        else:
+            self.logger(*output, display=display, **rest)
 
     def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
