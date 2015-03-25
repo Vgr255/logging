@@ -208,6 +208,16 @@ Will result in "They can even be combined!"
 
 Refer to the Translater documentation for more in-depth documentation
 on the Translater class.
+
+-----------
+
+All classes' instantiation arguments must be explicitely named, as
+multiple inheritence would make the ordering confusing and inconsistent
+between the various classes. Every class passes the keyword arguments
+it cannot get to the superclass' __init__ method, up to the 'object'
+class itself, which expects no arguments. It is the end user's
+responsibility to make sure that all arguments will be consumed by the
+time it reaches object.
 """
 
 __all__ = ["BaseLogger", "Logger", "Translater", "NoValue"]
@@ -732,9 +742,10 @@ class BaseLogger:
 
     """
 
-    def __init__(self, sep=None, use_utc=None, ts_format=None):
+    def __init__(self, *, sep=None, use_utc=None, ts_format=None, **kwargs):
         """Create a new base instance."""
 
+        super().__init__(**kwargs)
         self.separator = " " if sep is None else sep
 
         self.use_utc = use_utc or False
@@ -994,11 +1005,11 @@ class Logger(BaseLogger):
 
     """
 
-    def __init__(self, sep=None, use_utc=None, ts_format=None,
-                 write=None, display=None, logfiles=None, bypassers=None):
+    def __init__(self, *, write=None, display=None, logfiles=None,
+                 bypassers=None, **kwargs):
         """Create a new Logger instance."""
 
-        super().__init__(sep, use_utc, ts_format)
+        super().__init__(**kwargs)
 
         self.display = True if display is None else display
         self.write = True if write is None else write
@@ -1313,14 +1324,12 @@ class Translater(Logger):
 
     """
 
-    def __init__(self, sep=None, use_utc=None, ts_format=None, display=None,
-                 write=None, logfiles=None, bypassers=None,
-                 all_languages=None, main=None, current=None, module=None,
-                 modules=None, check=None, first=None, pattern=None):
+    def __init__(self, *, all_languages=None, main=None, current=None,
+                 module=None, modules=None, check=None, first=None,
+                 pattern=None, **kwargs):
         """Create a new translater object."""
 
-        super().__init__(sep, use_utc, ts_format, display, write,
-                         logfiles, bypassers)
+        super().__init__(**kwargs)
 
         langs = {"English": "en"}
 
