@@ -700,6 +700,9 @@ class Bypassers(Container):
         for name in self._names:
             getattr(self, name).clear()
 
+def pick(arg, default):
+    return default if arg is None else arg
+
 class BaseLogger:
     """Base Logger class for your everyday needs.
 
@@ -746,9 +749,10 @@ class BaseLogger:
         """Create a new base instance."""
 
         super().__init__(**kwargs)
-        self.separator = " " if sep is None else sep
 
-        self.use_utc = use_utc or False
+        self.separator = pick(sep, " ")
+
+        self.use_utc = pick(use_utc, False)
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
@@ -809,7 +813,8 @@ class BaseLogger:
     def _print(self, *output, sep=None, split=True):
         """Print to screen and remove all invalid characters."""
 
-        sep = self.separator if sep is None else sep
+        sep = pick(sep, self.separator)
+
         output = self._get_output(output, sep)
 
         if split:
@@ -1011,8 +1016,8 @@ class Logger(BaseLogger):
 
         super().__init__(**kwargs)
 
-        self.display = True if display is None else display
-        self.write = True if write is None else write
+        self.display = pick(display, True)
+        self.write = pick(write, True)
 
         files = {"normal": "logger.log", "all": "mixed.log"}
 
@@ -1049,20 +1054,15 @@ class Logger(BaseLogger):
                sep=None, split=None, use_utc=None, ts_format=None):
         """Log everything to screen and/or file. Always use this."""
 
-        sep = self.separator if sep is None else sep
-        split = True if split is None else split
-        display = self.display if display is None else display
-        write = self.write if write is None else write
+        sep = pick(sep, self.separator)
+        split = self.bypassed.get("splitter", pick(split, True))
+        display = self.bypassed.get("display", pick(display, self.display))
+        write = self.bypassed.get("write", pick(write, self.write))
 
         timestamp = self.bypassed.get("timestamp",
                     self._get_timestamp(use_utc, ts_format))
         # this is the file to write everything to
         logall = self.bypassed.get("logall")
-
-        # check for settings to bypass, if applicable
-        split = self.bypassed.get("splitter", split)
-        display = self.bypassed.get("display", display)
-        write = self.bypassed.get("write", write)
 
         if display:
             self._print(*output, sep=sep, split=split)
@@ -1083,8 +1083,7 @@ class Logger(BaseLogger):
 
     def multiple(self, *output, types=None, display=None, write=None, **rest):
         """Log one or more line to multiple files."""
-        if types is None:
-            types = ["normal"]
+        types = pick(types, ["normal"])
 
         if len(types) == 1 and "*" in types: # allows any iterable
             for log in self.logfiles:
@@ -1120,7 +1119,7 @@ class Logger(BaseLogger):
         indent = None
         lines = []
 
-        sep = "\n" if sep is None else sep
+        sep = pick(sep, "\n")
 
         output = self._get_output(output, sep)
         for line in output.expandtabs(tabs).splitlines():
@@ -1340,17 +1339,17 @@ class Translater(Logger):
         else:
             self.all_languages = langs
 
-        self.main = main or "English"
-        self.current = current or self.main
+        self.main = pick(main, "English")
+        self.current = pick(current, self.main)
 
         self.bypassers.update(("translate", set(), set(), None, True))
 
         self.module = module
         self.modules = modules
 
-        self.check = True if check is None else check
-        self.first = first or "language"
-        self.pattern = pattern or "[A-Z0-9_]*"
+        self.check = pick(check, True)
+        self.first = pick(first, "language")
+        self.pattern = pick(pattern, "[A-Z0-9_]*")
 
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
@@ -1419,14 +1418,14 @@ class Translater(Logger):
                language=None, format=None, format_dict=None, format_mod=None):
         """Log a line after translating it."""
 
-        sep = self.separator if sep is None else sep
+        sep = pick(sep, self.separator)
 
-        language = language or self.current
-        check = self.check if check is None else check
+        language = pick(language, self.current)
+        check = pick(check, self.check)
 
-        format = format or ()
-        format_dict = format_dict or {}
-        format_mod = format_mod or ()
+        format = pick(format, ())
+        format_dict = pick(format_dict, {})
+        format_mod = pick(format_mod, ())
 
         output = self._get_output(output, sep, True)
 
