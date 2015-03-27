@@ -37,7 +37,7 @@ userbase, where there is a need to log what the program does, or even
 simply as a general logger to note down what the program did at some
 point, errors that occurred and so on.
 
-This module exposes five classes and one singleton.
+This module exposes seven logging classes and one singleton.
 They are described below.
 
 Logger:
@@ -110,6 +110,12 @@ TranslatedLevelLogger:
             It is highly recommended to use named parameters instead of
             positional ones, to ensure the parameters are passed to
             the correct arguments.
+
+NamedLevelsLogger:
+            Wrapper around LevelLogger, to support named levels.
+
+TranslatedNamedLevelsLogger:
+            Used to translate lines with named levels.
 
 NoValue:
             This is the sole instance of the class with the same name.
@@ -241,7 +247,8 @@ time it reaches object.
 """
 
 __all__ = ["BaseLogger", "Logger", "Translater", "LevelLogger",
-           "TranslatedLevelLogger", "NoValue"]
+           "TranslatedLevelLogger", "NamedLevelsLogger",
+           "TranslatedNamedLevelsLogger", "NoValue"]
 
 from datetime import datetime
 import random
@@ -1501,3 +1508,116 @@ class LevelLogger(Logger):
 
 class TranslatedLevelLogger(LevelLogger, Translater):
     """Implement a way to have levelled logging with translating."""
+
+class NamedLevels:
+    """Implement named levels mapping.
+
+    This is a special mapping, used to match levels to values with the
+    named levels logger. The pairs can be accessed through dir(), the
+    keys can be iterated over, the number of items can be viewed,
+    equality testing works, as well as a string and representation of
+    the items contained in self. Items must be directly assigned with
+    `self.item = value` and accessed as such. No methods are defined,
+    only direct lookup is supported. `list(self)` behaves like
+    `self.keys()` would be expected to, and `dir(self)` behaves like
+    `self.items()` would be expected to.
+
+    """
+
+    def __init__(self, items=None):
+        """Create a new items mapping."""
+        super().__setattr__("items", pick(items, {}))
+
+    def __iter__(self):
+        """Iterate over the items of self."""
+        return iter(super().__getattribute__("items"))
+
+    def __len__(self):
+        """Return the number of items in self."""
+        return len(super().__getattribute__("items"))
+
+    def __contains__(self, item):
+        """Return True if item is in self, False otherwise."""
+        return item in super().__getattribute__("items")
+
+    def __repr__(self):
+        """Return a representation of the items in self."""
+        return "%s(%s)" % (super().__getattribute__("__class__").__name__,
+               ", ".join("(%s, %s)" % (repr(k), repr(v)) for k, v in
+               sorted(super().__getattribute__("items").items())))
+
+    def __str__(self):
+        """Show all the items in self."""
+        return str(sorted(super().__getattribute__("items").items()))[1:-1]
+
+    def __eq__(self, other):
+        """Return True if self == other, False otherwise."""
+        return super().__getattribute__("items") == other
+
+    def __ne__(self, other):
+        """Return True if self != other, False otherwise."""
+        return super().__getattribute__("items") != other
+
+    def __dir__(self):
+        """Return a list of all (key, value) pairs."""
+        return super().__getattribute__("items").items()
+
+    def __getattribute__(self, item):
+        """Access the items in self."""
+        return super().__getattribute__("items")[item]
+
+    def __setattr__(self, item, value):
+        """Set a value to an item in self."""
+        super().__getattribute__("items")[item] = value
+
+    def __delattr__(self, item):
+        """Delete an item from self."""
+        del super().__getattribute__("items")[item]
+
+class NamedLevelsLogger(LevelLogger):
+    """Implement named levels logging.
+
+    "levels":
+                    Mapping of {name:level} pairs, which are used to
+                    implement named logging. This supports mutation of
+                    the mapping to update the internal mapping.
+
+        Default:    {}
+
+    To add, change or remove a level after instantiation, either the
+    original mapping can be altered, or direct change can be made via
+    `self.levels.level_to_change = new_value` or similar.
+
+    Passing the level value can be done either through a direct lookup
+    with the `levels` argument, a number, a name matching a level, or
+    None.
+
+    Bypassers arguments:
+
+    "level":
+                    Used to override the "level" parameter given to the
+                    logger method. The resulting value must be a lookup
+                    to a value in the mapping, a number, a name
+                    matching a level, or None.
+
+    """
+
+    def __init__(self, *, levels=None, **kwargs):
+        """Create a new instance of the named levels logger."""
+
+        super().__init__(**kwargs)
+
+        self.levels = type("Logging Levels ", (NamedLevels,), {})(levels)
+
+    def logger(self, *output, level=None, **kwargs):
+        """Log a line matching a named level."""
+
+        try:
+            level = getattr(self.level, level)
+        except (KeyError, TypeError):
+            pass
+
+        super().logger(*output, level=level, **kwargs)
+
+class TranslatedNamedLevelsLogger(NamedLevelsLogger, TranslatedLevelLogger):
+    """Implement a way to use named levels with translating."""
