@@ -1481,7 +1481,7 @@ class LevelLogger(Logger):
 
     """
 
-    def __init__(self, *, level=None, **kwargs)
+    def __init__(self, *, level=None, **kwargs):
         """Create a new levelled logging instance."""
 
         super().__init__(**kwargs)
