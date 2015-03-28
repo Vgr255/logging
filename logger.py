@@ -1602,12 +1602,16 @@ class NamedLevelsLogger(LevelLogger):
 
     """
 
-    def __init__(self, *, levels=None, **kwargs):
+    def __init__(self, *, levels=None, default=None, **kwargs):
         """Create a new instance of the named levels logger."""
 
         super().__init__(**kwargs)
 
+        self.default = pick(default, "normal")
+
         self.levels = type("Logging Levels ", (NamedLevels,), {})(levels)
+        if self.default not in self.levels:
+            setattr(self.levels, self.default, 0)
 
     def logger(self, *output, level=None, **kwargs):
         """Log a line matching a named level."""
