@@ -1616,10 +1616,12 @@ class NamedLevelsLogger(LevelLogger):
     def logger(self, *output, level=None, **kwargs):
         """Log a line matching a named level."""
 
-        try:
-            level = getattr(self.level, level)
-        except (KeyError, TypeError):
+        try: # string - direct value lookup (eg "info" is levels.info)
+            level = getattr(self.levels, level)
+        except TypeError: # got an int, direct value lookup, or None
             pass
+        except KeyError: # unknown value; fall back to normal
+            level = getattr(self.levels, self.default)
 
         super().logger(*output, level=level, **kwargs)
 
