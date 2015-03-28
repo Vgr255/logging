@@ -1047,7 +1047,7 @@ class Logger(BaseLogger):
         self.display = pick(display, True)
         self.write = pick(write, True)
 
-        files = {"normal": "logger.log", "all": "mixed.log"}
+        files = {"normal": "logger.log"}
 
         if logfiles is not None:
             self.logfiles = logfiles
