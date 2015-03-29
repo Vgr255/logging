@@ -776,9 +776,16 @@ class BaseLogger:
 
         Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
 
+    print_ts:
+                    Boolean value to determine whether the timestamps
+                    should be printed to screen as well as to files.
+
+        Default:    False
+
     """
 
-    def __init__(self, *, sep=None, use_utc=None, ts_format=None, **kwargs):
+    def __init__(self, *, sep=None, use_utc=None, ts_format=None,
+                          print_ts=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
@@ -786,6 +793,7 @@ class BaseLogger:
         self.separator = pick(sep, " ")
 
         self.use_utc = pick(use_utc, False)
+        self.print_ts = pick(print_ts, False)
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
@@ -843,7 +851,8 @@ class BaseLogger:
                 newlines.append(newstr)
         return "\n".join(newlines)
 
-    def _print(self, *output, sep=None, split=True):
+    def _print(self, *output, sep=None, use_utc=None, ts_format=None,
+                              print_ts=None, split=True):
         """Print to screen and remove all invalid characters."""
 
         sep = pick(sep, self.separator)
@@ -855,6 +864,13 @@ class BaseLogger:
 
         with open(sys.stdout.fileno(), "w", errors="replace",
                     encoding="utf-8", closefd=False) as file:
+
+            if pick(print_ts, self.print_ts):
+                out = output.splitlines()
+                ts = self._get_timestamp(use_utc, ts_format)
+                for i, line in enumerate(out):
+                    out[i] = ts + line
+                output = "\n".join(out)
 
             file.write(output + "\n")
 
@@ -1083,7 +1099,8 @@ class Logger(BaseLogger):
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
-               sep=None, split=None, use_utc=None, ts_format=None):
+               sep=None, split=None, use_utc=None, ts_format=None,
+               print_ts=None):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
@@ -1097,7 +1114,8 @@ class Logger(BaseLogger):
         logall = self.bypassed.get("logall")
 
         if display:
-            self._print(*output, sep=sep, split=split)
+            self._print(*output, sep=sep, use_utc=use_utc, split=split,
+                         ts_format=ts_format, print_ts=print_ts)
         if write:
             output = self._get_output(output, sep).splitlines()
             alines = [x for x in self.logfiles if x in
