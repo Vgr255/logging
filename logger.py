@@ -1525,7 +1525,7 @@ class LevelLogger(Logger):
 
         level = self.bypassed.get("level", level)
 
-        if level is None or level >= self.level:
+        if level is not None and level >= self.level:
             super().logger(*output, **kwargs)
 
 class TranslatedLevelLogger(LevelLogger, Translater):
