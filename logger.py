@@ -568,6 +568,11 @@ class Bypassers(Container):
         """Return the internal mapping of the setting."""
         return self.values[self.keys.index(item)]
 
+    def __setitem__(self, item, value):
+        """Bind a setting to another setting's bindings."""
+        cur = self[value]
+        self.update((item, set(cur[0]), set(cur[1])) + cur[2:])
+
     def __delitem__(self, item):
         """Remove the setting and all its bindings."""
         index_ = self.keys.index(item)
