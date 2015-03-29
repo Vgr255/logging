@@ -853,13 +853,12 @@ class BaseLogger:
         if split:
             output = self._split_lines(output)
 
-        file = open(sys.stdout.fileno(), "w", errors="replace",
-                    encoding="utf-8", closefd=False)
+        with open(sys.stdout.fileno(), "w", errors="replace",
+                    encoding="utf-8", closefd=False) as file:
 
-        file.write(output + "\n")
+            file.write(output + "\n")
 
-        file.flush()
-        file.close()
+            file.flush()
 
     def _get_output(self, out, sep, ret_list=False):
         """Sanitize output and join iterables together."""
