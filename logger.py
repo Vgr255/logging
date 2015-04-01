@@ -128,7 +128,15 @@ NoValue:
             It's not possible to assign or re-assign NoValue to any
             setting. Rather, passing NoValue will tell the Bypassers to
             use the already-stored value. The Bypassers will never
-            return this value.
+            return this (lack of) value.
+
+            NoValue is a singleton in the meaning that there is one,
+            and only one, instance of it. type(NoValue)() effectively
+            yields the same singleton. It is identical to None in all
+            regards except for the fact that NoValue can be re-assigned
+            to, while None cannot, and type(NoValue) can be used as a
+            based in subclassing. However, subclassing will still yield
+            the same singleton.
 
 The BaseLogger class can be used to make custom classes, useful for
 multiple inheritence. It defines a few private methods, that should
