@@ -257,7 +257,20 @@ import time
 import sys
 import re
 
-class NoValue:
+NoValue = None
+
+class MetaNoValue(type):
+    """Metaclass responsible for ensuring uniqueness."""
+
+    def __new__(meta, cls, bases, clsdict):
+        """Ensure there is one (and only one) NoValue singleton."""
+        if NoValue is None:
+            nv = super().__new__(meta, cls, bases, clsdict)()
+            nv.__class__.__new__ = lambda cls: nv
+            return nv
+        return NoValue
+
+class NoValue(metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
 
     def __repr__(self):
@@ -267,8 +280,6 @@ class NoValue:
     def __bool__(self):
         """Return False no matter what."""
         return False
-
-NoValue = NoValue()
 
 class Container:
     """Base container class for various purposes."""
