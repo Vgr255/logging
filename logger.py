@@ -276,7 +276,6 @@ class GlobalHandler:
         sys.modules[__name__].NoValue = novalue
         sys.modules[__name__] = self
         del self.GlobalHandler
-        super().__getattribute__("__class__").done = True
 
     def __getattribute__(self, item):
         """Systematically delegate attribute lookup to the module."""
