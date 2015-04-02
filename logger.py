@@ -265,16 +265,44 @@ import time
 import sys
 import re
 
-NoValue = None
+class GlobalHandler:
+    """Make sure NoValue can never be altered."""
+
+    def __init__(self, novalue):
+        """Create a global handler to preserve NoValue."""
+        if hasattr(sys.modules[__name__], "NoValue"):
+            raise RuntimeError("illegal re-assignment of globals")
+        super().__setattr__("module", sys.modules[__name__])
+        sys.modules[__name__].NoValue = novalue
+        sys.modules[__name__] = self
+        del self.GlobalHandler
+        super().__getattribute__("__class__").done = True
+
+    def __getattribute__(self, item):
+        """Systematically delegate attribute lookup to the module."""
+        return getattr(super().__getattribute__("module"), item)
+
+    def __setattr__(self, item, value):
+        """Prevent NoValue from being re-assigned."""
+        if item == "NoValue":
+            raise RuntimeError("cannot re-assign NoValue")
+        setattr(super().__getattribute__("module"), item, value)
+
+    def __delattr__(self, item):
+        """Prevent NoValue from being deleted."""
+        if item == "NoValue":
+            raise RuntimeError("cannot delete NoValue")
+        delattr(super().__getattribute__("module"), item)
 
 class MetaNoValue(type):
     """Metaclass responsible for ensuring uniqueness."""
 
     def __new__(meta, cls, bases, clsdict):
         """Ensure there is one (and only one) NoValue singleton."""
-        if NoValue is None:
+        if not hasattr(sys.modules[__name__], "NoValue"):
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
+            GlobalHandler(nv)
             return nv
         return NoValue
 
