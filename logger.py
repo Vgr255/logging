@@ -265,7 +265,7 @@ import time
 import sys
 import re
 
-class GlobalHandler:
+class GlobalHandler(sys.__class__):
     """Make sure NoValue can never be altered."""
 
     def __init__(self, novalue):
