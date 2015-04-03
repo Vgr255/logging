@@ -265,48 +265,25 @@ import time
 import sys
 import re
 
-class GlobalHandler(sys.__class__):
-    """Make sure NoValue can never be altered."""
-
-    def __init__(self, novalue):
-        """Create a global handler to preserve NoValue."""
-        if hasattr(sys.modules[__name__], "NoValue"):
-            raise RuntimeError("illegal re-assignment of globals")
-        super().__setattr__("module", sys.modules[__name__])
-        sys.modules[__name__].NoValue = novalue
-        sys.modules[__name__] = self
-        del self.GlobalHandler
-
-    def __getattribute__(self, item):
-        """Systematically delegate attribute lookup to the module."""
-        return getattr(super().__getattribute__("module"), item)
-
-    def __setattr__(self, item, value):
-        """Prevent NoValue from being re-assigned."""
-        if item == "NoValue":
-            raise RuntimeError("cannot re-assign NoValue")
-        setattr(super().__getattribute__("module"), item, value)
-
-    def __delattr__(self, item):
-        """Prevent NoValue from being deleted."""
-        if item == "NoValue":
-            raise RuntimeError("cannot delete NoValue")
-        delattr(super().__getattribute__("module"), item)
-
 class MetaNoValue(type):
     """Metaclass responsible for ensuring uniqueness."""
 
     def __new__(meta, cls, bases, clsdict):
         """Ensure there is one (and only one) NoValue singleton."""
-        if not hasattr(sys.modules[__name__], "NoValue"):
+        if "_novalue" not in sys.modules:
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
-            GlobalHandler(nv)
+            sys.modules["_novalue"] = nv
             return nv
         return NoValue
 
-class NoValue(metaclass=MetaNoValue):
+class NoValue(sys.__class__, metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
+
+    def __init__(self):
+        """Instantiate the module with the class' name."""
+        cls = self.__class__
+        super(cls, self).__init__(cls.__name__, cls.__doc__)
 
     def __repr__(self):
         """Return the explicit NoValue string."""
