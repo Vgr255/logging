@@ -411,6 +411,10 @@ class Viewer(Container):
         self.self = self_
         self._items = self_._items
 
+    def __getitem__(self, index_):
+        """Return the matching value."""
+        return sorted(self._items)[index_]
+
     def __repr__(self):
         """Return a representation of self."""
         return "%s(%s)" % (self.self.__class__.__name__,
