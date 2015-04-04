@@ -317,6 +317,39 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
         """Return True if self is not other."""
         return self is not other
 
+class RunnerIterator:
+    """Generate an iterator of sorted items.
+
+    This iterator runs over all the items of the given items, sorted in
+    alphabetical order. It will raise RuntimeError if the items are
+    changed during iteration."""
+
+    def __init__(self, items):
+        """Create a new iterator."""
+        self.items = items
+        self.original = items
+        if hasattr(items, "copy"):
+            self.original = items.copy()
+        self.forced = list(items)
+        self.items_ = sorted(items)
+        self.index_ = len(items) + 1
+
+    def __iter__(self):
+        """Return the iterator."""
+        return self
+
+    def __next__(self):
+        """Return the items of self."""
+        if self.index_ == 1:
+            raise StopIteration
+
+        if self.items != self.original or self.forced != list(self.items):
+            raise RuntimeError("container changed size during iteration")
+
+        self.index_ -= 1
+
+        return self.items_[-self.index_]
+
 class Container:
     """Base container class for various purposes."""
 
