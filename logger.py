@@ -561,7 +561,8 @@ class Bypassers(Container):
                                         five-tuples or add new bindings
 
     bypassers.add(setting)
-                                        Add new unbound settings
+                                        Add new unbound settings,
+                                        ignored for existing settings
 
     bypassers.pop(setting)
                                         Return the (types, pairs,
