@@ -293,6 +293,30 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
         """Return False no matter what."""
         return False
 
+    def __lt__(self, other):
+        """NoValue will always be last when ordering."""
+        return False
+
+    def __le__(self, other):
+        """Will only be True if self is other."""
+        return self is other
+
+    def __gt__(self, other):
+        """Will be True if self is not other."""
+        return self is not other
+
+    def __ge__(self, other):
+        """Will always be greater or equal than anything else."""
+        return True
+
+    def __eq__(self, other):
+        """Return True if self is other."""
+        return self is other
+
+    def __ne__(self, other):
+        """Return True if self is not other."""
+        return self is not other
+
 class Container:
     """Base container class for various purposes."""
 
