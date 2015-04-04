@@ -554,7 +554,8 @@ class Bypassers(Container):
 
     bypassers.extend(iterable)
                                         Add a new binding; need a
-                                        five-tuple
+                                        five-tuple, ignored if setting
+                                        exists
 
     bypassers.update(iterable)
                                         Update existing bindings with
@@ -734,25 +735,15 @@ class Bypassers(Container):
         """Add a new binding from a five-tuple."""
         setting, types, pairs, module, attr = items
         if setting in self.keys():
-            index_ = self.keys.index(setting)
-            self.types[index_].update(types)
-            self.pairs[index_].update(pairs)
-            if module is NoValue:
-                module = self.read[index_][0]
-            if attr is NoValue:
-                attr = self.read[index_][1]
-            self.read[index_] = (module, attr)
-            self.values[index_] = self.values[index_][:2] + (module, attr)
-            self.items[index_] = self.items[index_][:3] + (module, attr)
-        else:
-            types = _mps[0](types)
-            pairs = _mps[1](pairs)
-            self.keys.append(setting)
-            self.types.append(types)
-            self.pairs.append(pairs)
-            self.read.append((module, attr))
-            self.values.append((types, pairs, module, attr))
-            self.items.append((setting, types, pairs, module, attr))
+            return
+        types = _mps[0](types)
+        pairs = _mps[1](pairs)
+        self.keys.append(setting)
+        self.types.append(types)
+        self.pairs.append(pairs)
+        self.read.append((module, attr))
+        self.values.append((types, pairs, module, attr))
+        self.items.append((setting, types, pairs, module, attr))
 
     def add(self, *settings):
         """Add new unbound settings. Ignored for existing settings."""
