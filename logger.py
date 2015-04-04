@@ -540,7 +540,8 @@ class Bypassers(Container):
                                         False otherwise
 
     for x in bypassers
-                                        Iterate over all settings
+                                        Iterate over all settings in
+                                        alphabetical order
 
     bool(bypassers)
                                         Return True if at least one 
