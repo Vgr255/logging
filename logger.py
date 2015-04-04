@@ -359,7 +359,7 @@ class Container:
 
     def __iter__(self):
         """Return an iterator over the items of self."""
-        return iter(self._items)
+        return RunnerIterator(self._items)
 
     def __len__(self):
         """Return the amount of items in self."""
@@ -372,7 +372,7 @@ class Container:
     def __repr__(self):
         """Return a string of all items."""
         return "%s(%s)" % (self.__class__.__name__,
-               ", ".join(repr(item) for item in sorted(self._items)))
+               ", ".join(repr(item) for item in self))
 
     def __dir__(self):
         """Return a list of all methods."""
@@ -451,7 +451,7 @@ class Viewer(Container):
     def __repr__(self):
         """Return a representation of self."""
         return "%s(%s)" % (self.self.__class__.__name__,
-               ", ".join(repr(item) for item in sorted(self._items)))
+               ", ".join(repr(item) for item in sorted(self)))
 
 class BaseViewer:
     """Base viewer class for the Bypassers mapping."""
@@ -665,7 +665,7 @@ class Bypassers(Container):
 
     def __iter__(self):
         """Return an iterator over the items of self."""
-        return iter(self.keys())
+        return RunnerIterator(self.keys())
 
     def __len__(self):
         """Return the total number of items, bound or otherwise."""
@@ -1636,7 +1636,7 @@ class NamedLevels:
 
     def __iter__(self):
         """Iterate over the items of self."""
-        return iter(super().__getattribute__("items"))
+        return RunnerIterator(super().__getattribute__("items"))
 
     def __len__(self):
         """Return the number of items in self."""
