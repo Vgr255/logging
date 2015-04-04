@@ -322,7 +322,8 @@ class RunnerIterator:
 
     This iterator runs over all the items of the given items, sorted in
     alphabetical order. It will raise RuntimeError if the items are
-    changed during iteration."""
+    changed during iteration.
+    """
 
     def __init__(self, items):
         """Create a new iterator."""
