@@ -386,7 +386,7 @@ class Container:
                 return True
             if set(self._items) == set(other):
                 return True
-        except:
+        except Exception:
             return False
         return False
 
@@ -695,7 +695,7 @@ class Bypassers(Container):
         """Return self == other."""
         try:
             return self.items() == other.items()
-        except:
+        except Exception:
             return False
 
     def update(self, *new):
