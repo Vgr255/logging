@@ -382,22 +382,22 @@ for _sub in ("Types", "Pairs"):
 class Viewer(Container):
     """Viewer object for the Bypassers mapping."""
 
-    def __init__(self, __self__):
+    def __init__(self, self_):
         """Create a new viewer handler."""
-        self.__self__ = __self__
-        self._items = __self__._items
+        self.self = self_
+        self._items = self_._items
 
     def __repr__(self):
         """Return a representation of self."""
-        return "%s(%s)" % (self.__self__.__class__.__name__,
+        return "%s(%s)" % (self.self.__class__.__name__,
                ", ".join(repr(item) for item in sorted(self._items)))
 
 class BaseViewer:
     """Base viewer class for the Bypassers mapping."""
 
-    def __init__(self, __self__):
+    def __init__(self, self_):
         """Create a new view object."""
-        self.__self__ = __self__
+        self.self = self_
         self._items = []
         self._viewer = Viewer(self)
 
@@ -415,14 +415,14 @@ class BaseViewer:
 
     def __dir__(self):
         """Return a list of all methods."""
-        return dir(self.__class__) + ["__self__"]
+        return dir(self.__class__)
 
     def __repr__(self):
         """Return a representation of the viewer."""
         return "<%s view object of the %s object at 0x%X>" % (
                self.__class__.__name__,
-               self.__self__.__class__.__name__,
-               id(self.__self__))
+               self.self.__class__.__name__,
+               id(self.self))
 
     def __call__(self):
         """Return the view object."""
