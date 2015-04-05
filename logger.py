@@ -1387,6 +1387,10 @@ class Translater(Logger):
     be anything (but must be present), they will be replaced at runtime
     as they are only used internally to decide when not to translate.
 
+    To entirely prevent any line from being checked against the pattern
+    and be potentially translated, pass the "check" keyword argument
+    with a True value, or use the "check" setting of the bypassers.
+
     Note on translating: The translated lines can take new-style
     formatting with {0} or similar; it can use list indexes, regular
     indexes or named indexes like {foo}. Assign an ordered iterable for
@@ -1468,6 +1472,7 @@ class Translater(Logger):
         self.current = pick(current, self.main)
 
         self.bypassers.update(("translate", set(), set(), None, True))
+        self.bypassers.add("check")
 
         self.module = module
         self.modules = modules
@@ -1546,7 +1551,7 @@ class Translater(Logger):
         sep = pick(sep, self.separator)
 
         language = pick(language, self.current)
-        check = pick(check, self.check)
+        check = self.bypassed.get("check", pick(check, self.check))
 
         format = pick(format, ())
         format_dict = pick(format_dict, {})
