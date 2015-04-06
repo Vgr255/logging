@@ -954,7 +954,7 @@ class BaseLogger:
             output = self._split_lines(output)
 
         with open(sys.stdout.fileno(), "w", errors="replace",
-                    encoding="utf-8", closefd=False) as file:
+                  encoding="utf-8", closefd=False) as file:
 
             file.write(output + "\n")
 
