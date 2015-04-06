@@ -943,18 +943,18 @@ class BaseLogger:
 
         output = self._get_output(output, sep)
 
+        if pick(print_ts, self.print_ts):
+            out = output.splitlines()
+            ts = self._get_timestamp(use_utc, ts_format)
+            for i, line in enumerate(out):
+                out[i] = ts + line
+            output = "\n".join(out)
+
         if pick(split, self.split):
             output = self._split_lines(output)
 
         with open(sys.stdout.fileno(), "w", errors="replace",
                     encoding="utf-8", closefd=False) as file:
-
-            if pick(print_ts, self.print_ts):
-                out = output.splitlines()
-                ts = self._get_timestamp(use_utc, ts_format)
-                for i, line in enumerate(out):
-                    out[i] = ts + line
-                output = "\n".join(out)
 
             file.write(output + "\n")
 
