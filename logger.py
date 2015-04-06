@@ -921,9 +921,14 @@ class BaseLogger:
                     new = " ".join((newstr, word))
                 else:
                     new = word
-                if len(new) >= col:
+                if len(new) >= col and word != new:
                     newlines.append(newstr)
                     newstr = word
+                elif len(new) >= col and word == new:
+                    if newstr:
+                        newlines.append(newstr)
+                    newlines.append(new)
+                    newstr = ""
                 else:
                     newstr = new
             if newstr:
