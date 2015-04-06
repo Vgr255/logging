@@ -1208,7 +1208,7 @@ class Logger(BaseLogger):
             if logall:
                 getter.append(logall)
             for log in getter:
-                if log == logall and type not in alines:
+                if (log == logall and type not in alines) or log is None:
                     continue
                 atypes = "type.%s - " % type if log == logall else ""
                 with open(log, "a", encoding="utf-8") as f:
