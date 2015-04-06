@@ -1614,70 +1614,25 @@ class LevelLogger(Logger):
 class TranslatedLevelLogger(LevelLogger, Translater):
     """Implement a way to have levelled logging with translating."""
 
-class NamedLevels:
-    """Implement named levels mapping.
+class LoggingLevels(sys.__class__):
+    """Module class for logging levels."""
 
-    This is a special mapping, used to match levels to values with the
-    named levels logger. The pairs can be accessed through dir(), the
-    keys can be iterated over, the number of items can be viewed,
-    equality testing works, as well as a string and representation of
-    the items contained in self. Items must be directly assigned with
-    `self.item = value` and accessed as such. No methods are defined,
-    only direct lookup is supported. `list(self)` behaves like
-    `self.keys()` would be expected to, and `dir(self)` behaves like
-    `self.items()` would be expected to.
-
-    """
-
-    def __init__(self, items=None):
+    def __init__(self, **items):
         """Create a new items mapping."""
-        super().__setattr__("items", pick(items, {}))
+        for level, value in items.items():
+            setattr(self, level, value)
+        super().__init__(self.__class__.__name__, self.__class__.__doc__)
 
     def __iter__(self):
         """Iterate over the items of self."""
-        return RunnerIterator(super().__getattribute__("items"))
+        return (x for x in self.__dict__ if x[0] != "_")
 
     def __len__(self):
         """Return the number of items in self."""
-        return len(super().__getattribute__("items"))
-
-    def __contains__(self, item):
-        """Return True if item is in self, False otherwise."""
-        return item in super().__getattribute__("items")
-
-    def __repr__(self):
-        """Return a representation of the items in self."""
-        return "%s(%s)" % (super().__getattribute__("__class__").__name__,
-               ", ".join("(%s, %s)" % (repr(k), repr(v)) for k, v in
-               sorted(super().__getattribute__("items").items())))
-
-    def __str__(self):
-        """Show all the items in self."""
-        return str(sorted(super().__getattribute__("items").items()))[1:-1]
-
-    def __eq__(self, other):
-        """Return True if self == other, False otherwise."""
-        return super().__getattribute__("items") == other
-
-    def __ne__(self, other):
-        """Return True if self != other, False otherwise."""
-        return super().__getattribute__("items") != other
-
-    def __dir__(self):
-        """Return a list of all (key, value) pairs."""
-        return super().__getattribute__("items").items()
-
-    def __getattribute__(self, item):
-        """Access the items in self."""
-        return super().__getattribute__("items")[item]
-
-    def __setattr__(self, item, value):
-        """Set a value to an item in self."""
-        super().__getattribute__("items")[item] = value
-
-    def __delattr__(self, item):
-        """Delete an item from self."""
-        del super().__getattribute__("items")[item]
+        num = 0
+        for x in self:
+            num += 1
+        return num
 
 class NamedLevelsLogger(LevelLogger):
     """Implement named levels logging.
@@ -1713,8 +1668,8 @@ class NamedLevelsLogger(LevelLogger):
         super().__init__(**kwargs)
 
         self.default = pick(default, "normal")
+        self.levels = LoggingLevels(**pick(levels, {}))
 
-        self.levels = type("Logging Levels ", (NamedLevels,), {})(levels)
         if self.default not in self.levels:
             setattr(self.levels, self.default, 0)
 
@@ -1725,7 +1680,7 @@ class NamedLevelsLogger(LevelLogger):
             level = getattr(self.levels, level)
         except TypeError: # got an int, direct value lookup, or None
             pass
-        except KeyError: # unknown value; fall back to normal
+        except AttributeError: # unknown value; fall back to normal
             level = getattr(self.levels, self.default)
 
         super().logger(*output, level=level, **kwargs)
