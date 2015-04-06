@@ -1211,7 +1211,7 @@ class Logger(BaseLogger):
                 if (log == logall and type not in alines) or log is None:
                     continue
                 atypes = "type.%s - " % type if log == logall else ""
-                with open(log, "a", encoding="utf-8") as f:
+                with open(log, "a", encoding="utf-8", errors="replace") as f:
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
 
