@@ -863,7 +863,7 @@ class BaseLogger:
     """
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
-                          print_ts=None, **kwargs):
+                          print_ts=None, split=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
@@ -872,6 +872,7 @@ class BaseLogger:
 
         self.use_utc = pick(use_utc, False)
         self.print_ts = pick(print_ts, False)
+        self.split = pick(split, True)
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
@@ -930,14 +931,14 @@ class BaseLogger:
         return "\n".join(newlines)
 
     def _print(self, *output, sep=None, use_utc=None, ts_format=None,
-                              print_ts=None, split=True):
+                              print_ts=None, split=None):
         """Print to screen and remove all invalid characters."""
 
         sep = pick(sep, self.separator)
 
         output = self._get_output(output, sep)
 
-        if split:
+        if pick(split, self.split):
             output = self._split_lines(output)
 
         with open(sys.stdout.fileno(), "w", errors="replace",
@@ -1182,7 +1183,7 @@ class Logger(BaseLogger):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
-        split = self.bypassed.get("splitter", pick(split, True))
+        split = self.bypassed.get("splitter", pick(split, self.split))
         display = self.bypassed.get("display", pick(display, self.display))
         write = self.bypassed.get("write", pick(write, self.write))
 
