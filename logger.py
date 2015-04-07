@@ -1,7 +1,9 @@
 ﻿#!/usr/bin/env python
 
 __author__ = "Emanuel 'Vgr' Barry"
-__version__ = "0.1"
+
+__version__ = "0.2"
+__status__ = "Stable"
 
 __doc__ = """Improved Logger module
 
