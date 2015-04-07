@@ -525,6 +525,9 @@ class Bypassers(Container):
     bypassers[setting]
                                         Access the internal mapping
 
+    bypassers[setting] = other
+                                        Copy a setting's bindings
+
     del bypassers[setting]
                                         Remove the setting's bindings
 
