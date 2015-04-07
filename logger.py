@@ -855,7 +855,7 @@ class BaseLogger:
                     + or - following by 4 digits, like +0000 or -0500,
                     the digits being HHMM.
 
-        Default:    "[%Y-%m-%-d] (%H:%M:%S UTC{tzoffset})"
+        Default:    "[%Y-%m-%-d] (%H:%M:%S {tzoffset})"
 
     print_ts:
                     Boolean value to determine whether the timestamps
@@ -886,7 +886,7 @@ class BaseLogger:
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
         # and an offset from UTC in the form +0000 or -0500
-        self.ts_format = ts_format or "[%Y-%m-%d] (%H:%M:%S UTC{tzoffset})"
+        self.ts_format = pick(ts_format, "[%Y-%m-%d] (%H:%M:%S {tzoffset})")
 
     def __dir__(self):
         """Return a list of all non-private methods and attributes."""
