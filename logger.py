@@ -875,6 +875,9 @@ class BaseLogger:
         use_utc = pick(use_utc, self.use_utc)
         ts_format = pick(ts_format, self.ts_format)
 
+        if not ts_format:
+            return ""
+
         if use_utc:
             tmf = datetime.utcnow().strftime(ts_format)
             tz = "UTC"
