@@ -863,6 +863,12 @@ class BaseLogger:
 
         Default:    False
 
+    split:
+                    Boolean value to determine if long lines should be
+                    split when printing to screen.
+
+        Default:    True
+
     """
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
