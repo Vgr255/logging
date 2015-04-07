@@ -1,3 +1,4 @@
+﻿#!/usr/bin/env python
 
 __author__ = "Emanuel 'Vgr' Barry"
 __version__ = "0.1"
