@@ -588,7 +588,7 @@ class Bypassers(Container):
     bypassers.pairs()
                                         Return all pairs
 
-    bypassers.read()
+    bypassers.attributes()
                                         Return all (module, attr) pairs
 
     bypassers.copy()
@@ -614,7 +614,7 @@ class Bypassers(Container):
     def __init__(self, *names):
         """Create a new instance of the class."""
         self._fallbacks = {}
-        self._names = ("keys", "types", "pairs", "read", "values", "items")
+        self._names = ("keys","types","pairs","attributes","values","items")
         self._mappers = make_sub(self.__class__.__name__, self._names)
         for i, name in enumerate(self._names):
             setattr(self, name, self._mappers[i](self))
@@ -628,7 +628,7 @@ class Bypassers(Container):
                 self.keys.append(setting)
                 self.types.append(types)
                 self.pairs.append(pairs)
-                self.read.append((module, attr))
+                self.attributes.append((module, attr))
                 self.values.append((types, pairs, module, attr))
                 self.items.append((setting, types, pairs, module, attr))
 
@@ -700,14 +700,14 @@ class Bypassers(Container):
                     self.keys.append(setting)
                     self.types.append(types)
                     self.pairs.append(pairs)
-                    self.read.append((NoValue, NoValue))
-                    self.values.append((types, pairs) + self.read[index_])
+                    self.attributes.append((NoValue, NoValue))
+                    self.values.append((types, pairs, NoValue, NoValue))
                     self.items.append((setting,) + self.values[index_])
                 if module is NoValue:
-                    module = self.read[index_][0]
+                    module = self.attributes[index_][0]
                 if attr is NoValue:
-                    attr = self.read[index_][1]
-                self.read[index_] = (module, attr)
+                    attr = self.attributes[index_][1]
+                self.attributes[index_] = (module, attr)
                 self.values[index_] = self.values[index_][:2] + (module, attr)
                 self.items[index_] = self.items[index_][:3] + (module, attr)
 
@@ -721,7 +721,7 @@ class Bypassers(Container):
         self.keys.append(setting)
         self.types.append(types)
         self.pairs.append(pairs)
-        self.read.append((module, attr))
+        self.attributes.append((module, attr))
         self.values.append((types, pairs, module, attr))
         self.items.append((setting, types, pairs, module, attr))
 
@@ -735,7 +735,7 @@ class Bypassers(Container):
             self.keys.append(setting)
             self.types.append(types)
             self.pairs.append(pairs)
-            self.read.append((NoValue, NoValue))
+            self.attributes.append((NoValue, NoValue))
             self.values.append((types, pairs, NoValue, NoValue))
             self.items.append((setting, types, pairs, NoValue, NoValue))
 
