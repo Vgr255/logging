@@ -2,8 +2,11 @@
 
 __author__ = "Emanuel 'Vgr' Barry"
 
-__version__ = "0.2"
-__status__ = "Stable"
+__version__ = "0.2.1"
+__status__ = "Refactoring [Unstable]"
+# the module is in the middle of a code refactor
+# some classes are unstable and some others don't work as intended
+# documentation is lacking, it still needs to be moved around/rewritten
 
 __doc__ = """Improved Logger module
 
