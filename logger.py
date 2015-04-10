@@ -814,9 +814,9 @@ class TypeBypassers(BaseBypassers):
     def __repr__(self):
         """Return a string of all active attributes."""
         args = []
-        for setting, types, pairs, module, attr in self.items():
+        for binding in self.items():
             args.append("(setting=%r, types=%r, pairs=%r, module=%r, attr=%r)"
-                       % (setting, types, pairs, module, attr))
+                       % binding)
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
     def update(self, *new):
