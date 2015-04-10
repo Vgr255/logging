@@ -872,13 +872,14 @@ class BaseLogger:
                 items.remove(item)
         return items
 
+    @check_bypass
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Return a timestamp with timezone + offset from UTC."""
         use_utc = pick(use_utc, self.use_utc)
         ts_format = pick(ts_format, self.ts_format)
 
-        if not ts_format:
-            return ""
+        if not ts_format or "timestamp" in self.bypassed:
+            return self.bypassed.get("timestamp", "")
 
         if use_utc:
             tmf = datetime.utcnow().strftime(ts_format)
@@ -923,6 +924,7 @@ class BaseLogger:
                 newlines.append(newstr)
         return "\n".join(newlines)
 
+    @check_bypass
     def _print(self, *output, sep=None, use_utc=None, ts_format=None,
                               print_ts=None, split=None):
         """Print to screen and remove all invalid characters."""
@@ -938,7 +940,7 @@ class BaseLogger:
                 out[i] = ts + line
             output = "\n".join(out)
 
-        if pick(split, self.split):
+        if self.bypassed.get("splitter", pick(split, self.split)):
             output = self._split_lines(output)
 
         with open(sys.stdout.fileno(), "w", errors="replace",
@@ -1180,8 +1182,7 @@ class Logger(BaseLogger):
         display = self.bypassed.get("display", pick(display, self.display))
         write = self.bypassed.get("write", pick(write, self.write))
 
-        timestamp = self.bypassed.get("timestamp",
-                    self._get_timestamp(use_utc, ts_format))
+        timestamp = self._get_timestamp(use_utc, ts_format)
         # this is the file to write everything to
         logall = self.bypassed.get("logall")
 
