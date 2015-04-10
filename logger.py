@@ -470,12 +470,13 @@ class BaseViewer:
         """Delegate any attribute not found to the inner list."""
         return getattr(self._items, attr)
 
-def make_sub(name):
+def make_sub(name, names):
     """Generate view objects."""
     subs = []
-    for sub in ("Keys", "Types", "Pairs", "Attributes", "Values", "Items"):
+    for sub in names:
+        sub = sub.capitalize()
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
-        subs.append(type(name + sub, (BaseViewer,), {'__doc__': doc}))
+        subs.append(type(name + sub, (BaseViewer,), {"__doc__": doc}))
     return subs
 
 class Bypassers(Container):
@@ -614,7 +615,7 @@ class Bypassers(Container):
         """Create a new instance of the class."""
         self._fallbacks = {}
         self._names = ("keys", "types", "pairs", "read", "values", "items")
-        self._mappers = make_sub(self.__class__.__name__)
+        self._mappers = make_sub(self.__class__.__name__, self._names)
         for i, name in enumerate(self._names):
             setattr(self, name, self._mappers[i](self))
         for name in names:
