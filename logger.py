@@ -883,15 +883,126 @@ class TypeBypassers(BaseBypassers):
             new.append((setting, types.copy(), pairs.copy(), module, attr))
         return self.__class__(*new)
 
+class NamesMapping(BaseMapping):
+    """Inner mapping for the names argument of the Bypassers."""
 
+class LevelsMapping(BaseMapping):
+    """Inner mapping for the levels argument of the Bypassers."""
 
+class LevelBypassers(BaseBypassers):
+    """Bypassers for level-based logging."""
 
+    def __init__(self, *names):
+        """Create a new level-based bypasser."""
+        self._fallbacks = {}
+        self._names = ("keys", "names", "levels", "pairs", "attributes",
+                       "values", "items")
+        self._mappers = make_sub(self.__class__.__name__, self._names)
+        for i, name in enumerate(self._names):
+            setattr(self, name, self._mappers[i](self))
+        for name in names:
+            new = (name,)
+            if hasattr(name, "items"):
+                new = name.items()
+            for setting, names, levels, pairs, module, attr in new:
+                names = NamesMapping(names)
+                levels = LevelsMapping(levels)
+                pairs = PairsMapping(pairs)
+                self.keys.append(setting)
+                self.names.append(names)
+                self.levels.append(levels)
+                self.pairs.append(pairs)
+                self.attributes.append((module, attr))
+                self.values.append((names, levels, pairs, module, attr))
+                self.items.append((setting,names,levels,pairs,module,attr))
+
+    def __setitem__(self, item, value):
+        """Bind a setting to another setting's bindings."""
+        c = self[value]
+        self.update((item, c[0].copy(), c[1].copy(), c[2].copy()) + c[3:])
+
+    def __bool__(self):
+        """Return True if at least one setting is bound."""
+        return any((self.names, self.levels, self.pairs))
+
+    def __repr__(self):
+        """Return a string of all active attributes."""
+        args = []
+        for binding in self.items():
+            args.append("(setting=%r, names=%r, levels=%r, pairs=%r, " +
+                        "module=%r, attr=%r)" % binding)
+        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+
+    def update(self, *new):
+        """Update the setting's bindings."""
+        for name in new:
+            item = (name,)
+            if hasattr(name, "items"):
+                item = name.items()
+            for setting, names, levels, pairs, module, attr in item:
+                if setting in self.keys():
+                    index_ = self.keys.index(setting)
+                    self.names[index_].update(names)
+                    self.levels[index_].update(levels)
+                    self.pairs[index_].update(pairs)
+                else:
+                    index_ = len(self.keys())
+                    names = NamesMapping(names)
+                    levels = LevelsMapping(levels)
+                    pairs = PairsMapping(pairs)
+                    self.keys.append(setting)
+                    self.names.append(names)
+                    self.levels.append(levels)
+                    self.pairs.append(pairs)
+                    self.attributes.append((NoValue, NoValue))
+                    self.values.append((names,levels,pairs,NoValue,NoValue))
+                    self.items.append((setting,) + self.values[index_])
+                if module is NoValue:
+                    module = self.attributes[index_][0]
+                if attr is NoValue:
+                    attr = self.attributes[index_][1]
+                self.attributes[index_] = (module, attr)
+                self.values[index_] = self.values[index_][:3] + (module, attr)
+                self.items[index_] = self.items[index_][:4] + (module, attr)
+
+    def extend(self, items):
+        """Add a new binding from a six-tuple."""
+        setting, names, levels, pairs, module, attr = items
+        if setting in self.keys():
+            return
+        names = NamesMapping(names)
+        levels = LevelsMapping(levels)
+        pairs = PairsMapping(pairs)
+        self.keys.append(setting)
+        self.names.append(names)
+        self.levels.append(levels)
+        self.pairs.append(pairs)
+        self.attributes.append((module, attr))
+        self.values.append((names, levels, pairs, module, attr))
+        self.items.append((setting, names, levels, pairs, module, attr))
+
+    def add(self, *settings):
+        """Add new unbound settings. Ignored for existing settings."""
+        for setting in settings:
+            if setting in self.keys():
+                continue
+            names = NamesMapping(set())
+            levels = LevelsMapping(set())
+            pairs = PairsMapping([])
+            self.keys.append(setting)
+            self.names.append(names)
+            self.levels.append(levels)
+            self.pairs.append(pairs)
+            self.attributes.append((NoValue, NoValue))
+            self.values.append((names, levels, pairs, NoValue, NoValue))
+            self.items.append((setting,names,levels,pairs,NoValue,NoValue))
 
     def copy(self):
         """Return a new instance with the same attributes."""
         new = []
-        for setting, types, pairs, module, attr in self.items():
-            new.append((setting, types.copy(), pairs.copy(), module, attr))
+        for setting, names, levels, pairs, module, attr in self.items():
+            new.append((setting, names.copy(), levels.copy(), pairs.copy(),
+                        module, attr))
         return self.__class__(*new)
 
 def pick(arg, default):
