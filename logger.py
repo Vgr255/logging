@@ -143,7 +143,7 @@ evaluates to True. We'll do it like this:
 
 bar = {"foo": False}
 
-myLogger = Logger(bypassers=[("write", set(), {(bar, "foo")},
+myLogger = Logger(bypassers=[("write", set(), [(bar, "foo")],
                                                 None, True)])
 
 The syntax for the bypassers may seem slightly complicated when first
