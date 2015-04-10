@@ -1688,11 +1688,11 @@ class Translater:
 
         def get_line(module, other, fallback):
             try:
-                value = getattr(module, other)
-            except AttributeError:
+                value = module[other]
+            except (TypeError, KeyError, IndexError):
                 try:
-                    value = module[other]
-                except (TypeError, KeyError, IndexError):
+                    value = getattr(module, other)
+                except AttributeError:
                     return fallback
             return value
 
