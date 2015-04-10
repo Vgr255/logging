@@ -1830,7 +1830,7 @@ class TranslatedLogger(Translater, Logger):
 
         super().logger(*output, file=file, type=type, sep=sep, **kwargs)
 
-class LevelLogger(Logger):
+class LevelLogger(BaseLogger):
     """Implement levelled logging.
 
     "level":
