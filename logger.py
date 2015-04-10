@@ -805,7 +805,7 @@ class TypeBypassers(BaseBypassers):
     def __setitem__(self, item, value):
         """Bind a setting to another setting's bindings."""
         cur = self[value]
-        self.update((item, set(cur[0]), set(cur[1])) + cur[2:])
+        self.update((item, cur[0].copy(), cur[1].copy()) + cur[2:])
 
     def __bool__(self):
         """Return True if at least one setting is bound."""
