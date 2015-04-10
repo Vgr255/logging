@@ -1008,6 +1008,74 @@ class LevelBypassers(BaseBypassers):
 def pick(arg, default):
     return default if arg is None else arg
 
+def get_setting(module, attr, catch=False):
+    """Get the proper setting from inside a dictionary or module."""
+    if module is None:
+        return attr
+    try:
+        value = module[attr]
+    except (TypeError, KeyError, IndexError):
+        try:
+            value = getattr(module, attr)
+        except AttributeError:
+            if catch:
+                return False
+            raise
+    return value
+
+def check_bypass(func):
+    """Handler to get the proper bypass check decorator."""
+    def inner(self, *output, **kwargs):
+        if hasattr(self, "bypassed"):
+            return func(self, *output, **kwargs)
+        self.bypassed = {}
+        name = "check_bypass_" + self.__class__._bp_handler[1]
+        try:
+            return globals()[name](func, self, *output, **kwargs)
+        finally:
+            del self.bypassed
+
+    return inner
+
+def check_bypass_base(func, self, *output, **kwargs):
+    """Decorator for checking bypassability for the base classes."""
+    for setting, pairs, module, attr in self.bypassers.items():
+        if module is NoValue or attr is NoValue:
+            continue
+        for mod, att in pairs:
+            if get_setting(mod, att, True):
+                self.bypassed[setting] = get_setting(module, attr)
+                break
+
+    return func(self, *output, **kwargs)
+
+def check_bypass_type(func, self, *output, type=None, file=None, **rest):
+    """Decorator for checking bypassability for the Logger class."""
+    if file is type is None:
+        type = "normal"
+    if type is None:
+        for f, t in self.logfiles.items():
+            if f == file:
+                type = t
+                break
+        else:
+            type = "normal"
+    if file is None:
+        file = self.logfiles.get(type, self.logfiles["normal"])
+
+    for setting, types, pairs, module, attr in self.bypassers.items():
+        if module is NoValue or attr is NoValue:
+            continue
+        for mod, att in pairs:
+            if get_setting(mod, att, True):
+                self.bypassed[setting] = get_setting(module, attr)
+                break
+        else:
+            if type in types:
+                self.bypassed[setting] = get_setting(module, attr)
+
+    return func(self, *output, type=type, file=file, **rest)
+
 class BaseLogger:
     """Base Logger class for your everyday needs.
 
@@ -1196,50 +1264,6 @@ class BaseLogger:
                 msg = sep.join((msg, line))
         return msg
 
-def check_bypass(func):
-    """Decorator for checking bypassability for the Logger class."""
-    def inner(self, *output, type=None, file=None, **rest):
-        if file is type is None:
-            type = "normal"
-        if type is None:
-            for f, t in self.logfiles.items():
-                if f == file:
-                    type = t
-                    break
-            else:
-                type = "normal"
-        if file is None:
-            file = self.logfiles.get(type, self.logfiles["normal"])
-        self.bypassed = {} # reset the bypasses everytime
-        def get_setting(module, attr, catch=False):
-            if module is None:
-                return attr
-            try:
-                value = getattr(module, attr)
-            except AttributeError:
-                try:
-                    value = module[attr]
-                except (TypeError, KeyError, IndexError):
-                    if catch:
-                        return False
-                    raise
-            return value
-
-        for setting, types, pairs, module, attr in self.bypassers.items():
-            if module is NoValue or attr is NoValue:
-                continue
-            for mod, att in pairs:
-                if get_setting(mod, att, True):
-                    self.bypassed[setting] = get_setting(module, attr)
-                    break
-            else:
-                if type in types:
-                    if get_setting(module, attr):
-                        self.bypassed[setting] = get_setting(module, attr)
-
-        return func(self, *output, type=type, file=file, **rest)
-
-    return inner
 
 class Logger(BaseLogger):
     """Main Logger class for general and specific logging purposes.
