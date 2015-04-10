@@ -1006,6 +1006,7 @@ class LevelBypassers(BaseBypassers):
         return self.__class__(*new)
 
 def pick(arg, default):
+    """Handler for default versus given argument."""
     return default if arg is None else arg
 
 def get_setting(module, attr, catch=False):
