@@ -1062,8 +1062,10 @@ class BaseLogger:
 
     """
 
+    _bp_handler = (BaseBypassers, "base")
+
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
-                          print_ts=None, split=None, **kwargs):
+                       print_ts=None, split=None, bypassers=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
@@ -1073,6 +1075,21 @@ class BaseLogger:
         self.use_utc = pick(use_utc, False)
         self.print_ts = pick(print_ts, False)
         self.split = pick(split, True)
+
+        # this needs to be list/tuple of (setting, types, pairs,
+        # module, attr) tuples; the setting is the setting to bypass;
+        # types is a list of types to check for to determine if
+        # bypassing should occur, same about the pairs, except for
+        # module/attr matches; module and attr are used with getattr()
+        # to bypass the value of setting with the one found in the
+        # given module, for the given attribute; module of None means
+        # to use the attr as the direct value; making the type None
+        # will also indicate that any type can be triggered. To
+        # indicate a lack of value for any parameter, pass NoValue, as
+        # None has a special meaning
+
+        self.bypassers = self.__class__._bp_handler[0](*pick(bypassers, ()))
+        self.bypassers.add("timestamp", "splitter")
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
@@ -1347,9 +1364,10 @@ class Logger(BaseLogger):
 
     """
 
-    def __init__(self, *, write=None, display=None, logfiles=None,
-                 bypassers=None, **kwargs):
-        """Create a new Logger instance."""
+    _bp_handler = (TypeBypassers, "type")
+
+    def __init__(self, *, write=None, display=None, logfiles=None, **kwargs):
+        """Create a new type-based logger."""
 
         super().__init__(**kwargs)
 
@@ -1367,24 +1385,7 @@ class Logger(BaseLogger):
         else:
             self.logfiles = files
 
-        # this needs to be list/tuple of (setting, types, pairs,
-        # module, attr) tuples; the setting is the setting to bypass;
-        # types is a list of types to check for to determine if
-        # bypassing should occur, same about the pairs, except for
-        # module/attr matches; module and attr are used with getattr()
-        # to bypass the value of setting with the one found in the
-        # given module, for the given attribute; module of None means
-        # to use the attr as the direct value; making the type None
-        # will also indicate that any type can be triggered. To
-        # indicate a lack of value for any parameter, pass NoValue, as
-        # None has a special meaning
-        if bypassers is None:
-            bypassers = ()
-
-        self.bypassers = Bypassers(*bypassers)
-
-        self.bypassers.add("timestamp", "splitter", "display", "write",
-                           "logall", "files", "all")
+        self.bypassers.add("display", "write", "logall", "files", "all")
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
