@@ -1857,7 +1857,6 @@ class LevelLogger(BaseLogger):
 
         self.level = pick(level, 0)
 
-    @check_bypass
     def logger(self, *output, level=None, **kwargs):
         """Log a line based on level given."""
 
