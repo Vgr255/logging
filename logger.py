@@ -407,12 +407,6 @@ class BaseMapping(Container):
         """Delegate an attribute not found to the items set."""
         return getattr(self._items, attr)
 
-_mps = []
-
-for _sub in ("Types", "Pairs"):
-    _mp_doc = """Subclass for the %s argument.""" % _sub.lower()
-    _mps.append(type(_sub + "Mapping", (BaseMapping,), {'__doc__': _mp_doc}))
-
 class Viewer(Container):
     """Viewer object for the Bypassers mapping."""
 
@@ -478,6 +472,14 @@ def make_sub(name, names):
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
         subs.append(type(name + sub, (BaseViewer,), {"__doc__": doc}))
     return subs
+
+class PairsMapping(BaseMapping):
+    """Inner mapping for the pairs argument of the Bypassers."""
+
+    def update(self, new):
+        """Update the items list with new."""
+        if new not in self._items:
+            self._items.append(new)
 
 class BaseBypassers(Container):
     """Base class for the bypassers classes."""
@@ -643,6 +645,10 @@ class BaseBypassers(Container):
         """Remove all settings and their bindings."""
         for name in self._names:
             getattr(self, name).clear()
+
+class TypesMapping(BaseMapping):
+    """Inner mapping for the types argument of the Bypassers."""
+
 class TypeBypassers(BaseBypassers):
     """Special mapping used by the bypassers argument of Logger.
 
@@ -787,8 +793,8 @@ class TypeBypassers(BaseBypassers):
             if hasattr(name, "items"):
                 new = name.items()
             for setting, types, pairs, module, attr in new:
-                types = _mps[0](types)
-                pairs = _mps[1](pairs)
+                types = TypesMapping(types)
+                pairs = PairsMapping(pairs)
                 self.keys.append(setting)
                 self.types.append(types)
                 self.pairs.append(pairs)
@@ -826,8 +832,8 @@ class TypeBypassers(BaseBypassers):
                     self.pairs[index_].update(pairs)
                 else:
                     index_ = len(self.keys())
-                    types = _mps[0](types)
-                    pairs = _mps[1](pairs)
+                    types = TypesMapping(types)
+                    pairs = PairsMapping(pairs)
                     self.keys.append(setting)
                     self.types.append(types)
                     self.pairs.append(pairs)
@@ -847,8 +853,8 @@ class TypeBypassers(BaseBypassers):
         setting, types, pairs, module, attr = items
         if setting in self.keys():
             return
-        types = _mps[0](types)
-        pairs = _mps[1](pairs)
+        types = TypesMapping(types)
+        pairs = PairsMapping(pairs)
         self.keys.append(setting)
         self.types.append(types)
         self.pairs.append(pairs)
@@ -861,8 +867,8 @@ class TypeBypassers(BaseBypassers):
         for setting in settings:
             if setting in self.keys():
                 continue
-            types = _mps[0](set())
-            pairs = _mps[1](set())
+            types = TypesMapping(set())
+            pairs = PairsMapping([])
             self.keys.append(setting)
             self.types.append(types)
             self.pairs.append(pairs)
