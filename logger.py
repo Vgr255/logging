@@ -311,6 +311,8 @@ class RunnerIterator:
         if hasattr(items, "copy"):
             self.original = items.copy()
         self.forced = list(items)
+        if hasattr(items, "items"):
+            self.dict_items = list(items.items())
         self.items_ = sorted(items)
         self.index_ = len(items) + 1
 
@@ -323,6 +325,9 @@ class RunnerIterator:
         if self.index_ == 1:
             raise StopIteration
 
+        if hasattr(self, "dict_items") and (list(self.items.items()) !=
+                                                 self.dict_items):
+            raise RuntimeError("dictionary changed size during iteration")
         if self.items != self.original or self.forced != list(self.items):
             raise RuntimeError("container changed size during iteration")
 
