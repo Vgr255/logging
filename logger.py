@@ -1027,11 +1027,21 @@ def get_setting(module, attr, catch=False):
             raise
     return value
 
+def handle_bypass(func):
+    """Default bypasser handler for methods that do not support it."""
+    def inner(self, *args, **kwargs):
+        if not hasattr(self, "bypassed"):
+            self.bypassed = {}
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                del self.bypassed
+        return func(self, *args, **kwargs)
+    return inner
+
 def check_bypass(func):
     """Handler to get the proper bypass check decorator."""
     def inner(self, *output, **kwargs):
-        if hasattr(self, "bypassed"):
-            return func(self, *output, **kwargs)
         self.bypassed = {}
         name = "check_bypass_" + self.__class__._bp_handler[1]
         try:
@@ -1176,7 +1186,7 @@ class BaseLogger:
                 items.remove(item)
         return items
 
-    @check_bypass
+    @handle_bypass
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Return a timestamp with timezone + offset from UTC."""
         use_utc = pick(use_utc, self.use_utc)
@@ -1228,7 +1238,7 @@ class BaseLogger:
                 newlines.append(newstr)
         return "\n".join(newlines)
 
-    @check_bypass
+    @handle_bypass
     def _print(self, *output, sep=None, use_utc=None, ts_format=None,
                               print_ts=None, split=None):
         """Print to screen and remove all invalid characters."""
