@@ -1713,7 +1713,6 @@ class Translater:
                     return fallback
             return value
 
-        # for loops are amazing and incredible
         for iterable in (format, format_dict, format_mod, output):
             for i, line in enum(iterable):
                 if re.fullmatch(self.pattern, line) is None:
