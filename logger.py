@@ -1068,7 +1068,7 @@ def check_bypass_type(func, self, *output, type=None, file=None, **rest):
     if file is type is None:
         type = "normal"
     if type is None:
-        for f, t in self.logfiles.items():
+        for t, f in self.logfiles.items():
             if f == file:
                 type = t
                 break
