@@ -1090,6 +1090,13 @@ def check_bypass_type(func, self, *output, type=None, file=None, **rest):
 
     return func(self, *output, type=type, file=file, **rest)
 
+def check_bypass_level(func, self, *output, level=None, file=None, **rest):
+    """Decorator for checking bypassability of level-based loggers."""
+    if file is None:
+        file = self.default_file
+    if level is None:
+        level = None # pass
+
 class BaseLogger:
     """Base Logger class for your everyday needs.
 
@@ -1858,6 +1865,8 @@ class LevelLogger(BaseLogger):
                     number or None.
 
     """
+
+    _bp_handler = (LevelsBypassers, "level")
 
     def __init__(self, *, level=None, **kwargs):
         """Create a new levelled logging instance."""
