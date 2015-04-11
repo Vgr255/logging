@@ -1898,9 +1898,9 @@ class LoggingLevels(sys.__class__):
 
     def __init__(self, **items):
         """Create a new items mapping."""
+        super().__init__(self.__class__.__name__, self.__class__.__doc__)
         for level, value in items.items():
             setattr(self, level, value)
-        super().__init__(self.__class__.__name__, self.__class__.__doc__)
 
     def __iter__(self):
         """Iterate over the items of self."""
