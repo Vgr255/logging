@@ -1280,8 +1280,7 @@ class BaseLogger:
 
     def logger(self, *args, **kwargs):
         """Base method to make sure it always exists."""
-        raise NotImplementedError("no logger method defined for class %s" %
-                                  self.__class__.__name__)
+        raise NotImplementedError("no logger method defined")
 
 class Logger(BaseLogger):
     """Main Logger class for general and specific logging purposes.
