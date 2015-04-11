@@ -1043,7 +1043,7 @@ def check_bypass(func):
     """Handler to get the proper bypass check decorator."""
     def inner(self, *output, **kwargs):
         self.bypassed = {}
-        name = "check_bypass_" + self.__class__._bp_handler[1]
+        name = "check_bypass_" + self._bp_handler[1]
         try:
             return globals()[name](func, self, *output, **kwargs)
         finally:
@@ -1170,7 +1170,7 @@ class BaseLogger:
         # indicate a lack of value for any parameter, pass NoValue, as
         # None has a special meaning
 
-        self.bypassers = self.__class__._bp_handler[0](*pick(bypassers, ()))
+        self.bypassers = self._bp_handler[0](*pick(bypassers, ()))
         self.bypassers.add("timestamp", "splitter")
 
         # this can have {tzname} and {tzoffset} for formatting
