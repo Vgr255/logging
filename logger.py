@@ -253,8 +253,8 @@ class MetaNoValue(type):
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
             sys.modules["_novalue"] = nv
-            # store 'method' in the global scope for lookup in log_usage
-            globals()["method"] = type(meta.__new__)
+            # store a tuple of (<class 'function'>, <class 'method'>)
+            globals()["function"] = (type(meta.__new__), type(nv.__new__))
             return nv
         return NoValue
 
@@ -2104,7 +2104,7 @@ def log_usage(func, *args, __log_handler__=None, **params):
         return func(*args, **kwargs)
 
     if (func and not (args or params) and __log_handler__ is None and
-        isinstance(func, (call.__class__, method))):
+        isinstance(func, function)):
         return lambda *args, **kwargs: call(func, BaseLogger(), args, kwargs)
 
     if __log_handler__ is not None:
