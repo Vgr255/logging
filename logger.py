@@ -2114,20 +2114,31 @@ class log_usage:
     Note: This decorator can only be used on functions or methods, not
     classes. Using this on classes can lead to unexpected results.
 
-    This can be subclassed to change functionality at will. The class
-    attribute 'default_handler' is the class that will be called if the
-    handler is left undefined. Defaults to 'BaseLogger'.
+    The following are possible handlers; they are stated by priority
+    (so the first handle takes precedence over the second, which takes
+    precedence over the third, and so on).
+
+    - A subclass of BaseLogger; an instance of it will be created from
+      the keyword arguments and its 'logger' method will be used.
+    - Any instance of BaseLogger or its subclasses; its 'logger' method
+      will be used.
+    - Any class, they will be instantiated with the positional and
+      keyword arguments and called directly.
+    - Any function or method, they will be called directly.
+    - Any instance of any class, they will be called directly.
+
+    If none of the above matches for some reason, it will create a new
+    instance of BaseLogger from the keyword arguments, and use its
+    'logger' method.
 
     """
-
-    default_handler = BaseLogger
 
     def __new__(cls, func, *args, __log_handler__=None, **params):
         """Perform checks for the decorator's integrity."""
 
         if (func and not (args or params) and __log_handler__ is None and
                                               isinstance(func, function)):
-            return lambda *args, **kw: cls.call(func, None, args, kw)
+            return lambda *args, **kwargs: cls.call(func, None, args, kwargs)
 
         if __log_handler__ is not None:
             return cls.call(func, __log_handler__, args, params)
@@ -2135,30 +2146,34 @@ class log_usage:
         return super().__new__(cls)
 
     def __init__(self, func, *args, **params):
-        """Prepare the decorator."""
+        """Prepare the decorator if there is a parameter."""
         self.args = args
         self.params = params
-        if isinstance(func, type) and issubclass(func, self.default_handler):
-            self.handler = func(**params)
-        elif isinstance(func, self.default_handler):
+        if isinstance(func, type) and issubclass(func, BaseLogger):
+            self.handler = func(**params).logger
+        elif isinstance(func, BaseLogger):
+            self.handler = func.logger
+        elif isinstance(func, type):
+            self.handler = func(*args, **params)
+        elif isinstance(func, function) or isinstance(func.__class__, type):
             self.handler = func
         else:
-            self.handler = self.default_handler(**params)
+            self.handler = BaseLogger(**params).logger
 
     def __call__(self, func):
         """Call itself recursively."""
         return self.__class__(func, *self.args, __log_handler__=self.handler,
                               **self.params)
 
-    @classmethod
-    def call(cls, func, handler, args, kwargs):
+    @staticmethod
+    def call(func, handler, args, kwargs):
         """Log usage of a function or method and call it."""
-        handler = pick(handler, cls.default_handler())
+        handler = pick(handler, BaseLogger().logger)
 
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
 
-        handler.logger("Call: %s.%s(%s)" % (func.__module__, func.__name__,
-                      (", ".join(params) if "".join(params) else "")))
+        handler("Call: %s.%s(%s)" % (func.__module__, func.__name__,
+               (", ".join(params) if "".join(params) else "")))
 
         return func(*args, **kwargs)
