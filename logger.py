@@ -335,14 +335,16 @@ class RunnerIterator:
 
         return self.items_[-self.index_]
 
-def BypassersIterator(instance, method=None):
+class BypassersIterator:
     """Special iterator for the members of a Bypassers instance.
 
     This iterator takes a Bypassers instance as the first parameter. It
     can accept a second, optional parameter, which is used to determine
     how to iterate through the mapping. Leaving this undefined or using
-    any other value than the ones stated here will use the iteration
-    behaviour from the class (by default it iterates through the keys).
+    any other value than the ones stated here will iterate through the
+    keys in alphabetical order. If constructed from an external source
+    (such as iter), the method can be changed through iterator.method,
+    before calling iter() on itself. Changing 
     The valid names for the iteration method are as follow:
 
     'name':
@@ -367,6 +369,31 @@ def BypassersIterator(instance, method=None):
 
     """
 
+    def __init__(self, instance, method=None):
+        """Create a new bypassers iterator."""
+        self.instance = instance
+        self.method = method
+        self.iterator = None
+
+    def __setattr__(self, name, value):
+        """Disallow attribute changing when the iterator exists."""
+        if self.iterator is not None:
+            raise RuntimeError("cannot change attribute %r after the " +
+                               "iterator has been constructed" % name)
+        super().__setattr__(name, value)
+
+    def __iter__(self):
+        """Return the itertator object."""
+        self.iterator = bypassers_iterator(self.instance, self.method)
+        return self
+
+    def __next__(self):
+        """Return the next item in the list."""
+        return next(self.iterator)
+
+def bypassers_iterator(instance, method):
+    """Inner iterator for the bypassers iterator."""
+
     if method == "name":
         for name in instance._names:
             for i in range(len(instance)):
@@ -389,7 +416,7 @@ def BypassersIterator(instance, method=None):
             yield getattr(instance, name)
 
     else:
-        iterator = iter(instance)
+        iterator = RunnerIterator(instance.keys())
         while True:
             yield next(iterator)
 
@@ -594,7 +621,7 @@ class BaseBypassers(Container):
 
     def __iter__(self):
         """Return an iterator over the items of self."""
-        return RunnerIterator(self.keys())
+        return BypassersIterator(self)
 
     def __len__(self):
         """Return the total number of items, bound or otherwise."""
