@@ -235,7 +235,7 @@ time it reaches object.
 
 __all__ = ["BaseLogger", "Logger", "Translater", "LevelLogger",
            "TranslatedLevelLogger", "NamedLevelsLogger",
-           "TranslatedNamedLevelsLogger", "NoValue"]
+           "TranslatedNamedLevelsLogger", "NoValue", "log_usage"]
 
 from datetime import datetime
 import random
