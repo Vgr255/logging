@@ -2130,7 +2130,7 @@ class log_usage:
         """Prepare the decorator."""
         self.args = args
         self.params = params
-        if isinstance(func,type(BaseLogger)) and issubclass(func,BaseLogger):
+        if isinstance(func, type) and issubclass(func, BaseLogger):
             self.handler = func(**params)
         elif isinstance(func, BaseLogger):
             self.handler = func
