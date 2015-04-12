@@ -1048,7 +1048,7 @@ def check_bypass(func):
     """Handler to get the proper bypass check decorator."""
     def inner(self, *output, **kwargs):
         self.bypassed = {}
-        name = "check_bypass_" + self._bp_handler[1]
+        name = "check_bypass_" + self._bp_handler
         try:
             return globals()[name](func, self, *output, **kwargs)
         finally:
@@ -1156,7 +1156,7 @@ class BaseLogger:
 
     """
 
-    _bp_handler = (BaseBypassers, "base")
+    _bp_handler = "base"
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
                        print_ts=None, split=None, bypassers=None, **kwargs):
@@ -1182,7 +1182,8 @@ class BaseLogger:
         # indicate a lack of value for any parameter, pass NoValue, as
         # None has a special meaning
 
-        self.bypassers = self._bp_handler[0](*pick(bypassers, ()))
+        self.bypassers = (globals()[self._bp_handler.capitalize()+"Bypassers"]
+                                   (*pick(bypassers, ())))
         self.bypassers.add("timestamp", "splitter")
 
         # this can have {tzname} and {tzoffset} for formatting
@@ -1417,7 +1418,7 @@ class Logger(BaseLogger):
 
     """
 
-    _bp_handler = (TypeBypassers, "type")
+    _bp_handler = "type"
 
     def __init__(self, *, write=None, display=None, logfiles=None, **kwargs):
         """Create a new type-based logger."""
@@ -1871,7 +1872,7 @@ class LevelLogger(BaseLogger):
 
     """
 
-    _bp_handler = (LevelsBypassers, "level")
+    _bp_handler = "level"
 
     def __init__(self, *, level=None, **kwargs):
         """Create a new levelled logging instance."""
