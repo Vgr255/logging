@@ -253,7 +253,14 @@ class MetaNoValue(type):
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
             sys.modules["_novalue"] = nv
-            # store a tuple of (<class 'function'>, <class 'method'>)
+            # store a tuple of (<class 'function'>, <class 'method'>),
+            # as we need to check these in the log_usage decorator.
+            # this could be accessed through the 'types' module, but
+            # the implementation is simple enough so that there's no
+            # need to import it. we also need a tuple of both of these,
+            # so we can construct it now. done in here because it's
+            # guaranteed to be executed when the module is imported,
+            # and to leave the module-level code cleaner
             globals()["function"] = (type(meta.__new__), type(nv.__new__))
             return nv
         return NoValue
