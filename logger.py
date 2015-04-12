@@ -1185,7 +1185,7 @@ def check_bypass_level(func, self, *output, level=None, file=None, **rest):
     if file is None:
         file = self.default_file
     if level is None:
-        level = None # pass
+        level = self.default_level
 
 class BaseLogger:
     """Base Logger class for your everyday needs.
@@ -1965,14 +1965,13 @@ class LevelLogger(BaseLogger):
 
     _bp_handler = "level"
 
-    def __init__(self, *, level=None, **kwargs):
+    def __init__(self, *, level=None, file=None, **kwargs):
         """Create a new levelled logging instance."""
 
         super().__init__(**kwargs)
 
-        self.bypassers.add("level")
-
-        self.level = pick(level, 0)
+        self.default_level = pick(level, 0)
+        self.default_file = pick(file, "normal.log")
 
     def logger(self, *output, level=None, **kwargs):
         """Log a line based on level given."""
