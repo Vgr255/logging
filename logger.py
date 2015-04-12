@@ -1997,6 +1997,10 @@ class LoggingLevels(sys.__class__):
         """Iterate over the items of self."""
         return (x for x in self.__dict__ if x[0] != "_")
 
+    def __reversed__(self):
+        """Return a mapping of value: key pairs."""
+        return {self.__dict__[item]: item for item in self}
+
     def __len__(self):
         """Return the number of items in self."""
         num = 0
