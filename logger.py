@@ -1376,9 +1376,15 @@ class BaseLogger:
                 msg = sep.join((msg, line))
         return msg
 
-    def logger(self, *args, **kwargs):
+    def logger(self, *output, sep=None, file=None, split=None,
+               use_utc=None, ts_format=None, print_ts=None):
         """Base method to make sure it always exists."""
-        raise NotImplementedError("no logger method defined")
+        output = self._get_output(output, pick(sep, self.separator))
+        self._print(output, sep=sep, use_utc=use_utc, ts_format=ts_format,
+                            print_ts=print_ts, split=split)
+        if file is not None:
+            with open(file, "a") as f:
+                f.write(output + "\n")
 
 class Logger(BaseLogger):
     """Main Logger class for general and specific logging purposes.
