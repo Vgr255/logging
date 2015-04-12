@@ -335,6 +335,64 @@ class RunnerIterator:
 
         return self.items_[-self.index_]
 
+def BypassersIterator(instance, method=None):
+    """Special iterator for the members of a Bypassers instance.
+
+    This iterator takes a Bypassers instance as the first parameter. It
+    can accept a second, optional parameter, which is used to determine
+    how to iterate through the mapping. Leaving this undefined or using
+    any other value than the ones stated here will use the iteration
+    behaviour from the class (by default it iterates through the keys).
+    The valid names for the iteration method are as follow:
+
+    'name':
+                Return all items in order from the first view object,
+                then from the second, and up to the last. The items are
+                iterated one at a time.
+
+    'all':
+                Return all items in order from the first view object,
+                then from the second, and up to the last. The items are
+                iterated all in one batch.
+
+    'index':
+                Return the first item from all view objects, then from
+                the second view object, and so on to the last one. The
+                items are iterated one at a time.
+
+    'grouped':
+                Return the first item from all view objects, then from
+                the second view object, and so on to the last one. The
+                items are iterated all in one batch.
+
+    """
+
+    if method == "name":
+        for name in instance._names:
+            for i in range(len(instance)):
+                yield getattr(instance, name)[i]
+
+    elif method == "index":
+        for i in range(len(instance)):
+            for name in instance._names:
+                yield getattr(instance, name)[i]
+
+    elif method == "grouped":
+        for i in range(len(instance)):
+            names = []
+            for name in instance._names:
+                names.append(getattr(instance, name)[i])
+            yield names
+
+    elif method == "all":
+        for name in instance._names:
+            yield getattr(instance, name)
+
+    else:
+        iterator = iter(instance)
+        while True:
+            yield next(iterator)
+
 class Container:
     """Base container class for various purposes."""
 
