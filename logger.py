@@ -2064,10 +2064,10 @@ class NamedLevelsLogger(LevelLogger):
 class TranslatedNamedLevelsLogger(NamedLevelsLogger, TranslatedLevelLogger):
     """Implement a way to use named levels with translating."""
 
-def log_usage(func, *args, __log_handler__=None, **params):
+class log_usage:
     """Decorator to log function and method usage.
 
-    There are two ways to use this decorator:
+    There are three ways to use this decorator:
 
     >>> from logger import log_usage
     >>> @log_usage
@@ -2086,15 +2086,58 @@ def log_usage(func, *args, __log_handler__=None, **params):
     >>> foo("bar", 42, 7, fourth=24)
     Call: __main__.foo('bar', 42, 7, fourth=24)
 
+    >>> from logger import log_usage, Logger
+    >>> handler = Logger()
+    >>> args = (42, 1337)
+    >>> kwargs = {"foo": 0, "bar": 1}
+    >>> def baz(hello, world, foo=7, bar=22):
+    ...     pass
+    ...
+    >>> log_usage.call(baz, handler, args, kwargs)
+    Call: __main__.baz(42, 1337, foo=0, bar=1)
+
     The handler is the logger object that will be used for logging of
     the function and method usage.
 
+    The `call` method is called when this class is used as a decorator,
+    and can be called directly as well.
+
     Note: This decorator can only be used on functions or methods, not
-    classes.
+    classes. Using this on classes can lead to unexpected results.
 
     """
 
+    def __new__(cls, func, *args, __log_handler__=None, **params):
+        """Perform checks for the decorator's integrity."""
+
+        if (func and not (args or params) and __log_handler__ is None and
+                                              isinstance(func, function)):
+            return lambda *args, **kw: cls.call(func, BaseLogger(), args, kw)
+
+        if __log_handler__ is not None:
+            return cls.call(func, __log_handler__, args, params)
+
+        return super().__new__(cls)
+
+    def __init__(self, func, *args, **params):
+        """Prepare the decorator."""
+        self.args = args
+        self.params = params
+        if isinstance(func,type(BaseLogger)) and issubclass(func,BaseLogger):
+            self.handler = func(**params)
+        elif isinstance(func, BaseLogger):
+            self.handler = func
+        else:
+            self.handler = BaseLogger(**params)
+
+    def __call__(self, func):
+        """Call itself recursively."""
+        return self.__class__(func, *self.args, __log_handler__=self.handler,
+                              **self.params)
+
+    @staticmethod
     def call(func, handler, args, kwargs):
+        """Log usage of a function or method and call it."""
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
 
@@ -2102,22 +2145,3 @@ def log_usage(func, *args, __log_handler__=None, **params):
                       (", ".join(params) if "".join(params) else "")))
 
         return func(*args, **kwargs)
-
-    if (func and not (args or params) and __log_handler__ is None and
-        isinstance(func, function)):
-        return lambda *args, **kwargs: call(func, BaseLogger(), args, kwargs)
-
-    if __log_handler__ is not None:
-        call(func, __log_handler__, args, params)
-
-    elif isinstance(func, type(BaseLogger)) and issubclass(func, BaseLogger):
-        __log_handler__ = func(**params)
-
-    elif isinstance(func, BaseLogger):
-        __log_handler__ = func
-
-    else:
-        __log_handler__ = BaseLogger(**params)
-
-    return lambda func: lambda *args, **kwargs: log_usage(func, *args,
-           __log_handler__=__log_handler__, **kwargs)
