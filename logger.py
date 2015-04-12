@@ -2112,14 +2112,20 @@ class log_usage:
     Note: This decorator can only be used on functions or methods, not
     classes. Using this on classes can lead to unexpected results.
 
+    This can be subclassed to change functionality at will. The class
+    attribute 'default_handler' is the class that will be called if the
+    handler is left undefined. Defaults to 'BaseLogger'.
+
     """
+
+    default_handler = BaseLogger
 
     def __new__(cls, func, *args, __log_handler__=None, **params):
         """Perform checks for the decorator's integrity."""
 
         if (func and not (args or params) and __log_handler__ is None and
                                               isinstance(func, function)):
-            return lambda *args, **kw: cls.call(func, BaseLogger(), args, kw)
+            return lambda *args, **kw: cls.call(func, None, args, kw)
 
         if __log_handler__ is not None:
             return cls.call(func, __log_handler__, args, params)
@@ -2130,21 +2136,23 @@ class log_usage:
         """Prepare the decorator."""
         self.args = args
         self.params = params
-        if isinstance(func, type) and issubclass(func, BaseLogger):
+        if isinstance(func, type) and issubclass(func, self.default_handler):
             self.handler = func(**params)
-        elif isinstance(func, BaseLogger):
+        elif isinstance(func, self.default_handler):
             self.handler = func
         else:
-            self.handler = BaseLogger(**params)
+            self.handler = self.default_handler(**params)
 
     def __call__(self, func):
         """Call itself recursively."""
         return self.__class__(func, *self.args, __log_handler__=self.handler,
                               **self.params)
 
-    @staticmethod
-    def call(func, handler, args, kwargs):
+    @classmethod
+    def call(cls, func, handler, args, kwargs):
         """Log usage of a function or method and call it."""
+        handler = pick(handler, cls.default_handler())
+
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
 
