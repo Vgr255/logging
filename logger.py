@@ -253,6 +253,8 @@ class MetaNoValue(type):
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
             sys.modules["_novalue"] = nv
+            # store 'method' in the global scope for lookup in log_usage
+            globals()["method"] = type(meta.__new__)
             return nv
         return NoValue
 
@@ -2061,3 +2063,61 @@ class NamedLevelsLogger(LevelLogger):
 
 class TranslatedNamedLevelsLogger(NamedLevelsLogger, TranslatedLevelLogger):
     """Implement a way to use named levels with translating."""
+
+def log_usage(func, *args, __log_handler__=None, **params):
+    """Decorator to log function and method usage.
+
+    There are two ways to use this decorator:
+
+    >>> from logger import log_usage
+    >>> @log_usage
+    ... def foo():
+    ...     pass
+    ...
+    >>> foo()
+    Call: __main__.foo()
+
+    >>> from logger import log_usage, Logger
+    >>> handler = Logger()
+    >>> @log_usage(handler)
+    ... def foo(first, second, third=3, fourth=None):
+    ...     pass
+    ...
+    >>> foo("bar", 42, 7, fourth=24)
+    Call: __main__.foo('bar', 42, 7, fourth=24)
+
+    The handler is the logger object that will be used for logging of
+    the function and method usage.
+
+    Note: This decorator can only be used on functions or methods, not
+    classes.
+
+    """
+
+    def call(func, handler, args, kwargs):
+        params = (", ".join(repr(x) for x in args),
+                  ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
+
+        handler.logger("Call: %s.%s(%s)" % (func.__module__, func.__name__,
+                      (", ".join(params) if "".join(params) else "")))
+
+        return func(*args, **kwargs)
+
+    if (func and not (args or params) and __log_handler__ is None and
+        isinstance(func, (call.__class__, method))):
+        return lambda *args, **kwargs: call(func, BaseLogger(), args, kwargs)
+
+    if __log_handler__ is not None:
+        call(func, __log_handler__, args, params)
+
+    elif isinstance(func, type(BaseLogger)) and issubclass(func, BaseLogger):
+        __log_handler__ = func(**params)
+
+    elif isinstance(func, BaseLogger):
+        __log_handler__ = func
+
+    else:
+        __log_handler__ = BaseLogger(**params)
+
+    return lambda func: lambda *args, **kwargs: log_usage(func, *args,
+           __log_handler__=__log_handler__, **kwargs)
