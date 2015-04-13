@@ -2158,7 +2158,7 @@ class log_usage:
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
 
-        # regex pattern for translation: r"Call: .+\..+\(.*\)"
+        # regex pattern for translation: r"^Call: .+\..+\(.*\)$"
         handler("Call: %s.%s(%s)" % (func.__module__, func.__name__,
                (", ".join(params) if "".join(params) else "")))
 
