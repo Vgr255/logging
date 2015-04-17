@@ -2152,11 +2152,13 @@ class log_usage:
 
     def __call__(self, func):
         """Call the handler."""
-        return lambda *args, **rest: self.call(func, self.handler, args, rest)
+        return lambda *args, **rest: self.call(func, args, rest, self.handler)
 
-    @staticmethod
-    def call(func, handler, args, kwargs):
+    @classmethod
+    def call(cls, func, args, kwargs, handler=None):
         """Log usage of a function or method and call it."""
+        if handler is None:
+            handler = cls._default_handler().logger
 
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
