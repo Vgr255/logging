@@ -257,11 +257,11 @@ class MetaNoValue(type):
             # <class 'builtin_function_or_method'>) as we need to check
             # against these in the log_usage decorator. they could be
             # accessed through the 'types' module, but since their
-            # implementation is simple enough so that there's no need
-            # to import it. we also need a tuple of both of these, so
-            # we can simply construct it here. done in here because
-            # it's guaranteed to be executed when the module is
-            # imported, and also to leave the module-level code cleaner
+            # implementation is simple enough, there's no need to
+            # import it. we also need a tuple of both of these, so we
+            # can simply construct it here. done in here because it's
+            # guaranteed to be executed when the module is imported,
+            # and also helps leaving the module-level code cleaner
             global function
             function = (type(meta.__new__), type(nv.__new__), type(len))
             return nv
