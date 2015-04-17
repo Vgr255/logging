@@ -265,7 +265,7 @@ class MetaNoValue(type):
             global function
             function = (type(meta.__new__), type(nv.__new__), type(len))
             return nv
-        return NoValue
+        raise TypeError("type 'NoValue' is not an acceptable base type")
 
 class NoValue(sys.__class__, metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
