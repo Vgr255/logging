@@ -2172,3 +2172,20 @@ class log_usage:
         handler("Call: %s.%s(%s)" % (func.__module__, func.__name__, params))
 
         return func(*args, **kwargs)
+
+class log_use(log_usage):
+    """Usage logging decorator that doesn't require a handler.
+
+    This can be easily subclassed to change the handler used, or simply
+    change the handler at runtime.
+
+    """
+
+    def __init__(self, func):
+        """Prepare a handler-less decorator."""
+        self.handler = self.__class__._default_handler().logger
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        """Handle the calling of the function itself."""
+        return self.call(self.func, args, kwargs, self.handler)
