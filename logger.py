@@ -2132,20 +2132,23 @@ class log_usage:
 
     """
 
+    _default_handler = BaseLogger
+
     def __init__(self, func=None):
         """Prepare the decorator."""
+        base = self.__class__._default_handler
         if func is None:
-            self.handler = BaseLogger().logger
-        elif isinstance(func, type) and issubclass(func, BaseLogger):
+            self.handler = base().logger
+        elif isinstance(func, type) and issubclass(func, base):
             self.handler = func().logger
-        elif isinstance(func, BaseLogger):
+        elif isinstance(func, base):
             self.handler = func.logger
         elif isinstance(func, type):
             self.handler = func()
         elif isinstance(func, function) or isinstance(func.__class__, type):
             self.handler = func
         else:
-            self.handler = BaseLogger().logger
+            self.handler = base().logger
 
     def __call__(self, func):
         """Call the handler."""
