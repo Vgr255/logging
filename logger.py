@@ -233,9 +233,9 @@ responsibility to make sure that all arguments will be consumed by the
 time it reaches object.
 """
 
-__all__ = ["BaseLogger", "Logger", "Translater", "LevelLogger",
-           "TranslatedLevelLogger", "NamedLevelsLogger",
-           "TranslatedNamedLevelsLogger", "NoValue", "log_usage"]
+__all__ = ["BaseLogger", "Logger", "Translater", "TranslatedLogger",
+           "LevelLogger", "TranslatedLevelLogger", "NamedLevelsLogger",
+           "TranslatedNamedLevelsLogger", "NoValue", "log_usage", "log_use"]
 
 from datetime import datetime
 import random
