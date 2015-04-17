@@ -2111,9 +2111,6 @@ class log_usage:
     The `call` method is called when this class is used as a decorator,
     and can be called directly as well.
 
-    Note: This decorator can only be used on functions or methods, not
-    classes. Using this on classes can lead to unexpected results.
-
     The following are possible handlers; they are stated by priority
     (so the first handle takes precedence over the second, which takes
     precedence over the third, and so on).
@@ -2125,10 +2122,16 @@ class log_usage:
     - Any class, they will be instantiated and called directly.
     - Any function or method, they will be called directly.
     - Any instance of any class, they will be called directly.
+    - None (or no passed function), BaseLogger's logger will be used
 
     If none of the above matches for some reason, it will create a new
-    instance of BaseLogger from the keyword arguments, and use its
-    'logger' method.
+    instance of BaseLogger and use its 'logger' method.
+
+    It is very easy to subclass this into a decorator that doesn't
+    require any parameter. See log_use for an example.
+
+    The class attribute `_default_handler` is a BaseLogger subclass,
+    or any class, but it must have a `logger` method.
 
     """
 
