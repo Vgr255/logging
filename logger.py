@@ -1155,6 +1155,8 @@ def pick(arg, default):
 
 def get_func_name(func):
     """Return the function's name."""
+    if isinstance(func, str):
+        return func
     if hasattr(func, "__self__"):
         return func.__self__.__class__.__name__
     if hasattr(func, "__name__"):
