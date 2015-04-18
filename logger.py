@@ -743,7 +743,10 @@ class BaseBypassers(Container):
 
     def copy(self):
         """Return a new instance with the same attributes."""
-        return self.__class__(*self.items())
+        new = []
+        for setting, pairs, module, attr in self.items():
+            new.append((setting, pairs.copy(), module, attr))
+        return self.__class__(*new)
 
     def clear(self):
         """Remove all settings and their bindings."""
