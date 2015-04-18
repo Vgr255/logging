@@ -2174,6 +2174,10 @@ class log_usage:
         if handler is None:
             handler = cls._default_handler().logger
 
+        if handler is func:
+            raise RuntimeError("found recursive decoration of " +
+                               get_func_name(func))
+
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
 
