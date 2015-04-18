@@ -1116,6 +1116,14 @@ def pick(arg, default):
     """Handler for default versus given argument."""
     return default if arg is None else arg
 
+def get_func_name(func):
+    """Return the function's name."""
+    if hasattr(func, "__self__"):
+        return func.__self__.__class__.__name__
+    if hasattr(func, "__name__"):
+        return func.__name__
+    return func.__class__.__name__
+
 def get_setting(module, attr, catch=False):
     """Get the proper setting from inside a dictionary or module."""
     if module is None:
