@@ -394,7 +394,7 @@ class BypassersIterator:
         super().__setattr__(name, value)
 
     def __iter__(self):
-        """Return the itertator object."""
+        """Return the iterator object."""
         self.iterator = bypassers_iterator(self.instance, self.method)
         return self
 
