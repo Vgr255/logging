@@ -452,10 +452,14 @@ class Container:
         """Return True if item is in self."""
         return item in self._items
 
-    def __repr__(self):
+    def __str__(self):
         """Return a string of all items."""
         return "%s(%s)" % (self.__class__.__name__,
                ", ".join(repr(item) for item in self))
+
+    def __repr__(self):
+        """Return a representation of the items in self."""
+        return repr(self._items)
 
     def __dir__(self):
         """Return a list of all methods."""
@@ -524,11 +528,6 @@ class Viewer(Container):
     def __getitem__(self, index_):
         """Return the matching value."""
         return sorted(self._items)[index_]
-
-    def __repr__(self):
-        """Return a representation of self."""
-        return "%s(%s)" % (self.self.__class__.__name__,
-               ", ".join(repr(item) for item in sorted(self)))
 
 class BaseViewer:
     """Base viewer class for the Bypassers mapping."""
@@ -624,13 +623,25 @@ class BaseBypassers(Container):
         for name in self._names:
             del getattr(self, name)[index_]
 
-    def __repr__(self):
+    def __str__(self):
         """Return a representation of the items in self."""
         args = []
         for setting, pairs, module, attr in self.items():
-            args.append("(setting=%r, pairs=%r, module=%r, attr=%r)" %
+            args.append("(setting=%s, pairs=%s, module=%s, attr=%s)" %
                          (setting, pairs, module, attr))
-        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+        return "%s(%s)" % (self.__class__.__name__, " | ".join(args))
+
+    def __repr__(self):
+        """Return a simplified string of the items in self."""
+        args = []
+        for setting, pairs, module, attr in self.items():
+            mod = get_func_name(module) + "." + get_func_name(attr)
+            if module is None:
+                mod = attr
+            if module is attr is NoValue:
+                mod = "None"
+            args.append("<%r: %r %s>" % (setting, pairs, mod))
+        return "(" + ", ".join(args) + ")"
 
     def __iter__(self):
         """Return an iterator over the items of self."""
@@ -920,13 +931,25 @@ class TypeBypassers(BaseBypassers):
         """Return True if at least one setting is bound."""
         return any((self.types, self.pairs))
 
-    def __repr__(self):
+    def __str__(self):
         """Return a string of all active attributes."""
         args = []
         for binding in self.items():
-            args.append("(setting=%r, types=%r, pairs=%r, module=%r, attr=%r)"
+            args.append("(setting=%s, types=%s, pairs=%s, module=%s, attr=%s)"
                        % binding)
-        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+        return "%s(%s)" % (self.__class__.__name__, " | ".join(args))
+
+    def __repr__(self):
+        """Return a basic representation of the items in self."""
+        args = []
+        for setting, types, pairs, module, attr in self.items():
+            mod = get_func_name(module) + "." + get_func_name(attr)
+            if module is None:
+                mod = attr
+            if module is attr is NoValue:
+                mod = "None"
+            args.append("<%r: %r %r %s>" % (setting, types, pairs, mod))
+        return "(" + ", ".join(args) + ")"
 
     def update(self, *new):
         """Update the setting's bindings."""
@@ -1034,13 +1057,25 @@ class LevelBypassers(BaseBypassers):
         """Return True if at least one setting is bound."""
         return any((self.names, self.levels, self.pairs))
 
-    def __repr__(self):
+    def __str__(self):
         """Return a string of all active attributes."""
         args = []
         for binding in self.items():
-            args.append(("(setting=%r, names=%r, levels=%r, pairs=%r, " +
-                         "module=%r, attr=%r)") % binding)
-        return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
+            args.append(("(setting=%s, names=%s, levels=%s, pairs=%s, " +
+                         "module=%s, attr=%s)") % binding)
+        return "%s(%s)" % (self.__class__.__name__, " | ".join(args))
+
+    def __repr__(self):
+        """Return a representation of all items in self."""
+        args = []
+        for s, n, l, p, module, attr in self.items():
+            mod = get_func_name(module) + "." + get_func_name(attr)
+            if module is None:
+                mod = attr
+            if module is attr is NoValue:
+                mod = "None"
+            args.append("<%r: %r %r %r %s>" % (s, n, l, p, mod))
+        return "(" + ", ".join(args) + ")"
 
     def update(self, *new):
         """Update the setting's bindings."""
