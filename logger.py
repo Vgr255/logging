@@ -382,15 +382,15 @@ class BypassersIterator:
 
     def __init__(self, instance, method=None):
         """Create a new bypassers iterator."""
+        self.iterator = None
         self.instance = instance
         self.method = method
-        self.iterator = None
 
     def __setattr__(self, name, value):
         """Disallow attribute changing when the iterator exists."""
-        if self.iterator is not None:
-            raise RuntimeError("cannot change attribute %r after the " +
-                               "iterator has been constructed" % name)
+        if hasattr(self, name) and self.iterator is not None:
+            raise RuntimeError(("cannot change attribute %r after the " +
+                                "iterator has been constructed") % name)
         super().__setattr__(name, value)
 
     def __iter__(self):
@@ -400,6 +400,8 @@ class BypassersIterator:
 
     def __next__(self):
         """Return the next item in the list."""
+        if self.iterator is None:
+            raise RuntimeError("no iterator was constructed")
         return next(self.iterator)
 
 def bypassers_iterator(instance, method):
