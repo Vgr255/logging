@@ -1033,8 +1033,8 @@ class LevelBypassers(BaseBypassers):
         """Return a string of all active attributes."""
         args = []
         for binding in self.items():
-            args.append("(setting=%r, names=%r, levels=%r, pairs=%r, " +
-                        "module=%r, attr=%r)" % binding)
+            args.append(("(setting=%r, names=%r, levels=%r, pairs=%r, " +
+                         "module=%r, attr=%r)") % binding)
         return '%s(%s)' % (self.__class__.__name__, " | ".join(args))
 
     def update(self, *new):
