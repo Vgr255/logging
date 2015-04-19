@@ -798,6 +798,10 @@ class BypassersMeta(type):
 
         return instance
 
+    def __repr__(cls):
+        """Return a string of itself."""
+        return "<bypasser %r>" % cls.__name__
+
     def generate(cls):
         """Generate the methods for the items."""
 
