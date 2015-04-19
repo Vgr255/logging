@@ -475,8 +475,8 @@ class Container:
 
     def __dir__(self):
         """Return a list of all methods."""
-        return dir(self.__class__) + list(x for x in self.__dict__
-                                   if x[0] != "_" or x[:2] == x[-2:] == "__")
+        return set(dir(self.__class__) + list(x for x in self.__dict__
+                                   if x[0] != "_" or x[:2] == x[-2:] == "__"))
 
     def __eq__(self, other):
         """Return self == other."""
