@@ -549,9 +549,8 @@ class Viewer(Container):
 class BaseViewer:
     """Base viewer class for the Bypassers mapping."""
 
-    def __init__(self, self_):
+    def __init__(self):
         """Create a new view object."""
-        self.self = self_
         self._items = []
         self._viewer = Viewer(self)
 
@@ -573,10 +572,8 @@ class BaseViewer:
 
     def __repr__(self):
         """Return a representation of the viewer."""
-        return "<%s view object of the %s object at 0x%X>" % (
-               self.__class__.__name__,
-               self.self.__class__.__name__,
-               id(self.self))
+        n = len(__name__) + 2
+        return "<" + super().__repr__()[n:].replace(" object", " view object")
 
     def __call__(self):
         """Return the view object."""
