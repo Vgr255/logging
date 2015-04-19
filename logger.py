@@ -537,6 +537,11 @@ class Viewer(Container):
         self.self = self_
         self._items = self_._items
 
+    def __str__(self):
+        """Return a string of self."""
+        return "%s(%s)" % (self.self.__class__.__name__,
+               ", ".join(repr(item) for item in self))
+
     def __getitem__(self, index_):
         """Return the matching value."""
         return sorted(self._items)[index_]
