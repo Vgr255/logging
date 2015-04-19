@@ -767,10 +767,11 @@ class BypassersMeta(type):
         cls = super().__new__(metacls, name, bases, original)
 
         cls.attributes = attributes
-        cls.attributes.setdefault("names", ("keys", "values", "items"))
         cls.attributes.setdefault("values", ("setting",))
-        cls.attributes.setdefault("items", ())
         cls.attributes.setdefault("fallbacks", {})
+        cls.attributes.setdefault("items", (("keys", (0,), None),
+                                            ("values", (1,), None),
+                                            ("items", (0, 1), None)))
 
         metacls.generate(cls)
 
@@ -781,7 +782,7 @@ class BypassersMeta(type):
         namespace = {}
 
         namespace["_fallbacks"] = cls.attributes.get("fallbacks")
-        namespace["_names"] = cls.attributes.get("names")
+        namespace["_names"] = tuple(x[0] for x in cls.attributes.get("items"))
         namespace["_mappers"] = make_sub(cls.__name__, namespace["_names"])
         for i, name in enumerate(namespace["_names"]):
             namespace[name] = namespace["_mappers"][i]()
@@ -1016,7 +1017,6 @@ class LevelsMapping(BaseMapping):
 class BaseBypassers(metaclass=BypassersMeta):
     """Base Bypassers class."""
 
-    names = ("keys", "pairs", "attributes", "values", "items")
     values = ("setting", "pairs", "module", "attr")
     items = (("keys",        (0,),           None),
              ("pairs",       (1,),           PairsMapping),
@@ -1028,7 +1028,6 @@ class BaseBypassers(metaclass=BypassersMeta):
 class TypeBypassers(metaclass=BypassersMeta):
     """Type-based Bypassers class."""
 
-    names = ("keys", "types", "pairs", "attributes", "values", "items")
     values = ("setting", "types", "pairs", "module", "attr")
     items = (("keys",       (0,),           None),
              ("types",      (1,),           TypesMapping),
@@ -1041,7 +1040,6 @@ class TypeBypassers(metaclass=BypassersMeta):
 class LevelBypassers(metaclass=BypassersMeta):
     """Level-based Bypassers class."""
 
-    names = ("keys","names","levels","pairs","attributes","values","items")
     values = ("setting", "names", "levels", "pairs", "module", "attr")
     items = (("keys",       (0,),           None),
              ("names",      (1,),           NamesMapping),
