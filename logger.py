@@ -327,7 +327,7 @@ class RunnerIterator:
     changed during iteration.
     """
 
-    def __init__(self, items):
+    def __init__(self, items, reverse=False):
         """Create a new iterator."""
         self.items = items
         self.original = items
@@ -338,6 +338,7 @@ class RunnerIterator:
             self.dict_items = list(items.items())
         self.items_ = sorted(items)
         self.index_ = len(items) + 1
+        self.reverse = reverse
 
     def __iter__(self):
         """Return the iterator."""
@@ -345,7 +346,7 @@ class RunnerIterator:
 
     def __next__(self):
         """Return the items of self."""
-        if self.index_ == 1:
+        if self.index_ == 0:
             raise StopIteration
 
         if hasattr(self, "dict_items") and (list(self.items.items()) !=
@@ -354,9 +355,11 @@ class RunnerIterator:
         if self.items != self.original or self.forced != list(self.items):
             raise RuntimeError("container changed size during iteration")
 
+        index = self.index_ * (self.reverse * 2 - 1) * -1
+
         self.index_ -= 1
 
-        return self.items_[-self.index_]
+        return self.items_[index]
 
 class BypassersIterator:
     """Special iterator for the members of a Bypassers instance.
@@ -392,10 +395,11 @@ class BypassersIterator:
 
     """
 
-    def __init__(self, instance, method=None):
+    def __init__(self, instance, reverse=False, method=None):
         """Create a new bypassers iterator."""
         self.iterator = None
         self.instance = instance
+        self.reverse = reverse
         self.method = method
 
     def __setattr__(self, name, value):
@@ -407,7 +411,8 @@ class BypassersIterator:
 
     def __iter__(self):
         """Return the iterator object."""
-        self.iterator = bypassers_iterator(self.instance, self.method)
+        self.iterator = bypassers_iterator(self.instance, self.reverse,
+                                                          self.method)
         return self
 
     def __next__(self):
@@ -416,21 +421,23 @@ class BypassersIterator:
             raise RuntimeError("no iterator was constructed")
         return next(self.iterator)
 
-def bypassers_iterator(instance, method):
+def bypassers_iterator(instance, reverse, method):
     """Inner iterator for the bypassers iterator."""
+
+    step = (reverse * 2 - 1) * -1
 
     if method == "name":
         for name in instance._names:
-            for i in range(len(instance)):
+            for i in range(0, len(instance), step):
                 yield getattr(instance, name)[i]
 
     elif method == "index":
-        for i in range(len(instance)):
+        for i in range(0, len(instance), step):
             for name in instance._names:
                 yield getattr(instance, name)[i]
 
     elif method == "grouped":
-        for i in range(len(instance)):
+        for i in range(0, len(instance), step):
             names = []
             for name in instance._names:
                 names.append(getattr(instance, name)[i])
@@ -441,7 +448,7 @@ def bypassers_iterator(instance, method):
             yield getattr(instance, name)
 
     else:
-        iterator = RunnerIterator(instance.keys())
+        iterator = RunnerIterator(instance.keys(), reverse)
         while True:
             yield next(iterator)
 
@@ -836,9 +843,9 @@ class BypassersMeta(type):
                 args.append(s % binding)
             return "(" + ", ".join(args) + ")"
 
-        def __iter__(self):
+        def __iter__(self, reverse=False):
             """Return the special iterator for the Bypassers."""
-            return BypassersIterator(self)
+            return BypassersIterator(self, reverse)
 
         def __len__(self):
             """Return the total number of items in self."""
@@ -855,6 +862,10 @@ class BypassersMeta(type):
         def __contains__(self, item):
             """Return True if item is a setting, False otherwise."""
             return item in self.keys()
+
+        def __reversed__(self):
+            """Return a reversed iterator."""
+            return self.__iter__(reverse=True)
 
         def __eq__(self, other):
             """Return True if self and other are the same."""
