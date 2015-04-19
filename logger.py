@@ -16,8 +16,16 @@ userbase, where there is a need to log what the program does, or even
 simply as a general logger to note down what the program did at some
 point, errors that occurred and so on.
 
-This module exposes seven logging classes and one singleton.
-They are described below.
+This module provides several logging classes with various intents and
+purposes, and a singleton. They are described below.
+
+BaseLogger:
+            Base logger class. Every logging class should inherit from
+            that class. It defines a few private methods, which are not
+            really useful when accessed from outside, but are defined
+            there so every class can access them easily. It also
+            defines one 'logger' method, which every class should
+            define as well.
 
 Logger:
             Basic class to use for general logging purposes. See the
