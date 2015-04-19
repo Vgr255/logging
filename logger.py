@@ -295,6 +295,10 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
         """Return False no matter what."""
         return False
 
+    def __hash__(self):
+        """Return a hash of self."""
+        return hash(self.__class__)
+
     def __lt__(self, other):
         """NoValue will always be last when ordering."""
         return False
