@@ -252,6 +252,10 @@ import time
 import sys
 import re
 
+def is_dunder(name):
+    """Return True if a __dunder__ name, False otherwise."""
+    return name[:2] == name[-2:] == "__" and "_" not in (name[2], name[-2])
+
 class MetaNoValue(type):
     """Metaclass responsible for ensuring uniqueness."""
 
