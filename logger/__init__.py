@@ -1005,9 +1005,7 @@ class log_usage:
 
     def __init__(self, func=None):
         """Prepare the decorator."""
-        function = []
-        for fn in (check_bypass, self.__init__, len):
-            function.append(type(fn))
+        funcion = tuple(type(fn) for fn in (pick, self.__init__, len))
 
         if func is None:
             self.handler = self._default_handler().logger
@@ -1029,6 +1027,7 @@ class log_usage:
     @classmethod
     def call(cls, func, args, kwargs, handler=None):
         """Log usage of a function or method and call it."""
+
         if handler is None:
             handler = cls._default_handler().logger
 
