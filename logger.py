@@ -341,7 +341,7 @@ class RunnerIterator:
         if hasattr(items, "items"):
             self.dict_items = list(items.items())
         self.items_ = sorted(items)
-        self.index_ = len(items) + 1
+        self.index_ = len(items)
         self.reverse = reverse
 
     def __iter__(self):
@@ -359,7 +359,7 @@ class RunnerIterator:
         if self.items != self.original or self.forced != list(self.items):
             raise RuntimeError("container changed size during iteration")
 
-        index = self.index_ * (self.reverse * 2 - 1) * -1
+        index = self.index_ * (self.reverse * 2 - 1)
 
         self.index_ -= 1
 
