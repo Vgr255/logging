@@ -1053,3 +1053,137 @@ class log_use(log_usage):
     def __call__(self, *args, **kwargs):
         """Handle the calling of the function itself."""
         return self.call(self.func, args, kwargs, self.handler)
+
+class check_definition:
+    """Decorator to check function, method and class definitions."""
+
+    _default_handler = BaseLogger
+
+    def __init__(self, handler=None):
+        """Prepare the decorator."""
+        if handler is None:
+            handler = self._default_handler().logger
+        self.handler = handler
+
+    def __call__(self, func):
+        """Log the function's parameters."""
+        self.parse(func, self.handler)
+
+    @staticmethod
+    def parse(func, handler):
+        """Parse the function definition."""
+
+        string = ""
+
+        old = func
+        func = [old]
+
+        mod = sys.modules[old.__module__]
+        fnstring = "File %r\n" % getattr(mod, "__file__", mod.__name__)
+
+        if isinstance(old, type(NoValue.__new__)):
+            func = [old.__func__]
+
+        if isinstance(old, type):
+            func = [x for x in old.__dict__.values()]
+            fnstring += "Class %r\n" % old.__name__
+
+        for function in func:
+            if not hasattr(old, "__code__"):
+                name = old.__class__.__name__.replace("_", " ")
+                name = name.replace("builtin", "built-in").capitalize()
+                string += name + " %r cannot be parsed\n" % old.__name__
+                break
+
+            if hasattr(function, "__code__"):
+
+                code = function.__code__
+
+                fname = code.co_name
+                lineno = code.co_firstlineno
+
+                defargs = pick(function.__defaults__, ())
+                kwdefargs = pick(function.__kwdefaults__, {})
+
+                fnstring += "File %r\n" % code.co_filename
+
+                if function is old:
+                    string += "Function %r at line %r\n" % (fname, lineno)
+                    string += 'Definition: "%s.%s(' % (old.__module__, fname)
+                elif isinstance(old, type):
+                    string += "Method %r at line %r\n" % (fname, lineno)
+                    string += 'Definition: "%s.%s.%s(' % (old.__module__,
+                                                          old.__name__, fname)
+                else:
+                    string += "Method %r of class %r at line %r\n" % (fname,
+                                old.__self__.__name__, lineno)
+                    string += 'Definition: "%s.%s.%s(' % (old.__module__,
+                                                       old.__self__.__name__,
+                                                       fname)
+
+                num = code.co_argcount + code.co_kwonlyargcount
+
+                if len(code.co_varnames) - num == 2:
+                    args_all, kwargs_all = code.co_varnames[:-2]
+                elif len(code.co_varnames) - num == 1:
+                    if code.co_varnames[-2] in kwdefargs:
+                        kwargs_all = code.co_varnames[-1]
+                        args_all = ""
+                    else:
+                        kwargs_all = None
+                        args_all = code.co_varnames[-1]
+                elif len(code.co_varnames) == num:
+                    kwargs_all = args_all = None
+                else:
+                    raise TypeError(fname, lineno)
+
+                varnames = code.co_varnames[:num]
+
+                defaults = len(defargs) + len(kwdefargs)
+
+                string += ", ".join(varnames[:-defaults])
+
+                if num != defaults:
+                    string += ", "
+
+                if defargs:
+                    named_pos = code.co_argcount - len(defargs)
+                    union_vars = varnames[named_pos:code.co_argcount]
+                    union = [[v] for v in union_vars]
+                    union = [union[i] + [v] for i, v in enumerate(defargs)]
+                    string += ", ".join("%s=%r" % (arg,v) for arg, v in union)
+
+                    if kwdefargs or args_all or kwargs_all:
+                        string += ", "
+
+                if args_all is not None:
+                    string += "*%s" % args_all
+
+                    if kwdefargs or kwargs_all:
+                        string += ", "
+
+                if kwdefargs:
+                    string += ", ".join("%s=%r" % i for i in kwdefargs.items())
+
+                    if kwargs_all:
+                        string += ", "
+
+                if kwargs_all:
+                    string += "**%s" % kwargs_all
+
+                string += ')"'
+
+            else:
+                name = function.__class__.__name__.replace("_", " ")
+                name = name.replace("builtin", "built-in").capitalize()
+                string += name + " %r cannot be parsed\n" % function.__name__
+
+        handler(fnstring[:-1])
+        handler(string)
+
+        return old
+
+def chk_def(func):
+    """Handler-less definition parser."""
+    # return something so it can be used as a decorator
+    return check_definition.parse(func, BaseLogger().logger)
