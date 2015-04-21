@@ -5,10 +5,11 @@ __author__ = "Emanuel 'Vgr' Barry"
 __version__ = "0.2.2"
 __status__ = "Refactoring [Unstable]"
 
-__all__ = ["TypeLogger", "TranslatedTypeLogger",    # type-based loggers
-           "LevelLogger", "TranslatedLevelLogger",  # level-based loggers
-           "NamesLogger", "TranslatedNamesLogger",  # names-based loggers
-           "NoValue", "log_usage", "log_use"]       # decorators and NoValue
+__all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
+           "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
+           "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
+           "log_usage", "log_use", "check_definition",  # decorators
+           "NoValue"]
 
 import shutil
 import sys
