@@ -1,4 +1,4 @@
-"""Implementation of the Bypassers handlers."""
+﻿"""Implementation of the Bypassers handlers."""
 
 from datetime import datetime
 import random
