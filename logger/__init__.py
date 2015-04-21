@@ -943,29 +943,32 @@ class log_usage:
     >>> from logger import log_usage
     >>> @log_usage() # @log_usage(None) has the same effect
     ... def foo():
-    ...     pass
+    ...     print("spam")
     ...
     >>> foo()
     Call: __main__.foo()
+    spam
 
     >>> from logger import log_usage, Logger
     >>> handler = Logger()
     >>> @log_usage(handler)
     ... def foo(first, second, third=3, fourth=None):
-    ...     pass
+    ...     print("eggs")
     ...
     >>> foo("bar", 42, 7, fourth=24)
     Call: __main__.foo('bar', 42, 7, fourth=24)
+    eggs
 
     >>> from logger import log_usage, Logger
     >>> handler = Logger()
     >>> args = (42, 1337)
     >>> kwargs = {"foo": 0, "bar": 1}
     >>> def baz(hello, world, foo=7, bar=22):
-    ...     pass
+    ...     print("spam or eggs")
     ...
     >>> log_usage.call(baz, handler, args, kwargs)
     Call: __main__.baz(42, 1337, foo=0, bar=1)
+    spam or eggs
 
     The handler is the logger object that will be used for logging of
     the function and method usage.
