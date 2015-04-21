@@ -765,8 +765,8 @@ class BypassersMeta(type):
 
     def __new__(metacls, name, bases, namespace):
         """Create a new Bypassers class."""
-        if not bases:
-            bases = (Container,) # default base class if not specified
+        if name == "Bypassers": # base class
+            return super().__new__(metacls, name, bases, namespace)
 
         original = {k:v for k,v in namespace.items() if is_dunder(k)}
         attributes = {k:v for k,v in namespace.items() if not is_dunder(k)}
@@ -780,12 +780,14 @@ class BypassersMeta(type):
                                             ("values", (1,), None),
                                             ("items", (0, 1), None)))
 
-        metacls.generate(cls)
-
         return cls
 
     def __call__(cls, *names):
         """Create a new Bypassers instance."""
+
+        if cls is Bypassers: # must deny it or various things break
+            raise TypeError("the Bypassers class cannot be called directly")
+
         namespace = {}
 
         namespace["_fallbacks"] = cls.attributes.get("fallbacks")
@@ -809,198 +811,196 @@ class BypassersMeta(type):
         """Return a string of itself."""
         return "<bypasser %r>" % cls.__name__
 
-    def generate(cls):
-        """Generate the methods for the items."""
+class Bypassers(Container, metaclass=BypassersMeta):
+    """Base class to subclass to create Bypassers class."""
 
-        def __init__(self):
-            """Create a new instance of the Bypassers."""
+    def __init__(self):
+        """Create a new instance of the Bypassers."""
 
-        def __getitem__(self, item):
-            """Return the internal mapping of the setting."""
-            return tuple(self.values[self.keys.index(item)])
+    def __getitem__(self, item):
+        """Return the internal mapping of the setting."""
+        return tuple(self.values[self.keys.index(item)])
 
-        def __setitem__(self, item, value):
-            """Bind a setting to another setting's bindings."""
-            cur = [item]
-            cur.extend(self[value])
-            for mapper, indexes, handler in cls.attributes.get("items"):
-                for i, name in enumerate(cls.attributes.get("values")):
-                    if handler is not None and i in indexes:
-                        cur[i] = cur[i].copy()
+    def __setitem__(self, item, value):
+        """Bind a setting to another setting's bindings."""
+        cur = [item]
+        cur.extend(self[value])
+        getter = self.__class__.attributes.get
+        for mapper, indexes, handler in getter("items"):
+            for i, name in enumerate(getter("values")):
+                if handler is not None and i in indexes:
+                    cur[i] = cur[i].copy()
 
-            self.update(cur)
+        self.update(cur)
 
-        def __delitem__(self, item):
-            """Remove the setting and all its bindings."""
-            index = self.keys.index(item)
-            for name in self._names:
-                del getattr(self, name)[index]
+    def __delitem__(self, item):
+        """Remove the setting and all its bindings."""
+        index = self.keys.index(item)
+        for name in self._names:
+            del getattr(self, name)[index]
 
-        def __str__(self):
-            """Return a string of the class' items."""
-            args = []
-            string = "("
-            for name in cls.attributes.get("values"):
-                string = string + name + "=%s, "
-            string = string[:-2] + ")"
-            for binding in self.items():
-                args.append(string % binding)
-            return "%s(%s)" % (cls.__name__, ", ".join(args))
+    def __str__(self):
+        """Return a string of the class' items."""
+        args = []
+        string = "("
+        for name in self.__class__.attributes.get("values"):
+            string = string + name + "=%s, "
+        string = string[:-2].replace("=%s,", "=%r,", 1) + ")"
+        for binding in self.items():
+            args.append(string % binding)
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(args))
 
-        def __repr__(self):
-            """Return a representation of the items in self."""
-            args = []
-            s = "<%r:" + " %r" * (len(cls.attributes.get("values"))-1) + ">"
-            for binding in self.items():
-                args.append(s % binding)
-            return "(" + ", ".join(args) + ")"
+    def __repr__(self):
+        """Return a representation of the items in self."""
+        args = []
+        num = len(self.__class__.attributes.get("values")) - 1
+        string = "<%r: " + ", ".join(["%r"] * num) + ">"
+        for binding in self.items():
+            args.append(string % binding)
+        return "(" + ", ".join(args) + ")"
 
-        def __iter__(self, reverse=False):
-            """Return the special iterator for the Bypassers."""
-            return BypassersIterator(self, reverse)
+    def __iter__(self, reverse=False):
+        """Return the special iterator for the Bypassers."""
+        return BypassersIterator(self, reverse)
 
-        def __len__(self):
-            """Return the total number of items in self."""
-            return len(self.keys())
+    def __len__(self):
+        """Return the total number of items in self."""
+        return len(self.keys())
 
-        def __bool__(self):
-            """Return True if at least one setting is bound."""
-            args = []
-            for mapper, indexes, handler in cls.attributes.get("items"):
-                if handler is not None:
-                    args.append(getattr(self, mapper))
-            return any(args)
+    def __bool__(self):
+        """Return True if at least one setting is bound."""
+        args = []
+        for mapper, index, handler in self.__class__.attributes.get("items"):
+            if handler is not None:
+                args.append(getattr(self, mapper)())
+        return any(args)
 
-        def __contains__(self, item):
-            """Return True if item is a setting, False otherwise."""
-            return item in self.keys()
+    def __contains__(self, item):
+        """Return True if item is a setting, False otherwise."""
+        return item in self.keys()
 
-        def __reversed__(self):
-            """Return a reversed iterator."""
-            return self.__iter__(reverse=True)
+    def __reversed__(self):
+        """Return a reversed iterator."""
+        return self.__iter__(reverse=True)
 
-        def __eq__(self, other):
-            """Return True if self and other are the same."""
-            try:
-                return self.items() == other.items()
-            except Exception:
-                return False
+    def __eq__(self, other):
+        """Return True if self and other are the same."""
+        try:
+            return self.items() == other.items()
+        except Exception:
+            return False
 
-        def update(self, *names):
-            """Update the bindings with the given items."""
-            for name in names:
-                item = (name,)
-                if hasattr(name, "items"):
-                    item = name.items()
-                for binding in item:
-                    binding = list(binding)
-                    if binding[0] in self.keys():
-                        index = self.keys.index(binding[0])
-                        if binding[-2] is NoValue:
-                            binding[-2] = self.items[index][-2]
-                        if binding[-1] is NoValue:
-                            binding[-1] = self.items[index][-1]
-                        for mapper, indexes, handler in cls.attributes.get(
-                                                            "items"):
-                            ix = []
-                            for i in indexes:
-                                if handler is not None:
-                                    getattr(self, mapper)[index].update(
-                                                                 binding[i])
-                                ix.append(binding[i])
-
-                            getattr(self, mapper)[index] = tuple(ix)
-
-                    else:
-                        index = len(self.keys())
-                        for mapper, indexes, handler in cls.attributes.get(
-                                                            "items"):
-                            new = []
-                            for i in indexes:
-                                if handler is not None:
-                                    binding[i] = handler(binding[i])
-                                new.append(binding[i])
-                            if len(new) == 1:
-                                getattr(self, mapper).append(new[0])
-                            elif len(new) > 1:
-                                getattr(self, mapper).append(tuple(new))
-
-        def extend(self, items):
-            """Add a new full binding."""
-            if items[0] in self.keys():
-                return
-            self.update(items)
-
-        def add(self, *settings):
-            """Add new unbound settings. Ignore existing settings."""
-            all_settings = []
-            for setting in settings:
-                if setting in self.keys():
-                    continue
-                lst = [None for x in cls.attributes.get("values")]
-                lst[0] = setting
-                lst[-2:] = (NoValue, NoValue)
-                all_settings.append(lst)
-            self.update(*all_settings)
-
-        def count(self, iters):
-            """Return the number of (module, attr) pairs."""
-            cnt = 0
-            for runner in self.values():
-                if runner[-2:] == tuple(iters):
-                    cnt += 1
-            return cnt
-
-        def setdefault(self, item, fallback=NoValue):
-            """Set the default fallback for the setting."""
-            self._fallbacks[item] = fallback
-            if fallback is NoValue:
-                del self._fallbacks[item]
-
-        def pop(self, item):
-            """Remove and return the bindings of the setting."""
-            index = self.keys.index(item)
-            binding = self.values[index]
-            for name in self._names:
-                del getattr(self, name)[index]
-            return tuple(binding)
-
-        def popitem(self):
-            """Unbind and return all attributes of a random setting."""
-            index = random.randrange(len(self.keys()))
-            bindings = self.items[index]
-            for name in self._names:
-                del getattr(self, name)[index]
-            return tuple(bindings)
-
-        def get(self, item, fallback=NoValue):
-            """Return the setting's bindings or fallback."""
-            if item not in self.keys():
-                if item in self._fallbacks and fallback is NoValue:
-                    fallback = self._fallbacks[item]
-                return None if fallback is NoValue else fallback
-            return tuple(self.values[self.keys.index(item)])
-
-        def copy(self):
-            """Return a deep copy of self."""
-            new = []
-            for binding in self.items():
+    def update(self, *names):
+        """Update the bindings with the given items."""
+        items = self.__class__.attributes.get("items")
+        for name in names:
+            item = (name,)
+            if hasattr(name, "items"):
+                item = name.items()
+            for binding in item:
                 binding = list(binding)
-                for mapper, indexes, handler in cls.attributes.get("items"):
-                    for i, name in enumerate(cls.attributes.get("values")):
-                        if handler is not None and i in indexes:
-                            binding[i] = binding[i].copy()
-                new.append(binding)
-            return self.__class__(*new)
+                if binding[0] in self.keys():
+                    index = self.keys.index(binding[0])
+                    if binding[-2] is NoValue:
+                        binding[-2] = self.items[index][-2]
+                    if binding[-1] is NoValue:
+                        binding[-1] = self.items[index][-1]
+                    for mapper, indexes, handler in items:
+                        ix = []
+                        for i in indexes:
+                            if handler is not None:
+                                getattr(self, mapper)[index].update(
+                                                             binding[i])
+                            ix.append(binding[i])
 
-        def clear(self):
-            """Remove all settings and bindings."""
-            for name in self._names:
-                getattr(self, name).clear()
+                        getattr(self, mapper)[index] = tuple(ix)
 
-        for name, func in locals().items():
-            if name != "cls":
-                setattr(cls, name, func)
+                else:
+                    index = len(self.keys())
+                    for mapper, indexes, handler in items:
+                        new = []
+                        for i in indexes:
+                            if handler is not None:
+                                binding[i] = handler(binding[i])
+                            new.append(binding[i])
+                        if len(new) == 1:
+                            getattr(self, mapper).append(new[0])
+                        elif len(new) > 1:
+                            getattr(self, mapper).append(tuple(new))
+
+    def extend(self, items):
+        """Add a new full binding."""
+        if items[0] in self.keys():
+            return
+        self.update(items)
+
+    def add(self, *settings):
+        """Add new unbound settings. Ignore existing settings."""
+        all_settings = []
+        for setting in settings:
+            if setting in self.keys():
+                continue
+            lst = [None for x in self.__class__.attributes.get("values")]
+            lst[0] = setting
+            lst[-2:] = (NoValue, NoValue)
+            all_settings.append(lst)
+        self.update(*all_settings)
+
+    def count(self, iters):
+        """Return the number of (module, attr) pairs."""
+        cnt = 0
+        for runner in self.values():
+            if runner[-2:] == tuple(iters):
+                cnt += 1
+        return cnt
+
+    def setdefault(self, item, fallback=NoValue):
+        """Set the default fallback for the setting."""
+        self._fallbacks[item] = fallback
+        if fallback is NoValue:
+            del self._fallbacks[item]
+
+    def pop(self, item):
+        """Remove and return the bindings of the setting."""
+        index = self.keys.index(item)
+        binding = self.values[index]
+        for name in self._names:
+            del getattr(self, name)[index]
+        return tuple(binding)
+
+    def popitem(self):
+        """Unbind and return all attributes of a random setting."""
+        index = random.randrange(len(self.keys()))
+        bindings = self.items[index]
+        for name in self._names:
+            del getattr(self, name)[index]
+        return tuple(bindings)
+
+    def get(self, item, fallback=NoValue):
+        """Return the setting's bindings or fallback."""
+        if item not in self.keys():
+            if item in self._fallbacks and fallback is NoValue:
+                fallback = self._fallbacks[item]
+            return None if fallback is NoValue else fallback
+        return self[item]
+
+    def copy(self):
+        """Return a deep copy of self."""
+        new = []
+        getter = self.__class__.attributes.get
+        for binding in self.items():
+            binding = list(binding)
+            for mapper, indexes, handler in getter("items"):
+                for i, name in enumerate(getter("values")):
+                    if handler is not None and i in indexes:
+                        binding[i] = binding[i].copy()
+            new.append(binding)
+        return self.__class__(*new)
+
+    def clear(self):
+        """Remove all settings and bindings."""
+        for name in self._names:
+            getattr(self, name).clear()
 
 class PairsMapping(BaseMapping):
     """Inner mapping for the pairs argument of the Bypassers."""
@@ -1025,7 +1025,7 @@ class NamesMapping(BaseMapping):
 class LevelsMapping(BaseMapping):
     """Inner mapping for the levels argument of the Bypassers."""
 
-class BaseBypassers(metaclass=BypassersMeta):
+class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
     values = ("setting", "pairs", "module", "attr")
@@ -1036,7 +1036,7 @@ class BaseBypassers(metaclass=BypassersMeta):
              ("items",       (0, 1, 2, 3),   None),
             )
 
-class TypeBypassers(metaclass=BypassersMeta):
+class TypeBypassers(Bypassers):
     """Type-based Bypassers class."""
 
     values = ("setting", "types", "pairs", "module", "attr")
@@ -1048,7 +1048,7 @@ class TypeBypassers(metaclass=BypassersMeta):
              ("items",      (0, 1, 2, 3, 4),None),
             )
 
-class LevelBypassers(metaclass=BypassersMeta):
+class LevelBypassers(Bypassers):
     """Level-based Bypassers class."""
 
     values = ("setting", "names", "levels", "pairs", "module", "attr")
