@@ -23,16 +23,6 @@ def pick(arg, default):
     """Handler for default versus given argument."""
     return default if arg is None else arg
 
-def get_func_name(func):
-    """Return the function's name."""
-    if isinstance(func, str):
-        return func
-    if hasattr(func, "__self__"):
-        return func.__self__.__class__.__name__
-    if hasattr(func, "__name__"):
-        return func.__name__
-    return func.__class__.__name__
-
 def handle_bypass(func):
     """Default bypasser handler for methods that do not support it."""
     def inner(self, *args, **kwargs):
@@ -1032,8 +1022,7 @@ class log_usage:
             handler = cls._default_handler().logger
 
         if handler is func:
-            raise RuntimeError("found recursive decoration of " +
-                               get_func_name(func))
+            raise RuntimeError("cannot decorate the function with itself")
 
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
