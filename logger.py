@@ -1006,7 +1006,7 @@ class PairsMapping(BaseMapping):
     """Inner mapping for the pairs argument of the Bypassers."""
 
     def __init__(self, items):
-        """Handle properly the items if None."""
+        """Handle the items properly if None."""
         if items is None:
             items = []
         self._items = items
