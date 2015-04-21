@@ -802,6 +802,21 @@ class LevelBypassers(Bypassers):
              ("items",      (0,1,2,3,4,5),  None),
             )
 
+def get_setting(module, attr, catch=False):
+    """Get the proper setting from inside a dictionary or module."""
+    if module is None:
+        return attr
+    try:
+        value = module[attr]
+    except (TypeError, KeyError, IndexError):
+        try:
+            value = getattr(module, attr)
+        except AttributeError:
+            if catch:
+                return False
+            raise
+    return value
+
 # bypass handlers called by the decorator
 
 def check_bypass_base(func, self, *output, **kwargs):

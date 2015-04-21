@@ -32,21 +32,6 @@ def get_func_name(func):
         return func.__name__
     return func.__class__.__name__
 
-def get_setting(module, attr, catch=False):
-    """Get the proper setting from inside a dictionary or module."""
-    if module is None:
-        return attr
-    try:
-        value = module[attr]
-    except (TypeError, KeyError, IndexError):
-        try:
-            value = getattr(module, attr)
-        except AttributeError:
-            if catch:
-                return False
-            raise
-    return value
-
 def handle_bypass(func):
     """Default bypasser handler for methods that do not support it."""
     def inner(self, *args, **kwargs):
