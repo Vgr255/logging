@@ -328,7 +328,10 @@ class RunnerIterator:
 
     This iterator runs over all the items of the given items, sorted in
     alphabetical order. It will raise RuntimeError if the items are
-    changed during iteration.
+    changed during iteration. The `reverse` argument is a boolean value
+    that tells the iterator to yield the items in reverse alphabetical
+    order.
+
     """
 
     def __init__(self, items, reverse=False):
