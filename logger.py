@@ -492,7 +492,7 @@ class Container:
     def __dir__(self):
         """Return a list of all methods."""
         return set(dir(self.__class__) + list(x for x in self.__dict__
-                                   if x[0] != "_" or x[:2] == x[-2:] == "__"))
+                                   if x[0] != "_" or is_dunder(x)))
 
     def __eq__(self, other):
         """Return self == other."""
@@ -1251,9 +1251,9 @@ class BaseLogger:
 
     def __dir__(self):
         """Return a list of all non-private methods and attributes."""
-        items = dir(self.__class__) + list(self.__dict__)
-        for item in items[:]:
-            if item[0] == "_" and not item[:2] == item[-2:] == "__":
+        items = set(dir(self.__class__) + list(self.__dict__))
+        for item in set(items):
+            if item[0] == "_" and not is_dunder(item):
                 items.remove(item)
         return items
 
