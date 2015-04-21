@@ -137,7 +137,8 @@ class BaseLogger:
         # indicate a lack of value for any parameter, pass NoValue, as
         # None has a special meaning
 
-        func = getattr(bypassers, self._bp_handler.capitalize() + "Bypassers")
+        func = getattr(globals()["bypassers"], self._bp_handler.capitalize() +
+                                               "Bypassers")
 
         self.bypassers = func(*pick(bypassers, ()))
         self.bypassers.add("timestamp", "splitter")
