@@ -1189,7 +1189,7 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             varnames = code.co_varnames[:total]
 
-            defaults = len(defargs) + len(kwdefargs)
+            defaults = len(defargs) + len(kwdefargs) + (total - num)
 
             if code.co_argcount:
                 if defaults > 0:
