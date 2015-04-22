@@ -9,7 +9,7 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
            "log_usage", "log_use", "check_definition",  # decorators
-           "chk_def", "NoValue"]
+           "NoValue"]
 
 import shutil
 import sys
