@@ -8,8 +8,7 @@ __status__ = "Refactoring [Unstable]"
 __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
-           "log_usage", "log_use", "check_definition",  # decorators
-           "NoValue"]
+           "log_usage", "log_use", "chk_def", "NoValue"]
 
 import shutil
 import sys
@@ -1054,189 +1053,184 @@ class log_use(log_usage):
         """Handle the calling of the function itself."""
         return self.call(self.func, args, kwargs, self.handler)
 
-class check_definition:
-    """Class to check functions and methods definitions.
+def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
+    """Parse the function and method definitions. This is recursive.
 
-    This can yield the definitions of functions and methods, and will
-    recursively iterate through classes. It can accept any number of
-    arguments, consisting of functions, methods, classes, modules, or
-    any combination of those.
+    This can be used to parse functions, methods, classes and
+    modules, recursively (except for modules). It can accept any
+    number of arguments, of any of the aforementioned types.
 
     """
 
-    _default_handler = BaseLogger
+    if handler is parser is None:
+        handler = BaseLogger().logger
 
-    def __init__(self, *func, handler=None):
-        """Parse the functions and methods."""
-        if handler is None:
-            handler = self._default_handler().logger
-        self.parse(*func, handler=handler)
+    flags = { # built with help from the dis and inspect modules
+    0x01: "OPTIMIZED",
+    0x02: "NEWLOCALS",
+    0x04: "VARARGS",
+    0x08: "VARKEYWORDS",
+    0x10: "NESTED",
+    0x20: "GENERATOR",
+    0x40: "NOFREE",
+    }
 
-    @classmethod
-    def parse(cls, *olds, handler=None, parser=None, msg=[], func=[]):
-        """Parse the function definition. This is recursive."""
+    for runner in olds:
 
-        flags = { # built from the dis module
-        0x01: "OPTIMIZED",
-        0x02: "NEWLOCALS",
-        0x04: "VARARGS",
-        0x08: "VARKEYWORDS",
-        0x10: "NESTED",
-        0x20: "GENERATOR",
-        0x40: "NOFREE",
-        }
+        name = getattr(runner, "__module__",
+               getattr(runner, "__name__", None))
 
-        for runner in olds:
+        if name == "builtins":
+            continue
 
-            name = getattr(runner, "__module__",
-                   getattr(runner, "__name__", None))
+        if name in sys.modules:
+            mod = sys.modules[name]
+        elif parser:
+            mod = runner.__class__
+        else:
+            mod = runner
 
-            if name == "builtins":
-                continue
+        if msg:
+            pass
+        elif hasattr(mod, "__file__"):
+            msg.append("Reading file %r\n" % mod.__file__)
+        else:
+            msg.append("Reading module %r" % mod.__name__)
 
-            if name in sys.modules:
-                mod = sys.modules[name]
-            elif parser:
-                mod = runner.__class__
-            else:
-                mod = runner
+        mod = mod.__name__ # keep the string for later
 
-            if hasattr(mod, "__file__"):
-                msg.append("Reading file %r" % mod.__file__)
-            elif parser:
-                msg.append("Reading class " + mod.__name__)
-            else:
-                msg.append("Reading module %r" % mod.__name__)
+        if isinstance(runner, type(NoValue.__new__)):
+            fn = runner.__func__
+            c = runner.__self__.__class__
+            name = fn.__name__
+            func.append(((mod, c, name), "Method %r of class " + c, fn))
+            msg.append("Parsing method %r" % name)
 
-            mod = mod.__name__ # keep the string for later
+        elif isinstance(runner, type):
+            msg.append("Parsing class " + runner.__name__)
+            chk_def(*runner.__dict__.values(), parser=runner)
 
-            if isinstance(runner, type(NoValue.__new__)):
-                fn = runner.__func__
-                c = runner.__self__.__class__
-                name = fn.__name__
-                func.append(((mod, c, name), "Method %r of class " + c, fn))
+        # prevent recursive calls for modules, as that would lead
+        # to an infinite (or arbitrarily long and memory-eating)
+        # loop that could iterate over half of the standard library
+        # modules... so, yeah, don't let that happen
+        elif isinstance(runner, sys.__class__) and not parser:
+            msg.append("Parsing module %r" % runner.__name__)
+            chk_def(*runner.__dict__.values(), parser=runner)
+
+        elif hasattr(runner, "__code__"):
+            name = runner.__name__
+            if parser and isinstance(parser, type):
+                func.append(((mod, parser.__name__, name),
+                     "Method %r of class " + parser.__name__, runner))
                 msg.append("Parsing method %r" % name)
+            else:
+                func.append(((mod, name), "Function %r", runner))
+                msg.append("Parsing function %r" % name)
 
-            elif isinstance(runner, type):
-                msg.append("Parsing class " + runner.__name__)
-                cls.parse(*runner.__dict__.values(), parser=runner)
+    if handler is None and parser is not None:
+        return
 
-            # prevent recursive calls for modules, as that would lead
-            # to an infinite (or arbitrarily long and memory-eating)
-            # loop that could iterate over half of the standard library
-            # modules... so, yeah, don't let that happen
-            elif isinstance(runner, sys.__class__) and not parser:
-                msg.append("Parsing module %r" % runner.__name__)
-                cls.parse(*runner.__dict__.values(), parser=runner)
+    for path, name, function in func:
 
-            elif hasattr(runner, "__code__"):
-                name = runner.__name__
-                if parser:
-                    func.append(((mod, parser.__name__, name),
-                         "Method %r of class " + parser.__name__, runner))
-                    msg.append("Parsing method %r" % name)
-                else:
-                    func.append(((mod, name), "Function %r", runner))
-                    msg.append("Parsing function %r" % name)
+        if hasattr(function, "__code__"):
 
-        for path, name, function in func:
+            code = function.__code__
 
-            if hasattr(function, "__code__"):
+            attrs = []
 
-                code = function.__code__
+            flag = 64
+            co_flags = code.co_flags
 
-                attrs = []
+            while co_flags and flag:
+                if co_flags >= flag:
+                    attrs.append(flags[flag])
+                    co_flags -= flag
+                flag >>= 1
 
-                flag = 64
-                co_flags = code.co_flags
+            fname = code.co_name
+            lineno = code.co_firstlineno
 
-                while co_flags and flag:
-                    if co_flags >= flag:
-                        attrs.append(flags[flag])
-                        co_flags -= flag
-                    flag >>= 1
+            defargs = pick(function.__defaults__, ())
+            kwdefargs = pick(function.__kwdefaults__, {})
 
-                fname = code.co_name
-                lineno = code.co_firstlineno
+            msg.append("\n%s at line %r" % ((name % fname), lineno))
+            string = "Definition: %s(" % ".".join(path)
 
-                defargs = pick(function.__defaults__, ())
-                kwdefargs = pick(function.__kwdefaults__, {})
+            num = code.co_argcount + code.co_kwonlyargcount
 
-                msg.append("\n%s at line %r" % ((name % fname), lineno))
-                string = "Definition: %s(" % ".".join(path)
+            total = num + ("VARARGS" in attrs) + ("VARKEYWORDS" in attrs)
 
-                num = code.co_argcount + code.co_kwonlyargcount
+            args_pos = kwargs_pos = 0
 
-                total = num + ("VARARGS" in attrs) + ("VARKEYWORDS" in attrs)
+            if "VARKEYWORDS" in attrs:
+                kwargs_pos = num + ("VARARGS" in attrs)
 
-                args_pos = kwargs_pos = 0
+            if "VARARGS" in attrs:
+                args_pos = num
 
-                if "VARKEYWORDS" in attrs:
-                    kwargs_pos = num + ("VARARGS" in attrs)
+            elif code.co_kwonlyargcount:
+                args_pos = None
 
-                if "VARARGS" in attrs:
-                    args_pos = num
+            if args_pos:
+                args_all = code.co_varnames[args_pos]
 
-                elif code.co_kwonlyargcount:
-                    args_pos = None
+            elif args_pos is None:
+                args_all = ""
 
-                if args_pos:
-                    args_all = code.co_varnames[args_pos]
+            else:
+                args_all = None
 
-                elif args_pos is None:
-                    args_all = ""
+            if kwargs_pos:
+                kwargs_all = code.co_varnames[kwargs_pos]
 
-                else:
-                    args_all = None
+            else:
+                kwargs_all = None
 
-                if kwargs_pos:
-                    kwargs_all = code.co_varnames[kwargs_pos]
+            varnames = code.co_varnames[:total]
 
-                else:
-                    kwargs_all = None
+            defaults = len(defargs) + len(kwdefargs)
 
-                varnames = code.co_varnames[:total]
-
-                defaults = len(defargs) + len(kwdefargs)
-
-                if code.co_argcount:
+            if code.co_argcount:
+                if defaults > 0:
                     string += ", ".join(varnames[:-defaults])
+                else:
+                    string += ", ".join(varnames)
 
-                    if num != defaults and varnames[:-defaults]:
-                        string += ", "
+                if defargs or kwdefargs or args_all or kwargs_all:
+                    string += ", "
 
-                if defargs:
-                    named_pos = code.co_argcount - len(defargs)
-                    union_vars = varnames[named_pos:code.co_argcount]
-                    union = [[v] for v in union_vars]
-                    union = [union[i] + [v] for i, v in enumerate(defargs)]
-                    string += ", ".join("%s=%r" % (arg,v) for arg, v in union)
+            if defargs:
+                named_pos = code.co_argcount - len(defargs)
+                union_vars = varnames[named_pos:code.co_argcount]
+                union = [[v] for v in union_vars]
+                union = [union[i] + [v] for i, v in enumerate(defargs)]
+                string += ", ".join("%s=%r" % (arg,v) for arg, v in union)
 
-                    if kwdefargs or args_all or kwargs_all:
-                        string += ", "
+                if kwdefargs or args_all or kwargs_all:
+                    string += ", "
 
-                if args_all is not None:
-                    string += "*%s" % args_all
+            if args_all is not None:
+                string += "*%s" % args_all
 
-                    if kwdefargs or kwargs_all:
-                        string += ", "
+                if kwdefargs or kwargs_all:
+                    string += ", "
 
-                if kwdefargs:
-                    string += ", ".join("%s=%r" % i for i in kwdefargs.items())
-
-                    if kwargs_all:
-                        string += ", "
+            if kwdefargs:
+                string += ", ".join("%s=%r" % i for i in kwdefargs.items())
 
                 if kwargs_all:
-                    string += "**%s" % kwargs_all
+                    string += ", "
 
-                string += ")"
+            if kwargs_all:
+                string += "**%s" % kwargs_all
 
-                msg.append(string)
+            string += ")"
 
-        if handler is not None:
-            handler("\n".join(msg))
+            msg.append(string)
 
-        if parser is None:
-            msg.clear()
-            func.clear()
+    if handler is not None and parser is None:
+        handler("\n".join(msg))
+
+        msg.clear()
+        func.clear()
