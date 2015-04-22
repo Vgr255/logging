@@ -1055,49 +1055,114 @@ class log_use(log_usage):
         return self.call(self.func, args, kwargs, self.handler)
 
 class check_definition:
-    """Decorator to check function, method and class definitions."""
+    """Class to check functions and methods definitions.
+
+    This can yield the definitions of functions and methods, and will
+    recursively iterate through classes. It can accept any number of
+    arguments, consisting of functions, methods, classes, modules, or
+    any combination of those.
+
+    """
 
     _default_handler = BaseLogger
 
-    def __init__(self, handler=None):
-        """Prepare the decorator."""
+    def __init__(self, *func, handler=None):
+        """Parse the functions and methods."""
         if handler is None:
             handler = self._default_handler().logger
-        self.handler = handler
+        self.parse(*func, handler=handler)
 
-    def __call__(self, func):
-        """Log the function's parameters."""
-        self.parse(func, self.handler)
+    @classmethod
+    def parse(cls, *olds, handler=None, parser=None, msg=[], func=[]):
+        """Parse the function definition. This is recursive."""
 
-    @staticmethod
-    def parse(func, handler):
-        """Parse the function definition."""
+        flags = { # built from the dis module
+        0x01: "OPTIMIZED",
+        0x02: "NEWLOCALS",
+        0x04: "VARARGS",
+        0x08: "VARKEYWORDS",
+        0x10: "NESTED",
+        0x20: "GENERATOR",
+        0x40: "NOFREE",
+        }
 
-        string = ""
+        for runner in olds:
+            if getattr(runner, "__module__",
+               getattr(runner, "__name__", None)) == "builtins":
 
-        old = func
-        func = [old]
+                continue
 
-        mod = sys.modules[old.__module__]
-        fnstring = "File %r\n" % getattr(mod, "__file__", mod.__name__)
+            name = getattr(runner, "__module__",
+                   getattr(runner, "__name__", None))
 
-        if isinstance(old, type(NoValue.__new__)):
-            func = [old.__func__]
+            if name in sys.modules:
+                mod = sys.modules[name]
+            elif parser:
+                mod = runner.__class__
+            else:
+                mod = runner
 
-        if isinstance(old, type):
-            func = [x for x in old.__dict__.values()]
-            fnstring += "Class %r\n" % old.__name__
+            if hasattr(mod, "__file__"):
+                msg.append("Reading file %r" % mod.__file__)
+            elif parser:
+                msg.append("Reading class " + mod.__name__)
+            else:
+                msg.append("Reading module %r" % mod.__name__)
 
-        for function in func:
-            if not hasattr(old, "__code__"):
-                name = old.__class__.__name__.replace("_", " ")
-                name = name.replace("builtin", "built-in").capitalize()
-                string += name + " %r cannot be parsed\n" % old.__name__
-                break
+            mod = mod.__name__ # keep the string for later
+
+            caller = "Function %r"
+            if parser:
+                caller = "Method %r of class " + cls.__name__
+
+            if isinstance(runner, type(NoValue.__new__)):
+                fn = runner.__func__
+                c = runner.__self__.__class__
+                name = fn.__name__
+                func.append(((mod, c, name), "Method %r of class " + c, fn))
+                msg.append("Parsing method %r" % name)
+
+            elif isinstance(runner, type):
+                msg.append("Parsing class " + runner.__name__)
+                cls.parse(*runner.__dict__.values(), parser=runner)
+
+            # prevent recursive calls for modules, as that would lead
+            # to an infinite (or arbitrarily long and memory-eating)
+            # loop that could iterate over half of the standard library
+            # modules... so, yeah, don't let that happen
+            elif isinstance(runner, sys.__class__) and not parser:
+                msg.append("Parsing module %r" % runner.__name__)
+                cls.parse(*runner.__dict__.values(), parser=runner)
+
+            elif hasattr(runner, "__code__"):
+                name = runner.__name__
+                if parser:
+                    func.append(((mod, parser.__name__, name),
+                         "Method %r of class " + parser.__name__, runner))
+                    msg.append("Parsing method %r" % name)
+                else:
+                    func.append(((mod, name), "Function %r", runner))
+                    msg.append("Parsing function %r" % name)
+
+            else:
+                continue
+
+        for path, name, function in func:
 
             if hasattr(function, "__code__"):
 
                 code = function.__code__
+
+                attrs = []
+
+                flag = 64
+                co_flags = code.co_flags
+
+                while co_flags and flag:
+                    if co_flags >= flag:
+                        attrs.append(flags[flag])
+                        co_flags -= flag
+                    flag >>= 1
 
                 fname = code.co_name
                 lineno = code.co_firstlineno
@@ -1105,46 +1170,48 @@ class check_definition:
                 defargs = pick(function.__defaults__, ())
                 kwdefargs = pick(function.__kwdefaults__, {})
 
-                fnstring += "File %r\n" % code.co_filename
-
-                if function is old:
-                    string += "Function %r at line %r\n" % (fname, lineno)
-                    string += 'Definition: "%s.%s(' % (old.__module__, fname)
-                elif isinstance(old, type):
-                    string += "Method %r at line %r\n" % (fname, lineno)
-                    string += 'Definition: "%s.%s.%s(' % (old.__module__,
-                                                          old.__name__, fname)
-                else:
-                    string += "Method %r of class %r at line %r\n" % (fname,
-                                old.__self__.__name__, lineno)
-                    string += 'Definition: "%s.%s.%s(' % (old.__module__,
-                                                       old.__self__.__name__,
-                                                       fname)
+                msg.append("\n%s at line %r" % ((name % fname), lineno))
+                string = "Definition: %s(" % ".".join(path)
 
                 num = code.co_argcount + code.co_kwonlyargcount
 
-                if len(code.co_varnames) - num == 2:
-                    args_all, kwargs_all = code.co_varnames[:-2]
-                elif len(code.co_varnames) - num == 1:
-                    if code.co_varnames[-2] in kwdefargs:
-                        kwargs_all = code.co_varnames[-1]
-                        args_all = ""
-                    else:
-                        kwargs_all = None
-                        args_all = code.co_varnames[-1]
-                elif len(code.co_varnames) == num:
-                    kwargs_all = args_all = None
-                else:
-                    raise TypeError(fname, lineno)
+                total = num + ("VARARGS" in attrs) + ("VARKEYWORDS" in attrs)
 
-                varnames = code.co_varnames[:num]
+                args_pos = kwargs_pos = 0
+
+                if "VARKEYWORDS" in attrs:
+                    kwargs_pos = num + ("VARARGS" in attrs)
+
+                if "VARARGS" in attrs:
+                    args_pos = num
+
+                elif code.co_kwonlyargcount:
+                    args_pos = None
+
+                if args_pos:
+                    args_all = code.co_varnames[args_pos]
+
+                elif args_pos is None:
+                    args_all = ""
+
+                else:
+                    args_all = None
+
+                if kwargs_pos:
+                    kwargs_all = code.co_varnames[kwargs_pos]
+
+                else:
+                    kwargs_all = None
+
+                varnames = code.co_varnames[:total]
 
                 defaults = len(defargs) + len(kwdefargs)
 
-                string += ", ".join(varnames[:-defaults])
+                if code.co_argcount:
+                    string += ", ".join(varnames[:-defaults])
 
-                if num != defaults:
-                    string += ", "
+                    if num != defaults and varnames[:-defaults]:
+                        string += ", "
 
                 if defargs:
                     named_pos = code.co_argcount - len(defargs)
@@ -1171,19 +1238,13 @@ class check_definition:
                 if kwargs_all:
                     string += "**%s" % kwargs_all
 
-                string += ')"'
+                string += ")"
 
-            else:
-                name = function.__class__.__name__.replace("_", " ")
-                name = name.replace("builtin", "built-in").capitalize()
-                string += name + " %r cannot be parsed\n" % function.__name__
+                msg.append(string)
 
-        handler(fnstring[:-1])
-        handler(string)
+        if handler is not None:
+            handler("\n".join(msg))
 
-        return old
-
-def chk_def(func):
-    """Handler-less definition parser."""
-    # return something so it can be used as a decorator
-    return check_definition.parse(func, BaseLogger().logger)
+        if parser is None:
+            msg.clear()
+            func.clear()
