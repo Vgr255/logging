@@ -16,9 +16,11 @@ from inspect import (
     isclass,
     ismodule,
     isfunction,
+    isgenerator,
     getfile,
     CO_VARARGS,
     CO_VARKEYWORDS,
+    CO_GENERATOR,
 
 )
 
@@ -1119,15 +1121,22 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
             msg.append("Parsing module %r" % runner.__name__)
             chk_def(*runner.__dict__.values(), parser=runner)
 
-        elif isfunction(runner):
+        elif isfunction(runner) or isgenerator(runner):
+            code = getattr(runner, "__code__",
+                   getattr(runner, "gi_code", None))
+
+            gen = "generator " if code.co_flags & CO_GENERATOR else ""
+
             name = runner.__name__
             if isclass(parser):
                 func.append(((mod, parser.__name__, name),
-                     "Method %r of class " + parser.__name__, runner))
-                msg.append("Parsing method %r" % name)
+                     (gen + "method %r of class ").capitalize() +
+                                                   parser.__name__, runner))
+                msg.append("Parsing %smethod %r" % (gen, name))
             else:
-                func.append(((mod, name), "Function %r", runner))
-                msg.append("Parsing function %r" % name)
+                func.append(((mod, name), (gen + "function %r").capitalize(),
+                                                                runner))
+                msg.append("Parsing %sfunction %r" % (gen, name))
 
     if handler is None and parser is not None:
         return
