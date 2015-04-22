@@ -2,8 +2,8 @@
 
 __author__ = "Emanuel 'Vgr' Barry"
 
-__version__ = "0.2.2"
-__status__ = "Refactoring [Unstable]"
+__version__ = "0.2.3"
+__status__ = "Refactor"
 
 __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
