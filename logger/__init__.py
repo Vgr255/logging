@@ -10,6 +10,18 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
            "log_usage", "log_use", "chk_def", "NoValue"]
 
+from inspect import (
+
+    ismethod,
+    isclass,
+    ismodule,
+    isfunction,
+    getfile,
+    CO_VARARGS,
+    CO_VARKEYWORDS,
+
+)
+
 import shutil
 import sys
 import re
@@ -1065,25 +1077,14 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
     if handler is parser is None:
         handler = BaseLogger().logger
 
-    flags = { # built with help from the dis and inspect modules
-    0b0000001: "OPTIMIZED",
-    0b0000010: "NEWLOCALS",
-    0b0000100: "VARARGS",
-    0b0001000: "VARKEYWORDS",
-    0b0010000: "NESTED",
-    0b0100000: "GENERATOR",
-    0b1000000: "NOFREE",
-    }
-
     for runner in olds:
 
-        name = getattr(runner, "__module__",
-               getattr(runner, "__name__", runner))
-
-        if name == "builtins":
+        try:
+            name = getfile(runner)
+        except TypeError:
             continue
 
-        if isinstance(name, str) and name in sys.modules:
+        if name in sys.modules:
             mod = sys.modules[name]
         elif parser:
             mod = parser.__class__
@@ -1099,14 +1100,14 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
         mod = mod.__name__ # keep the string for later
 
-        if isinstance(runner, type(NoValue.__new__)):
+        if ismethod(runner):
             fn = runner.__func__
             c = runner.__self__.__class__
             name = fn.__name__
             func.append(((mod, c, name), "Method %r of class " + c, fn))
             msg.append("Parsing method %r" % name)
 
-        elif isinstance(runner, type):
+        elif isclass(runner):
             msg.append("Parsing class " + runner.__name__)
             chk_def(*runner.__dict__.values(), parser=runner)
 
@@ -1114,13 +1115,13 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
         # to an infinite (or arbitrarily long and memory-eating)
         # loop that could iterate over half of the standard library
         # modules... so, yeah, don't let that happen
-        elif isinstance(runner, sys.__class__) and not parser:
+        elif ismodule(runner) and not parser:
             msg.append("Parsing module %r" % runner.__name__)
             chk_def(*runner.__dict__.values(), parser=runner)
 
-        elif hasattr(runner, "__code__"):
+        elif isfunction(runner):
             name = runner.__name__
-            if parser and isinstance(parser, type):
+            if isclass(parser):
                 func.append(((mod, parser.__name__, name),
                      "Method %r of class " + parser.__name__, runner))
                 msg.append("Parsing method %r" % name)
@@ -1133,23 +1134,13 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
     for path, name, function in func:
 
-        if hasattr(function, "__code__"):
+        if isfunction(function) or ismethod(function):
 
             code = function.__code__
 
-            attrs = []
-
-            flag = 0o100
-            co_flags = code.co_flags
-
-            while co_flags and flag:
-                if co_flags >= flag:
-                    attrs.append(flags[flag])
-                    co_flags -= flag
-                flag >>= 0x01
-
             fname = code.co_name
             lineno = code.co_firstlineno
+            flags = code.co_flags
 
             defargs = pick(function.__defaults__, ())
             kwdefargs = pick(function.__kwdefaults__, {})
@@ -1159,14 +1150,15 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             num = code.co_argcount + code.co_kwonlyargcount
 
-            total = num + ("VARARGS" in attrs) + ("VARKEYWORDS" in attrs)
+            total = num + (bool(flags & CO_VARARGS) +
+                           bool(flags & CO_VARKEYWORDS))
 
             args_pos = kwargs_pos = 0
 
-            if "VARKEYWORDS" in attrs:
-                kwargs_pos = num + ("VARARGS" in attrs)
+            if flags & VARKEYWORDS:
+                kwargs_pos = num + bool(flags & VARARGS)
 
-            if "VARARGS" in attrs:
+            if flags & VARARGS:
                 args_pos = num
 
             elif code.co_kwonlyargcount:
