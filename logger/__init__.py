@@ -1086,7 +1086,7 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
         if isinstance(name, str) and name in sys.modules:
             mod = sys.modules[name]
         elif parser:
-            mod = runner.__class__
+            mod = parser.__class__
         else:
             mod = runner
 
