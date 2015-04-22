@@ -1078,12 +1078,12 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
     for runner in olds:
 
         name = getattr(runner, "__module__",
-               getattr(runner, "__name__", None))
+               getattr(runner, "__name__", runner))
 
         if name == "builtins":
             continue
 
-        if name in sys.modules:
+        if isinstance(name, str) and name in sys.modules:
             mod = sys.modules[name]
         elif parser:
             mod = runner.__class__
