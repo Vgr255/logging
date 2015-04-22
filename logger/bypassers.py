@@ -760,11 +760,11 @@ class PairsMapping(BaseMapping):
 class TypesMapping(BaseMapping):
     """Inner mapping for the types argument of the Bypassers."""
 
-class NamesMapping(BaseMapping):
-    """Inner mapping for the names argument of the Bypassers."""
-
 class LevelsMapping(BaseMapping):
     """Inner mapping for the levels argument of the Bypassers."""
+
+class NamesMapping(BaseMapping):
+    """Inner mapping for the names argument of the Bypassers."""
 
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
