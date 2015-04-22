@@ -1111,10 +1111,6 @@ class check_definition:
 
             mod = mod.__name__ # keep the string for later
 
-            caller = "Function %r"
-            if parser:
-                caller = "Method %r of class " + cls.__name__
-
             if isinstance(runner, type(NoValue.__new__)):
                 fn = runner.__func__
                 c = runner.__self__.__class__
@@ -1143,9 +1139,6 @@ class check_definition:
                 else:
                     func.append(((mod, name), "Function %r", runner))
                     msg.append("Parsing function %r" % name)
-
-            else:
-                continue
 
         for path, name, function in func:
 
