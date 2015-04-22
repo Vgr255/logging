@@ -1066,13 +1066,13 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
         handler = BaseLogger().logger
 
     flags = { # built with help from the dis and inspect modules
-    0x01: "OPTIMIZED",
-    0x02: "NEWLOCALS",
-    0x04: "VARARGS",
-    0x08: "VARKEYWORDS",
-    0x10: "NESTED",
-    0x20: "GENERATOR",
-    0x40: "NOFREE",
+    0b0000001: "OPTIMIZED",
+    0b0000010: "NEWLOCALS",
+    0b0000100: "VARARGS",
+    0b0001000: "VARKEYWORDS",
+    0b0010000: "NESTED",
+    0b0100000: "GENERATOR",
+    0b1000000: "NOFREE",
     }
 
     for runner in olds:
@@ -1139,14 +1139,14 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             attrs = []
 
-            flag = 64
+            flag = 0o100
             co_flags = code.co_flags
 
             while co_flags and flag:
                 if co_flags >= flag:
                     attrs.append(flags[flag])
                     co_flags -= flag
-                flag >>= 1
+                flag >>= 0x01
 
             fname = code.co_name
             lineno = code.co_firstlineno
