@@ -1225,9 +1225,7 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
             if kwargs_all:
                 string += "**%s" % kwargs_all
 
-            string += ")"
-
-            msg.append(string)
+            msg.append(string + ")")
 
     if handler is not None and parser is None:
         handler("\n".join(msg))
