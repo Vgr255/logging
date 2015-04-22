@@ -792,6 +792,18 @@ class TypeBypassers(Bypassers):
 class LevelBypassers(Bypassers):
     """Level-based Bypassers class."""
 
+    values = ("setting", "levels", "pairs", "module", "attr")
+    items = (("keys",       (0,),           None),
+             ("levels",     (1,),           LevelsMapping),
+             ("pairs",      (2,),           PairsMapping),
+             ("attributes", (3, 4),         None),
+             ("values",     (1, 2, 3, 4),   None),
+             ("items",      (0, 1, 2, 3, 4),None),
+            )
+
+class NamesBypassers(Bypassers):
+    """Names-based Bypassers class."""
+
     values = ("setting", "names", "levels", "pairs", "module", "attr")
     items = (("keys",       (0,),           None),
              ("names",      (1,),           NamesMapping),
