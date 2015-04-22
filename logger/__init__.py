@@ -1087,13 +1087,12 @@ class check_definition:
         }
 
         for runner in olds:
-            if getattr(runner, "__module__",
-               getattr(runner, "__name__", None)) == "builtins":
-
-                continue
 
             name = getattr(runner, "__module__",
                    getattr(runner, "__name__", None))
+
+            if name == "builtins":
+                continue
 
             if name in sys.modules:
                 mod = sys.modules[name]
