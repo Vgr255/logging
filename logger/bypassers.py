@@ -3,7 +3,6 @@
 """Implementation of the Bypassers handlers."""
 
 from datetime import datetime
-import random
 import time
 import sys
 
@@ -722,7 +721,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
-        index = random.randrange(len(self.keys()))
+        index = self.keys.index(sorted(self.keys())[0])
         bindings = self.items[index]
         for name in self.__names__:
             del getattr(self, name)[index]
