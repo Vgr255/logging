@@ -689,6 +689,15 @@ class Bypassers(Container, metaclass=BypassersMeta):
             all_settings.append(lst)
         self.update(*all_settings)
 
+    def remove(self, item):
+        """Remove the setting. Raise KeyError upon failure."""
+        del self[item]
+
+    def discard(self, item):
+        """Remove the setting if it exists."""
+        if item in self:
+            del self[item]
+
     def count(self, iters):
         """Return the number of (module, attr) pairs."""
         cnt = 0
