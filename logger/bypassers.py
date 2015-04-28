@@ -448,7 +448,7 @@ class BypassersMeta(type):
         """Return a string of itself."""
         return "<bypasser %r>" % cls.__name__
 
-class Bypassers(Container, metaclass=BypassersMeta):
+class Bypassers(metaclass=BypassersMeta):
     """Base class to subclass to create Bypassers class.
 
     This mapping is aimed at emulating a dictionnary, and as such has
@@ -562,9 +562,6 @@ class Bypassers(Container, metaclass=BypassersMeta):
 
     """
 
-    def __init__(self):
-        """Create a new instance of the Bypassers."""
-
     def __getitem__(self, item):
         """Return the internal mapping of the setting."""
         return tuple(self.values[self.keys.index(item)])
@@ -607,6 +604,12 @@ class Bypassers(Container, metaclass=BypassersMeta):
         """Return the total number of items in self."""
         return len(self.keys())
 
+    def __dir__(self):
+        """Return a list of the methods available."""
+        methods = dir(self.__class__)
+        methods.remove("attributes")
+        return set(methods + list(self.__names__))
+
     def __bool__(self):
         """Return True if at least one setting is bound."""
         args = []
@@ -629,6 +632,10 @@ class Bypassers(Container, metaclass=BypassersMeta):
             return self.items() == other.items()
         except Exception:
             return False
+
+    def __ne__(self, other):
+        """Return True if self and other are not the same."""
+        return not (self == other)
 
     def update(self, *names):
         """Update the bindings with the given items."""
