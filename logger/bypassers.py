@@ -680,10 +680,10 @@ class Bypassers(metaclass=BypassersMeta):
             del self[item]
 
     def count(self, iters):
-        """Return the number of (module, attr) pairs."""
+        """Return the number of matching pairs."""
         cnt = 0
-        for runner in self.values():
-            if runner[-2:] == tuple(iters):
+        for runner in self.items():
+            if runner[-len(iters):] == tuple(iters):
                 cnt += 1
         return cnt
 
