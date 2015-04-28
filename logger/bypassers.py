@@ -12,6 +12,18 @@ def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
     return name[:2] == name[-2:] == "__" and "_" not in (name[2], name[-3])
 
+def sorter(x):
+    # this is very ugly and I am not pleased with it, so if anyone can
+    # come up with a better solution, I'm all open
+    # see http://bugs.python.org/issue20630 and
+    #     http://bugs.python.org/issue20632
+    """Make sure non-string objects are last."""
+    if "__lt__" not in type(x).__dict__:
+        return "????????"
+    if not isinstance(x, str):
+        return "????" + str(x)
+    return x.lower()
+
 class MetaNoValue(type):
     """Metaclass responsible for ensuring uniqueness."""
 
@@ -20,7 +32,6 @@ class MetaNoValue(type):
         if "_novalue" not in sys.modules:
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
-            nv.__class__.__hash__ = super().__hash__
             sys.modules["_novalue"] = nv
             return nv
         raise TypeError("type 'NoValue' is not an acceptable base type")
@@ -41,30 +52,6 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
         """Return False no matter what."""
         return False
 
-    def __lt__(self, other):
-        """NoValue will always be last when ordering."""
-        return False
-
-    def __le__(self, other):
-        """Will only be True if self is other."""
-        return self is other
-
-    def __gt__(self, other):
-        """Will be True if self is not other."""
-        return self is not other
-
-    def __ge__(self, other):
-        """Will always be greater or equal than anything else."""
-        return True
-
-    def __eq__(self, other):
-        """Return True if self is other."""
-        return self is other
-
-    def __ne__(self, other):
-        """Return True if self is not other."""
-        return self is not other
-
 class RunnerIterator:
     """Generate an iterator of sorted items.
 
@@ -80,14 +67,14 @@ class RunnerIterator:
         """Create a new iterator."""
         self.items = items
         self.original = items
+        self.forced = list(items)
         if hasattr(items, "copy"):
             self.original = items.copy()
-        self.forced = list(items)
         if hasattr(items, "items"):
             self.dict_items = list(items.items())
-        self.items_ = sorted(items)
-        self.index_ = len(items)
-        self.reverse = reverse
+        self.items_ = list(items)
+        self.items_.sort(key=sorter)
+        self.index_ = len(items) + 1
 
     def __iter__(self):
         """Return the iterator."""
@@ -95,7 +82,7 @@ class RunnerIterator:
 
     def __next__(self):
         """Return the items of self."""
-        if self.index_ == 0:
+        if self.index_ == 1:
             raise StopIteration
 
         if hasattr(self, "dict_items") and (list(self.items.items()) !=
@@ -104,11 +91,9 @@ class RunnerIterator:
         if self.items != self.original or self.forced != list(self.items):
             raise RuntimeError("container changed size during iteration")
 
-        index = self.index_ * (self.reverse * 2 - 1)
-
         self.index_ -= 1
 
-        return self.items_[index]
+        return self.items_[-self.index_]
 
 class BypassersIterator:
     """Special iterator for the members of a Bypassers instance.
@@ -270,22 +255,6 @@ class BaseMapping(Container):
         """Update and return self with items."""
         self._items.update(items)
         return self._items
-
-    def __lt__(self, other):
-        """Return self < other."""
-        return sorted(self._items) < sorted(other)
-
-    def __le__(self, other):
-        """Return self <= other."""
-        return sorted(self._items) <= sorted(other)
-
-    def __gt__(self, other):
-        """Return self > other."""
-        return sorted(self._items) > sorted(other)
-
-    def __ge__(self, other):
-        """Return self >= other."""
-        return sorted(self._items) >= sorted(other)
 
     def __getattr__(self, attr):
         """Delegate an attribute not found to the items set."""
@@ -735,7 +704,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
-        index = self.keys.index(sorted(self.keys())[0])
+        index = self.keys.index(sorted(self.keys(), key=sorter)[0])
         bindings = self.items[index]
         for name in self.__names__:
             del getattr(self, name)[index]
