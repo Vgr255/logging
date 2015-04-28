@@ -210,6 +210,8 @@ class Container:
         """Create a new items set."""
         if items is None:
             items = set()
+        if isinstance(items, type):
+            items = items() # pass in 'list' to create a new list, etc
         self._items = items
 
     def __iter__(self):
