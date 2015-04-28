@@ -1027,9 +1027,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def clear(self):
         """Remove all settings and bindings."""
-        self.__hashes__.clear()
-        for name in self.__names__:
-            getattr(self, name).clear()
+        for item in self.keys()[:]:
+            self.remove(item)
 
 class PairsMapping(BaseMapping):
     """Inner mapping for the pairs argument of the Bypassers."""
