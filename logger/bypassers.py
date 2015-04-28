@@ -600,9 +600,9 @@ class Bypassers(metaclass=BypassersMeta):
             args.append(string % binding)
         return "(" + ", ".join(args) + ")"
 
-    def __iter__(self, reverse=False):
+    def __iter__(self):
         """Return the special iterator for the Bypassers."""
-        return BypassersIterator(self, reverse)
+        return BypassersIterator(self)
 
     def __len__(self):
         """Return the total number of items in self."""
@@ -628,7 +628,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __reversed__(self):
         """Return a reversed iterator."""
-        return self.__iter__(reverse=True)
+        return BypassersIterator(self, reverse=True)
 
     def __eq__(self, other):
         """Return True if self and other are the same."""
