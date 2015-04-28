@@ -746,7 +746,6 @@ class Bypassers(metaclass=BypassersMeta):
             for item in self:
                 if item in value:
                     value.remove(item)
-
             return value
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
@@ -754,7 +753,6 @@ class Bypassers(metaclass=BypassersMeta):
             for item in value:
                 if item not in self:
                     new.append(item)
-
             return type(value)(new)
 
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
@@ -766,7 +764,6 @@ class Bypassers(metaclass=BypassersMeta):
                     break
                 if item not in self:
                     new.append(item)
-
             return type(value)(new)
 
         return NotImplemented
