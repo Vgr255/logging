@@ -884,11 +884,10 @@ class Bypassers(metaclass=BypassersMeta):
 
     def pop(self, item):
         """Remove and return the bindings of the setting."""
-        index = self.keys.index(item)
-        binding = self.values[index]
-        for name in self.__names__:
-            del getattr(self, name)[index]
-        return tuple(binding)
+        try:
+            return self[item]
+        finally:
+            del self[item]
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
