@@ -727,10 +727,9 @@ class Bypassers(metaclass=BypassersMeta):
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
             while True:
                 try:
-                    item = next(value)
+                    self.add(next(value))
                 except StopIteration:
                     break
-                self.add(item)
             return self
 
         return NotImplemented
@@ -784,10 +783,9 @@ class Bypassers(metaclass=BypassersMeta):
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
             while True:
                 try:
-                    item = next(value)
+                    self.discard(next(value))
                 except StopIteration:
                     break
-                del self[item]
             return self
 
         return NotImplemented
