@@ -306,7 +306,7 @@ class Viewer(Container):
 
     def __getitem__(self, index_):
         """Return the matching value."""
-        return sorted(self._items)[index_]
+        return self._items[index_]
 
 class BaseViewer:
     """Base viewer class for the Bypassers mapping."""
