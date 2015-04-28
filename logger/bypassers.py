@@ -564,6 +564,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __getitem__(self, item):
         """Return the internal mapping of the setting."""
+        if item not in self:
+            raise KeyError(item)
         return tuple(self.values[self.keys.index(item)])
 
     def __setitem__(self, item, value):
@@ -572,6 +574,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __delitem__(self, item):
         """Remove the setting and all its bindings."""
+        if item not in self:
+            raise KeyError(item)
         index = self.keys.index(item)
         for name in self.__names__:
             del getattr(self, name)[index]
