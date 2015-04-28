@@ -893,6 +893,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Unbind and return all attributes of a random setting."""
         index = self.keys.index(sorted(self.keys(), key=sorter)[0])
         bindings = self.items[index]
+        del self.__hashes__[index]
         for name in self.__names__:
             del getattr(self, name)[index]
         return tuple(bindings)
@@ -920,6 +921,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def clear(self):
         """Remove all settings and bindings."""
+        self.__hashes__.clear()
         for name in self.__names__:
             getattr(self, name).clear()
 
