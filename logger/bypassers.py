@@ -857,6 +857,50 @@ class Bypassers(metaclass=BypassersMeta):
                     break
             return self
 
+    def __xor__(self, value):
+        """Return an iterable of all unique items."""
+        return self.copy().__ixor__(value)
+
+    def __rxor__(self, value):
+        """Return an iterable of all unique items."""
+        return self.copy().__ixor__(value)
+
+    def __ixor__(self, value):
+        """Update self to keep only the unique items."""
+        if hasattr(value, "items"):
+            for items in value.items():
+                if items[0] in self:
+                    self.remove(items[0])
+                else:
+                    self.extend(items)
+            return self
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            for item in frozenset(value):
+                if item in self:
+                    self.remove(item)
+                else:
+                    self.add(item)
+            return self
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            done = []
+            while True:
+                try:
+                    item = next(value)
+                except StopIteration:
+                    break
+                if item in done:
+                    continue
+                done.append(item)
+                if item in self:
+                    self.remove(item)
+                else:
+                    self.add(item)
+            return self
+
+        return NotImplemented
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
