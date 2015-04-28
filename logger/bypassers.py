@@ -21,6 +21,7 @@ class MetaNoValue(type):
         if "_novalue" not in sys.modules:
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
+            nv.__class__.__hash__ = super().__hash__
             sys.modules["_novalue"] = nv
             return nv
         raise TypeError("type 'NoValue' is not an acceptable base type")
@@ -40,10 +41,6 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
     def __bool__(self):
         """Return False no matter what."""
         return False
-
-    def __hash__(self):
-        """Return a hash of self."""
-        return hash(self.__class__)
 
     def __lt__(self, other):
         """NoValue will always be last when ordering."""
