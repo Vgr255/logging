@@ -891,6 +891,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
+        if not len(self):
+            raise KeyError("mapping is empty")
         index = self.keys.index(sorted(self.keys(), key=sorter)[0])
         bindings = self.items[index]
         del self.__hashes__[index]
