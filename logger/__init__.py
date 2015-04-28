@@ -18,24 +18,6 @@ from logger import bypassers
 
 import _novalue as NoValue
 
-def import_inspect():
-
-    from inspect import (
-
-        ismethod,
-        isclass,
-        ismodule,
-        isfunction,
-        isgenerator,
-        getmodule,
-        CO_VARARGS,
-        CO_VARKEYWORDS,
-        CO_GENERATOR,
-
-    )
-
-    globals().update(locals())
-
 def pick(arg, default):
     """Handler for default versus given argument."""
     return default if arg is None else arg
@@ -1083,7 +1065,20 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
     if handler is parser is None:
         handler = BaseLogger().logger
 
-    import_inspect()
+    HAS_VALUE = 0b01
+    HAS_ANNOTATION = 0b10
+
+    from inspect import (
+
+        ismethod,
+        isclass,
+        ismodule,
+        isfunction,
+        isgenerator,
+        getmodule,
+        CO_GENERATOR,
+
+    )
 
     for runner in olds:
 
@@ -1155,63 +1150,137 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             code = function.__code__
 
-            fname = code.co_name
             lineno = code.co_firstlineno
-            flags = code.co_flags
-
-            defargs = pick(function.__defaults__, ())
-            kwdefargs = pick(function.__kwdefaults__, {})
+            fname = code.co_filename
 
             msg.append("\n%s at line %r" % ((name % fname), lineno))
-            string = []
 
-            num = code.co_argcount + code.co_kwonlyargcount
+            func_def = parse_def(function, HAS_VALUE, HAS_ANNOTATION)
+            args = []
+            ret = None
 
-            total = num + (bool(flags & CO_VARARGS) +
-                           bool(flags & CO_VARKEYWORDS))
+            for fn in func_def:
+                if fn.name == "return":
+                    ret = fn
+                    continue
+                string = fn.name
+                if fn.checker & HAS_ANNOTATION:
+                    string += ": %r" % fn.annotation
+                if fn.checker & HAS_VALUE:
+                    string += "=%r" % fn.value
+                args.append(string)
 
-            args_all = kwargs_all = None
+            string = "Definition: %s(%s)" % (".".join(path),
+                                             ", ".join(args))
 
-            if flags & CO_VARKEYWORDS:
-                kwargs_all = code.co_varnames[num+bool(flags & CO_VARARGS)]
+            if ret is not None:
+                string += " -> %r" % ret.annotation
 
-            if flags & CO_VARARGS:
-                args_all = code.co_varnames[num]
-
-            elif code.co_kwonlyargcount:
-                args_all = ""
-
-            varnames = code.co_varnames[:total]
-
-            defaults = len(defargs) + len(kwdefargs) + (total - num)
-
-            if code.co_argcount:
-                if defaults > 0:
-                    string.extend(varnames[:-defaults])
-                else:
-                    string.extend(varnames)
-
-            if defargs:
-                named_pos = code.co_argcount - len(defargs)
-                union_vars = varnames[named_pos:code.co_argcount]
-                union = [[v] for v in union_vars]
-                union = [union[i] + [v] for i, v in enumerate(defargs)]
-                string.extend("%s=%r" % (arg, v) for (arg, v) in union)
-
-            if args_all is not None:
-                string.append("*" + args_all)
-
-            if kwdefargs:
-                string.extend("%s=%r" % i for i in kwdefargs.items())
-
-            if kwargs_all:
-                string.append("**" + kwargs_all)
-
-            msg.append("Definition: %s(%s)" % (".".join(path),
-                                               ", ".join(string)))
+            msg.append(string)
 
     if handler is not None and parser is None:
         handler("\n".join(msg))
 
         msg.clear()
         func.clear()
+
+def parse_def(function, HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
+    """Parse a function definition. Return a list of arguments."""
+
+    from inspect import (
+
+        isfunction,
+        ismethod,
+        CO_VARARGS,
+        CO_VARKEYWORDS,
+
+    )
+
+    from collections import namedtuple
+
+    arguments = namedtuple("arguments", "name value checker annotation")
+
+    params = []
+
+    if isfunction(function) or ismethod(function):
+
+        code = function.__code__
+
+        fname = code.co_name
+        lineno = code.co_firstlineno
+        flags = code.co_flags
+
+        defargs = pick(function.__defaults__, ())
+        kwdefargs = pick(function.__kwdefaults__, {})
+        annotations = function.__annotations__
+
+        num = code.co_argcount + code.co_kwonlyargcount
+
+        total = num + (bool(flags & CO_VARARGS) +
+                       bool(flags & CO_VARKEYWORDS))
+
+        args_all = kwargs_all = None
+
+        if flags & CO_VARKEYWORDS:
+            kwargs_all = code.co_varnames[num+bool(flags & CO_VARARGS)]
+
+        if flags & CO_VARARGS:
+            args_all = code.co_varnames[num]
+
+        elif code.co_kwonlyargcount:
+            args_all = ""
+
+        varnames = code.co_varnames[:total]
+
+        defaults = len(defargs) + len(kwdefargs) + (total - num)
+
+        if code.co_argcount:
+            if defaults > 0:
+                for arg in varnames[:-defaults]:
+                    ret = 0
+                    if arg in annotations:
+                        ret += HAS_ANNOTATION
+                    params.append(arguments(arg, None, ret,
+                                  annotations.get(arg)))
+            else:
+                for arg in varnames:
+                    params.append(arguments(arg, None, ret,
+                                  annotations.get(arg)))
+
+        if defargs:
+            named_pos = code.co_argcount - len(defargs)
+            union_vars = varnames[named_pos:code.co_argcount]
+            union = [[v] for v in union_vars]
+            union = [union[i] + [v] for i, v in enumerate(defargs)]
+            for arg, val in union:
+                ret = HAS_VALUE
+                if arg in annotations:
+                    ret += HAS_ANNOTATION
+                params.append(arguments(arg, val, ret, annotations.get(arg)))
+
+        if args_all is not None:
+            ret = 0
+            if args_all in annotations:
+                ret += HAS_ANNOTATION
+            params.append(arguments("*" + args_all, None, ret,
+                          annotations.get(args_all)))
+
+        if kwdefargs:
+            for arg, val in kwdefargs.items():
+                ret = HAS_VALUE
+                if arg in annotations:
+                    ret += HAS_ANNOTATION
+                params.append(arguments(arg, val, ret, annotations.get(arg)))
+
+        if kwargs_all:
+            ret = 0
+            if kwargs_all in annotations:
+                ret += HAS_ANNOTATION
+            params.append(arguments("**" + kwargs_all, None, ret,
+                          annotations.get(kwargs_all)))
+
+        if "return" in annotations:
+            params.append(arguments("return", None, HAS_ANNOTATION,
+                          annotations["return"]))
+
+    return params
