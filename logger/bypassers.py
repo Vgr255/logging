@@ -998,11 +998,10 @@ class Bypassers(metaclass=BypassersMeta):
         if not len(self):
             raise KeyError("mapping is empty")
         index = self.keys.index(sorted(self.keys(), key=sorter)[0])
-        bindings = self.items[index]
-        del self.__hashes__[index]
-        for name in self.__names__:
-            del getattr(self, name)[index]
-        return tuple(bindings)
+        try:
+            return tuple(self.items[index])
+        finally:
+            del self[self.keys[index]]
 
     def get(self, item, fallback=NoValue):
         """Return the setting's bindings or fallback."""
