@@ -689,9 +689,10 @@ class Bypassers(metaclass=BypassersMeta):
 
     def setdefault(self, item, fallback=NoValue):
         """Set the default fallback for the setting."""
-        self._fallbacks[item] = fallback
         if fallback is NoValue:
             del self._fallbacks[item]
+        else:
+            self._fallbacks[item] = fallback
 
     def pop(self, item):
         """Remove and return the bindings of the setting."""
