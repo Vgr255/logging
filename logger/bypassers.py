@@ -712,7 +712,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __radd__(self, value):
         """Return a new instance with the new attributes (reversed)."""
-        return self + value
+        return self.copy().__iadd__(value)
 
     def __iadd__(self, value):
         """Update self with the new attributes."""
