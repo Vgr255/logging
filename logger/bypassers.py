@@ -245,7 +245,7 @@ class Container:
         try:
             if self._items == other._items:
                 return True
-            if set(self._items) == set(other):
+            if frozenset(self._items) == frozenset(other):
                 return True
         except Exception:
             return False
