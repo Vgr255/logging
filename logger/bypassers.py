@@ -730,6 +730,66 @@ class Bypassers(metaclass=BypassersMeta):
 
         return NotImplemented
 
+    def __sub__(self, value):
+        """Return a new instance without the setting or bindings."""
+        return self.copy().__isub__(value)
+
+    def __rsub__(self, value):
+        """Remove the attributes in self from value."""
+        if hasattr(value, "remove"):
+            value = value.copy()
+            for item in self:
+                if item in value:
+                    value.remove(item)
+
+            return value
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            new = []
+            for item in value:
+                if item not in self:
+                    new.append(item)
+
+            return type(value)(new)
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            new = []
+            while True:
+                try:
+                    item = next(value)
+                except StopIteration:
+                    break
+                if item not in self:
+                    new.append(item)
+
+            return type(value)(new)
+
+        return NotImplemented
+
+    def __isub__(self, value):
+        """Remove the settings or bindings from self."""
+        if hasattr(value, "items"):
+            for items in value.items():
+                if items[0] in self and self[items[0]] == tuple(items[1:]):
+                    del self[items[0]]
+            return self
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            for item in value:
+                del self[item]
+            return self
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            while True:
+                try:
+                    item = next(value)
+                except StopIteration:
+                    break
+                del self[item]
+            return self
+
+        return NotImplemented
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
