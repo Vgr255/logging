@@ -830,6 +830,33 @@ class Bypassers(metaclass=BypassersMeta):
 
         return NotImplemented
 
+    def __or__(self, value):
+        """Return an iterable with items from all iterables."""
+        return self.copy().__ior__(value)
+
+    def __ror__(self, value):
+        """Return an iterable with items from all iterables."""
+        return self.copy().__ior__(value)
+
+    def __ior__(self, value):
+        """Update self with items from all iterables."""
+        if hasattr(value, "items"):
+            for items in value.items():
+                self.extend(items)
+            return self
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            self.add(value)
+            return self
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            while True:
+                try:
+                    self.add(next(value))
+                except StopIteration:
+                    break
+            return self
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
