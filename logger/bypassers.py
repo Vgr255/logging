@@ -598,7 +598,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return a list of the methods available."""
         methods = dir(self.__class__)
         methods.remove("attributes")
-        return set(methods + list(self.__names__))
+        return set(methods + list(self.__names__) + ["__hashes__"])
 
     def __bool__(self):
         """Return True if at least one setting is bound."""
