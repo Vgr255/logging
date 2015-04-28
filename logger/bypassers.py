@@ -580,22 +580,22 @@ class Bypassers(metaclass=BypassersMeta):
         for name in self.__names__:
             del getattr(self, name)[index]
 
-    def __str__(self):
-        """Return a string of the class' items."""
+    def __repr__(self):
+        """Return a representation of the items in self."""
         args = []
         string = "("
         for name in self.__class__.attributes.get("values"):
-            string = string + name + "=%s, "
-        string = string[:-2].replace("=%s,", "=%r,", 1) + ")"
+            string = string + name + "=%r, "
+        string = string[:-2] + ")"
         for binding in self.items():
             args.append(string % binding)
         return "%s(%s)" % (self.__class__.__name__, ", ".join(args))
 
-    def __repr__(self):
-        """Return a representation of the items in self."""
+    def __str__(self):
+        """Return a string of the class' items."""
         args = []
         num = len(self.__class__.attributes.get("values")) - 1
-        string = "<%r: " + ", ".join(["%r"] * num) + ">"
+        string = "<%s: " + ", ".join(["%s"] * num) + ">"
         for binding in self.items():
             args.append(string % binding)
         return "(" + ", ".join(args) + ")"
