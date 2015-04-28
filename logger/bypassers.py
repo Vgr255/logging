@@ -795,6 +795,44 @@ class Bypassers(metaclass=BypassersMeta):
 
         return NotImplemented
 
+    def __and__(self, value):
+        """Return an iterable of the items both in self and value."""
+        return self.copy().__iand__(value)
+
+    def __rand__(self, value):
+        """Return an iterable of the items both in self and value."""
+        return self.copy().__iand__(value)
+
+    def __iand__(self, value):
+        """Update self to only contain items both in self and value."""
+        if hasattr(value, "items"):
+            for items in value.items():
+                if items[0] not in self or self[items[0]] != tuple(items[1:]):
+                    self.discard(items[0])
+            return self
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            for item in self.keys()[:]:
+                if item not in value:
+                    del self[item]
+            return self
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            new = []
+            while True:
+                try:
+                    item = next(value)
+                except StopIteration:
+                    break
+                if item in self:
+                    new.append(item)
+
+            self.clear()
+            self.update(*new)
+            return self
+
+        return NotImplemented
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
