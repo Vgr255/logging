@@ -629,9 +629,13 @@ class Bypassers(metaclass=BypassersMeta):
     def __eq__(self, other):
         """Return True if self and other are the same."""
         try:
-            return self.items() == other.items()
+            if self.items() == other.items():
+                return True
+            if frozenset(self) == frozenset(other):
+                return True
         except Exception:
             return False
+        return False
 
     def __ne__(self, other):
         """Return True if self and other are not the same."""
