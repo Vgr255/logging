@@ -643,16 +643,17 @@ class Bypassers(Container, metaclass=BypassersMeta):
                 binding = list(binding)
                 if binding[0] in self.keys():
                     index = self.keys.index(binding[0])
-                    if binding[-2] is NoValue:
-                        binding[-2] = self.items[index][-2]
-                    if binding[-1] is NoValue:
-                        binding[-1] = self.items[index][-1]
+                    for i, each in enumerate(binding):
+                        if each is NoValue:
+                            binding[i] = self.items[index][i]
                     for mapper, indexes, handler in items:
                         ix = []
                         for i in indexes:
-                            if handler is not None:
+                            if handler not in (None, NoValue):
                                 getattr(self, mapper)[index].update(
                                                              binding[i])
+                            if handler is NoValue:
+                                getattr(self, mapper)[index][i] = NoValue
                             ix.append(binding[i])
 
                         getattr(self, mapper)[index] = tuple(ix)
@@ -662,7 +663,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
                     for mapper, indexes, handler in items:
                         new = []
                         for i in indexes:
-                            if handler is not None:
+                            if handler not in (None, NoValue):
                                 binding[i] = handler(binding[i])
                             new.append(binding[i])
                         if len(new) == 1:
@@ -773,7 +774,7 @@ class BaseBypassers(Bypassers):
     values = ("setting", "pairs", "module", "attr")
     items = (("keys",        (0,),           None),
              ("pairs",       (1,),           PairsMapping),
-             ("attributes",  (2, 3),         None),
+             ("attributes",  (2, 3),         NoValue),
              ("values",      (1, 2, 3),      None),
              ("items",       (0, 1, 2, 3),   None),
             )
@@ -785,7 +786,7 @@ class TypeBypassers(Bypassers):
     items = (("keys",       (0,),           None),
              ("types",      (1,),           TypesMapping),
              ("pairs",      (2,),           PairsMapping),
-             ("attributes", (3, 4),         None),
+             ("attributes", (3, 4),         NoValue),
              ("values",     (1, 2, 3, 4),   None),
              ("items",      (0, 1, 2, 3, 4),None),
             )
@@ -797,7 +798,7 @@ class LevelBypassers(Bypassers):
     items = (("keys",       (0,),           None),
              ("levels",     (1,),           LevelsMapping),
              ("pairs",      (2,),           PairsMapping),
-             ("attributes", (3, 4),         None),
+             ("attributes", (3, 4),         NoValue),
              ("values",     (1, 2, 3, 4),   None),
              ("items",      (0, 1, 2, 3, 4),None),
             )
@@ -810,7 +811,7 @@ class NamesBypassers(Bypassers):
              ("names",      (1,),           NamesMapping),
              ("levels",     (2,),           LevelsMapping),
              ("pairs",      (3,),           PairsMapping),
-             ("attributes", (4, 5),         None),
+             ("attributes", (4, 5),         NoValue),
              ("values",     (1, 2, 3, 4, 5),None),
              ("items",      (0,1,2,3,4,5),  None),
             )
