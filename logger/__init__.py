@@ -1170,31 +1170,16 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
             total = num + (bool(flags & CO_VARARGS) +
                            bool(flags & CO_VARKEYWORDS))
 
-            args_pos = kwargs_pos = 0
+            args_all = kwargs_all = None
 
-            if flags & VARKEYWORDS:
-                kwargs_pos = num + bool(flags & VARARGS)
+            if flags & CO_VARKEYWORDS:
+                kwargs_all = code.co_varnames[num+bool(flags & CO_VARARGS)]
 
-            if flags & VARARGS:
-                args_pos = num
+            if flags & CO_VARARGS:
+                args_all = code.co_varnames[num]
 
             elif code.co_kwonlyargcount:
-                args_pos = None
-
-            if args_pos:
-                args_all = code.co_varnames[args_pos]
-
-            elif args_pos is None:
                 args_all = ""
-
-            else:
-                args_all = None
-
-            if kwargs_pos:
-                kwargs_all = code.co_varnames[kwargs_pos]
-
-            else:
-                kwargs_all = None
 
             varnames = code.co_varnames[:total]
 
