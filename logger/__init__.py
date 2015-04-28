@@ -1163,7 +1163,7 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
             kwdefargs = pick(function.__kwdefaults__, {})
 
             msg.append("\n%s at line %r" % ((name % fname), lineno))
-            string = "Definition: %s(" % ".".join(path)
+            string = []
 
             num = code.co_argcount + code.co_kwonlyargcount
 
@@ -1187,39 +1187,28 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             if code.co_argcount:
                 if defaults > 0:
-                    string += ", ".join(varnames[:-defaults])
+                    string.extend(varnames[:-defaults])
                 else:
-                    string += ", ".join(varnames)
-
-                if defargs or kwdefargs or args_all or kwargs_all:
-                    string += ", "
+                    string.extend(varnames)
 
             if defargs:
                 named_pos = code.co_argcount - len(defargs)
                 union_vars = varnames[named_pos:code.co_argcount]
                 union = [[v] for v in union_vars]
                 union = [union[i] + [v] for i, v in enumerate(defargs)]
-                string += ", ".join("%s=%r" % (arg,v) for arg, v in union)
-
-                if kwdefargs or args_all or kwargs_all:
-                    string += ", "
+                string.extend("%s=%r" % (arg, v) for (arg, v) in union)
 
             if args_all is not None:
-                string += "*%s" % args_all
-
-                if kwdefargs or kwargs_all:
-                    string += ", "
+                string.append("*" + args_all)
 
             if kwdefargs:
-                string += ", ".join("%s=%r" % i for i in kwdefargs.items())
-
-                if kwargs_all:
-                    string += ", "
+                string.extend("%s=%r" % i for i in kwdefargs.items())
 
             if kwargs_all:
-                string += "**%s" % kwargs_all
+                string.append("**" + kwargs_all)
 
-            msg.append(string + ")")
+            msg.append("Definition: %s(%s)" % (".".join(path),
+                                               ", ".join(string)))
 
     if handler is not None and parser is None:
         handler("\n".join(msg))
