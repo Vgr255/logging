@@ -12,6 +12,14 @@ def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
     return name[:2] == name[-2:] == "__" and "_" not in (name[2], name[-3])
 
+def is_hashable(obj): # taken from collections.Hashable
+    """Return True if obj is hashable, False otherwise."""
+    for cls in obj.__class__.__mro__:
+        if "__hash__" in cls.__dict__:
+            if cls.__dict__["__hash__"]:
+                return True
+            return False
+
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
     # come up with a better solution, I'm all open
@@ -551,6 +559,7 @@ class Bypassers(metaclass=BypassersMeta):
         if item not in self:
             raise KeyError(item)
         index = self.keys.index(item)
+        del self.__hashes__[index]
         for name in self.__names__:
             del getattr(self, name)[index]
 
@@ -628,8 +637,14 @@ class Bypassers(metaclass=BypassersMeta):
                 item = name.items()
             for binding in item:
                 binding = list(binding)
+                if not is_hashable(binding[0]):
+                    raise TypeError("unhashable type: %r" %
+                                    type(binding[0]).__name__)
                 if binding[0] in self.keys():
                     index = self.keys.index(binding[0])
+                    # also prevent re-attribution should hashing fail
+                    if self.__hashes__[index] != hash(binding[0]):
+                        raise KeyError(binding[0])
                     for i, each in enumerate(binding):
                         if each is NoValue:
                             binding[i] = self.items[index][i]
@@ -647,6 +662,7 @@ class Bypassers(metaclass=BypassersMeta):
 
                 else:
                     index = len(self.keys())
+                    self.__hashes__.append(hash(binding[0]))
                     for mapper, indexes, handler in items:
                         new = []
                         for i in indexes:
@@ -731,7 +747,7 @@ class Bypassers(metaclass=BypassersMeta):
             binding = list(binding)
             for mapper, indexes, handler in getter("items"):
                 for i, name in enumerate(getter("values")):
-                    if handler is not None and i in indexes:
+                    if handler not in (None, NoValue) and i in indexes:
                         binding[i] = binding[i].copy()
             new.append(binding)
         return self.__class__(*new)
