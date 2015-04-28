@@ -371,12 +371,6 @@ class BypassersMeta(type):
 
         Default:    {}
 
-    'names':
-                    Iterable of all the names that will subsequently be
-                    used as the view objects.
-
-        Default:    ("keys", "values", "items")
-
     'values':
                     Iterable of the names of each parameter in the
                     mapping.
