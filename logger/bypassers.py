@@ -700,6 +700,36 @@ class Bypassers(metaclass=BypassersMeta):
         if self.__le__(other) is NotImplemented:
             return NotImplemented
         return not (self <= other)
+
+    def __add__(self, value):
+        """Return a new instance with new the attributes."""
+        return self.copy().__iadd__(value)
+
+    def __radd__(self, value):
+        """Return a new instance with the new attributes (reversed)."""
+        return self + value
+
+    def __iadd__(self, value):
+        """Update self with the new attributes."""
+        if hasattr(value, "items"):
+            self.update(*value.items())
+            return self
+
+        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
+            self.add(*value)
+            return self
+
+        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
+            while True:
+                try:
+                    item = next(value)
+                except StopIteration:
+                    break
+                self.add(item)
+            return self
+
+        return NotImplemented
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
