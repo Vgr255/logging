@@ -434,10 +434,13 @@ class BypassersMeta(type):
 
         instance.__dict__.update(namespace)
 
-        instance.update(*names)
-
         if isinstance(instance, cls):
-            cls.__init__(instance)
+            ret = cls.__init__(instance)
+            if ret is not None:
+                raise TypeError("__init__() should return None, not %r" %
+                                ret.__class__.__name__)
+
+        instance.update(*names)
 
         return instance
 
