@@ -573,7 +573,7 @@ class Bypassers(metaclass=BypassersMeta):
         self.update((item, ) + self[value])
 
     def __delitem__(self, item):
-        """Remove the setting and all its bindings."""
+        """Remove the setting and all bindings."""
         if item not in self:
             raise KeyError(item)
         index = self.keys.index(item)
