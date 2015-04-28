@@ -179,24 +179,24 @@ def bypassers_iterator(instance, reverse, method):
     step = (reverse * 2 - 1) * -1
 
     if method == "name":
-        for name in instance._names:
+        for name in instance.__names__:
             for i in range(0, len(instance), step):
                 yield getattr(instance, name)[i]
 
     elif method == "index":
         for i in range(0, len(instance), step):
-            for name in instance._names:
+            for name in instance.__names__:
                 yield getattr(instance, name)[i]
 
     elif method == "grouped":
         for i in range(0, len(instance), step):
             names = []
-            for name in instance._names:
+            for name in instance.__names__:
                 names.append(getattr(instance, name)[i])
             yield names
 
     elif method == "all":
-        for name in instance._names:
+        for name in instance.__names__:
             yield getattr(instance, name)
 
     else:
@@ -417,6 +417,8 @@ class BypassersMeta(type):
                                             ("values", (1,), None),
                                             ("items", (0, 1), None)))
 
+        cls.__names__ = tuple(x[0] for x in cls.attributes.get("items"))
+
         return cls
 
     def __call__(cls, *names):
@@ -428,10 +430,10 @@ class BypassersMeta(type):
         namespace = {}
 
         namespace["_fallbacks"] = cls.attributes.get("fallbacks")
-        namespace["_names"] = tuple(x[0] for x in cls.attributes.get("items"))
-        namespace["_mappers"] = make_sub(cls.__name__, namespace["_names"])
-        for i, name in enumerate(namespace["_names"]):
-            namespace[name] = namespace["_mappers"][i]()
+        namespace["_hashes"] = []
+        mappers = make_sub(cls.__name__, cls.__names__)
+        for i, name in enumerate(cls.__names__):
+            namespace[name] = mappers[i]()
 
         instance = cls.__new__(cls)
 
@@ -576,7 +578,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
     def __delitem__(self, item):
         """Remove the setting and all its bindings."""
         index = self.keys.index(item)
-        for name in self._names:
+        for name in self.__names__:
             del getattr(self, name)[index]
 
     def __str__(self):
@@ -704,7 +706,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
         """Remove and return the bindings of the setting."""
         index = self.keys.index(item)
         binding = self.values[index]
-        for name in self._names:
+        for name in self.__names__:
             del getattr(self, name)[index]
         return tuple(binding)
 
@@ -712,7 +714,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
         """Unbind and return all attributes of a random setting."""
         index = random.randrange(len(self.keys()))
         bindings = self.items[index]
-        for name in self._names:
+        for name in self.__names__:
             del getattr(self, name)[index]
         return tuple(bindings)
 
@@ -739,7 +741,7 @@ class Bypassers(Container, metaclass=BypassersMeta):
 
     def clear(self):
         """Remove all settings and bindings."""
-        for name in self._names:
+        for name in self.__names__:
             getattr(self, name).clear()
 
 class PairsMapping(BaseMapping):
