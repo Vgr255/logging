@@ -363,14 +363,21 @@ class BypassersMeta(type):
 
     """
 
+    allowed = {}
+    classes = []
+
     def __new__(metacls, name, bases, namespace):
         """Create a new Bypassers class."""
-        if name == "Bypassers": # base class
-            metacls.allowed = set(namespace)
-            return super().__new__(metacls, name, bases, namespace)
+        if not any(b in metacls.classes for b in bases):
+            metacls.allowed[name] = set(namespace)
+            cls = super().__new__(metacls, name, bases, namespace)
+            metacls.classes.append(cls)
+            return cls
 
-        original = {k:v for k,v in namespace.items() if k in metacls.allowed}
-        attr = {k:v for k,v in namespace.items() if k not in metacls.allowed}
+        allowed = metacls.allowed[bases[-1].__name__]
+
+        original = {k:v for k,v in namespace.items() if k in allowed}
+        attr = {k:v for k,v in namespace.items() if k not in allowed}
 
         cls = super().__new__(metacls, name, bases, original)
 
@@ -388,20 +395,18 @@ class BypassersMeta(type):
     def __call__(cls, *names):
         """Create a new Bypassers instance."""
 
-        if cls is Bypassers: # must deny it or various things break
-            raise TypeError("the Bypassers class cannot be called directly")
-
-        namespace = {}
-
-        namespace["_fallbacks"] = cls.attributes.get("fallbacks")
-        namespace["_hashes"] = []
-        mappers = make_sub(cls.__name__, cls.__names__)
-        for i, name in enumerate(cls.__names__):
-            namespace[name] = mappers[i]()
+        if cls in cls.__class__.classes:
+            raise TypeError("the %s class cannot be called directly" %
+                            cls.__name__)
 
         instance = cls.__new__(cls)
 
-        instance.__dict__.update(namespace)
+        instance._fallbacks = cls.attributes.get("fallbacks")
+        instance.__hashes__ = []
+
+        mappers = make_sub(cls.__name__, cls.__names__)
+        for i, name in enumerate(cls.__names__):
+            setattr(instance, name, mappers[i]())
 
         if isinstance(instance, cls):
             ret = cls.__init__(instance)
