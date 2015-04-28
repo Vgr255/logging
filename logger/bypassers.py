@@ -628,6 +628,78 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if self and other are not the same."""
         return not (self == other)
 
+    def __lt__(self, other):
+        """Return True if self is less than other."""
+        if len(self) < len(other):
+            return True
+        if len(self) > len(other) or self == other:
+            return False
+
+        if isinstance(other, type(self)):
+            count = 0
+            for current, iterator in ((self, other), (other, self)):
+                for binding in current.items():
+                    if binding[0] not in iterator:
+                        count += 1
+                        continue
+                    rest = binding[1:]
+                    for items in iterator[binding[0]]:
+                        if items == rest:
+                            continue
+                        for i, item in enumerate(rest):
+                            if items[i] == item:
+                                continue
+                            if items[i] < item:
+                                count += 1
+                            else:
+                                count -= 1
+
+                count *= -1
+
+            return count < 0
+
+        if hasattr(other, "__iter__") and not hasattr(other, "__next__"):
+            count = 0
+            for current, iterator in ((self, other), (other, self)):
+                for item in current:
+                    if item not in iterator:
+                        count += 1
+                        continue
+                count *= -1
+
+            return count < 0
+
+        if hasattr(other, "__iter__") and hasattr(other, "__next__"):
+            count = 0
+            while True:
+                try:
+                    item = next(other)
+                except StopIteration:
+                    break
+                if item in self:
+                    count -= 1
+                else:
+                    count += 1
+
+            return count < 0
+
+        return NotImplemented
+
+    def __le__(self, other):
+        """Return True if self is equal or less than other."""
+        return (self == other) or self.__lt__(other)
+
+    def __ge__(self, other):
+        """Return True if self is equal or greater than other."""
+        if self.__lt__(other) is NotImplemented:
+            return NotImplemented
+        return not (self < other)
+
+    def __gt__(self, other):
+        """Return True if self is greater than other."""
+        if self.__le__(other) is NotImplemented:
+            return NotImplemented
+        return not (self <= other)
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
