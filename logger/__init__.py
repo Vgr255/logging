@@ -1087,33 +1087,36 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
     for runner in olds:
 
-        try:
-            name = getfile(runner)
-        except TypeError:
-            continue
+        name = getmodule(runner)
 
-        if name in sys.modules:
-            mod = sys.modules[name]
-        elif parser:
-            mod = parser.__class__
-        else:
+        if name in (sys.modules["builtins"], None):
+            continue
+        elif isclass(parser):
+            mod = sys.modules[parser.__module__]
+        elif ismodule(parser):
+            mod = sys.modules[parser.__name__]
+        elif name.__name__ in sys.modules:
+            mod = name
+        elif hasattr(runner, "__name__"):
             mod = runner
+        else:
+            continue
 
         if msg:
             pass
         elif hasattr(mod, "__file__"):
             msg.append("Reading file %r\n" % mod.__file__)
         else:
-            msg.append("Reading module %r" % mod.__name__)
+            msg.append("Reading class %r" % mod.__name__)
 
-        mod = mod.__name__ # keep the string for later
+        name = name.__name__
 
         if ismethod(runner):
             fn = runner.__func__
             c = runner.__self__.__class__
-            name = fn.__name__
-            func.append(((mod, c, name), "Method %r of class " + c, fn))
-            msg.append("Parsing method %r" % name)
+            fname = fn.__name__
+            func.append(((name, c, fname), "Method %r of class " + c, fn))
+            msg.append("Parsing method %r" % fname)
 
         elif isclass(runner):
             msg.append("Parsing class " + runner.__name__)
@@ -1133,15 +1136,14 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
             gen = "generator " if code.co_flags & CO_GENERATOR else ""
 
-            name = runner.__name__
             if isclass(parser):
-                func.append(((mod, parser.__name__, name),
+                func.append(((name, parser.__name__, runner.__name__),
                      (gen + "method %r of class ").capitalize() +
                                                    parser.__name__, runner))
                 msg.append("Parsing %smethod %r" % (gen, name))
             else:
-                func.append(((mod, name), (gen + "function %r").capitalize(),
-                                                                runner))
+                func.append(((name, runner.__name__),
+                           (gen + "function %r").capitalize(), runner))
                 msg.append("Parsing %sfunction %r" % (gen, name))
 
     if handler is None and parser is not None:
