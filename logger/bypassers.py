@@ -253,7 +253,7 @@ class Container:
 
     def __ne__(self, other):
         """Return self != other."""
-        return not self.__eq__(other)
+        return not (self == other)
 
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
