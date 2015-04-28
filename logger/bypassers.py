@@ -193,7 +193,7 @@ class Container:
 
     def __init__(self, items):
         """Create a new items set."""
-        if items is None:
+        if items in (None, NoValue):
             items = set()
         if isinstance(items, type):
             items = items() # pass in 'list' to create a new list, etc
@@ -665,9 +665,8 @@ class Bypassers(metaclass=BypassersMeta):
         for setting in settings:
             if setting in self.keys():
                 continue
-            lst = [None for x in self.__class__.attributes.get("values")]
+            lst = [NoValue] * len(self.__class__.attributes.get("values"))
             lst[0] = setting
-            lst[-2:] = (NoValue, NoValue)
             all_settings.append(lst)
         self.update(*all_settings)
 
@@ -741,7 +740,7 @@ class PairsMapping(BaseMapping):
 
     def __init__(self, items):
         """Handle the items properly if None."""
-        if items is None:
+        if items in (None, NoValue):
             items = []
         self._items = items
 
