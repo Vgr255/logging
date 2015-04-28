@@ -10,20 +10,6 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
            "log_usage", "log_use", "chk_def", "NoValue"]
 
-from inspect import (
-
-    ismethod,
-    isclass,
-    ismodule,
-    isfunction,
-    isgenerator,
-    getfile,
-    CO_VARARGS,
-    CO_VARKEYWORDS,
-    CO_GENERATOR,
-
-)
-
 import shutil
 import sys
 import re
@@ -31,6 +17,24 @@ import re
 from logger import bypassers
 
 import _novalue as NoValue
+
+def import_inspect():
+
+    from inspect import (
+
+        ismethod,
+        isclass,
+        ismodule,
+        isfunction,
+        isgenerator,
+        getmodule,
+        CO_VARARGS,
+        CO_VARKEYWORDS,
+        CO_GENERATOR,
+
+    )
+
+    globals().update(locals())
 
 def pick(arg, default):
     """Handler for default versus given argument."""
@@ -1078,6 +1082,8 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
     if handler is parser is None:
         handler = BaseLogger().logger
+
+    import_inspect()
 
     for runner in olds:
 
