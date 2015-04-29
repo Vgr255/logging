@@ -891,9 +891,11 @@ class Bypassers(metaclass=BypassersMeta):
     def is_bound(self):
         """Return True if at least one setting is bound."""
         args = []
-        for mapper, index, handler in self.__class__.attributes.get("items"):
-            if handler is not None:
-                args.append(getattr(self, mapper)())
+        for setting in self:
+            for mapper, index, handler in type(self).attributes.get("items"):
+                if handler not in (None, NoValue):
+                    for i in index:
+                        args.append(self(setting)[i])
         return any(args)
 
     def update(self, *names):
