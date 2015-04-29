@@ -342,12 +342,6 @@ class BypassersMeta(type):
     In the class body, you can set a few variables that will determine
     how the mapping will behave. These are as follow:
 
-    'fallbacks':
-                    Dictionary used to set the default fallbacks when
-                    using .get() on the class.
-
-        Default:    {}
-
     'values':
                     Iterable of the names of each parameter in the
                     mapping.
@@ -391,7 +385,6 @@ class BypassersMeta(type):
 
         cls.attributes = attr
         cls.attributes.setdefault("values", ("setting",))
-        cls.attributes.setdefault("fallbacks", {})
         cls.attributes.setdefault("items", (("keys", (0,), None),
                                             ("values", (1,), None),
                                             ("items", (0, 1), None)))
@@ -409,7 +402,6 @@ class BypassersMeta(type):
 
         instance = cls.__new__(cls)
 
-        instance._fallbacks = cls.attributes.get("fallbacks")
         instance._hashes = []
 
         mappers = make_sub(cls.__name__, cls.__names__)
@@ -979,12 +971,11 @@ class Bypassers(metaclass=BypassersMeta):
                 cnt += 1
         return cnt
 
-    def setdefault(self, item, fallback=NoValue):
+    def setdefault(self, item):
         """Set the default fallback for the setting."""
-        if fallback is NoValue:
-            del self._fallbacks[item]
-        else:
-            self._fallbacks[item] = fallback
+        if item not in self:
+            self.add(item)
+        return self[item]
 
     def pop(self, item):
         """Remove and return the bindings of the setting."""
