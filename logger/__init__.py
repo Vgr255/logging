@@ -8,15 +8,13 @@ __status__ = "Refactor"
 __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
-           "log_usage", "log_use", "chk_def", "NoValue"]
+           "log_usage", "log_use", "chk_def"]
 
 import shutil
 import sys
 import re
 
 from logger import bypassers
-
-import _novalue as NoValue
 
 def pick(arg, default):
     """Handler for default versus given argument."""
