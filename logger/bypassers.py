@@ -119,7 +119,7 @@ class BypassersIterator:
     def __next__(self):
         """Return the next item in the list."""
         if self.iterator is None:
-            raise RuntimeError("no iterator was constructed")
+            self.__iter__()
         return next(self.iterator)
 
 def bypassers_iterator(instance, reverse, method):
