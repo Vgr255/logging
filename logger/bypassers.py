@@ -954,7 +954,7 @@ class Bypassers(metaclass=BypassersMeta):
             all_settings.append(lst)
         self.update(*all_settings)
 
-    def remove(self, item) -> "Same as del self[item]":
+    def remove(self, item):
         """Remove the setting. Raise KeyError upon failure."""
         del self[item]
 
