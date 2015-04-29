@@ -853,6 +853,10 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove and return a random item of self."""
         return self.popitem()
 
+    def __invert__(self):
+        """Create a new empty bypasser."""
+        return self.__class__()
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
