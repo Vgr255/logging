@@ -493,24 +493,54 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
-    def __getitem__(self, item):
-        """Return the internal mapping of the setting."""
-        if item not in self:
-            raise KeyError(item)
-        return tuple(self.values[self.keys.index(item)])
+    def __getitem__(self, index):
+        """Get the relevant items mapping(s)."""
+        if isinstance(index, int):
+            if index < 0:
+                index += len(self)
+            if index < len(self):
+                return tuple(self.items[index])
+            raise IndexError("bypasser index out of range")
 
-    def __setitem__(self, item, value):
+        elif isinstance(index, slice):
+            return self.__class__(*self.items[index])
+
+        else:
+            raise TypeError("bypasser indices must be integers, not %s" %
+                            index.__class__.__name__)
+
+    def __setitem__(self, index, value):
         """Bind a setting to another setting's bindings."""
-        self.update((item, ) + self[value])
+        if isinstance(index, int):
+            if index < 0:
+                index += len(self)
+            if index < len(self):
+                self.update((self.keys[index],) + self(value))
 
-    def __delitem__(self, item):
-        """Remove the setting and all bindings."""
-        if item not in self:
-            raise KeyError(item)
-        index = self.keys.index(item)
-        del self._hashes[index]
-        for name in self.__names__:
-            del getattr(self, name)[index]
+        elif isinstance(index, slice):
+            for i in range(*index.indices(len(self))):
+                self[i] = value # call itself recursively
+
+        else:
+            raise TypeError("bypasser indices must be integers, not %s" %
+                            index.__class__.__name__)
+
+    def __delitem__(self, index):
+        """Remove the setting(s) and all relevant bindings."""
+        if isinstance(index, int):
+            if index < 0:
+                index += len(self)
+            if index < len(self):
+                self.discard(self.keys[index])
+
+        elif isinstance(index, slice):
+            items = list(self)
+            for i in range(*index.indices(len(self))):
+                self.remove(items[i])
+
+        else:
+            raise TypeError("bypasser indices must be integers, not %s" %
+                            index.__class__.__name__)
 
     def __repr__(self):
         """Return a representation of the items in self."""
@@ -531,6 +561,12 @@ class Bypassers(metaclass=BypassersMeta):
         for binding in self.items():
             args.append(string % binding)
         return "(" + ", ".join(args) + ")"
+
+    def __call__(self, item):
+        """Return the internal mapping of the setting."""
+        if item not in self:
+            raise KeyError(item)
+        return tuple(self.values[self.index(item)])
 
     def __iter__(self):
         """Return the special iterator for the Bypassers."""
@@ -709,13 +745,13 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove the settings or bindings from self."""
         if hasattr(value, "items"):
             for items in value.items():
-                if items[0] in self and self[items[0]] == tuple(items[1:]):
-                    del self[items[0]]
+                if items[0] in self and self(items[0]) == tuple(items[1:]):
+                    self.remove(items[0])
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
             for item in value:
-                del self[item]
+                self.remove(item)
             return self
 
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
@@ -740,14 +776,14 @@ class Bypassers(metaclass=BypassersMeta):
         """Update self to only contain items both in self and value."""
         if hasattr(value, "items"):
             for items in value.items():
-                if items[0] not in self or self[items[0]] != tuple(items[1:]):
+                if items[0] not in self or self(items[0]) != tuple(items[1:]):
                     self.discard(items[0])
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
             for item in self.keys()[:]:
                 if item not in value:
-                    del self[item]
+                    self.remove(item)
             return self
 
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
@@ -933,12 +969,18 @@ class Bypassers(metaclass=BypassersMeta):
 
     def remove(self, item):
         """Remove the setting. Raise KeyError upon failure."""
-        del self[item]
+        if item not in self:
+            raise KeyError(item)
+        self.discard(item)
 
     def discard(self, item):
         """Remove the setting if it exists."""
-        if item in self:
-            del self[item]
+        if item not in self:
+            return
+        index = self.index(item)
+        del self._hashes[index]
+        for name in self.__names__:
+            del getattr(self, name)[index]
 
     def count(self, iters):
         """Return the number of matching pairs."""
@@ -952,12 +994,12 @@ class Bypassers(metaclass=BypassersMeta):
         """Set the default fallback for the setting."""
         if item not in self:
             self.add(item)
-        return self[item]
+        return self(item)
 
     def pop(self, item):
         """Remove and return the bindings of the setting."""
         try:
-            return self[item]
+            return self(item)
         finally:
             self.discard(item)
 
@@ -967,15 +1009,15 @@ class Bypassers(metaclass=BypassersMeta):
             raise KeyError("popitem(): bypasser is empty")
         index = self.keys.index(sorted(self.keys(), key=sorter)[0])
         try:
-            return tuple(self.items[index])
+            return self[index]
         finally:
-            del self[self.keys[index]]
+            del self[index]
 
     def get(self, item, fallback=None):
         """Return the setting's bindings or fallback."""
         if item not in self:
             return fallback
-        return self[item]
+        return self(item)
 
     def copy(self):
         """Return a deep copy of self."""
