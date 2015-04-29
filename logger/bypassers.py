@@ -982,7 +982,7 @@ class Bypassers(metaclass=BypassersMeta):
         try:
             return self[item]
         finally:
-            del self[item]
+            self.discard(item)
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
