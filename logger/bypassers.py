@@ -845,6 +845,10 @@ class Bypassers(metaclass=BypassersMeta):
 
         return NotImplemented
 
+    def __pos__(self):
+        """Return a deep copy of self."""
+        return self.copy()
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
