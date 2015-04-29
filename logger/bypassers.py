@@ -872,23 +872,33 @@ class Bypassers(metaclass=BypassersMeta):
                                     type(binding[0]).__name__)
                 if binding[0] in self.keys():
                     index = self.keys.index(binding[0])
-                    # also prevent re-attribution should hashing fail
-                    if self._hashes[index] != hash(binding[0]):
-                        raise KeyError(binding[0])
                     for i, each in enumerate(binding):
                         if each is NoValue:
                             binding[i] = self.items[index][i]
                     for mapper, indexes, handler in items:
+                        if handler is NoValue:
+                            continue
                         ix = []
                         for i in indexes:
-                            if handler not in (None, NoValue):
+                            if handler is not None:
                                 getattr(self, mapper)[index].update(
                                                              binding[i])
-                            if handler is NoValue:
-                                getattr(self, mapper)[index][i] = NoValue
-                            ix.append(binding[i])
+                            else:
+                                ix.append(binding[i])
 
-                        getattr(self, mapper)[index] = tuple(ix)
+                        if handler is None:
+                            for m, ind, hndlr in items:
+                                if hndlr in (None, NoValue):
+                                    continue
+                                if set(ind) & set(indexes):
+                                    for i in ind:
+                                        ix[indexes.index(i)] = getattr(self,
+                                                               m)[index]
+
+                        if len(ix) == 1:
+                            getattr(self, mapper)[index] = ix[0]
+                        elif ix:
+                            getattr(self, mapper)[index] = tuple(ix)
 
                 else:
                     index = len(self.keys())
