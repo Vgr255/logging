@@ -1051,8 +1051,9 @@ class PairsMapping(BaseMapping):
 
     def update(self, new):
         """Update the items list with new."""
-        if new not in self._items:
-            self._items.append(new)
+        for item in new:
+            if item not in self._items:
+                self._items.append(item)
 
 class TypesMapping(BaseMapping):
     """Inner mapping for the types argument of the Bypassers."""
