@@ -994,12 +994,10 @@ class Bypassers(metaclass=BypassersMeta):
         finally:
             del self[self.keys[index]]
 
-    def get(self, item, fallback=NoValue):
+    def get(self, item, fallback=None):
         """Return the setting's bindings or fallback."""
-        if item not in self.keys():
-            if item in self._fallbacks and fallback is NoValue:
-                fallback = self._fallbacks[item]
-            return None if fallback is NoValue else fallback
+        if item not in self:
+            return fallback
         return self[item]
 
     def copy(self):
