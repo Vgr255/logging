@@ -585,7 +585,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __contains__(self, item):
         """Return True if item is a setting, False otherwise."""
         return (item in self.keys() and is_hashable(item) and
-                self._hashes[self.keys.index(item)] == hash(item))
+                self._hashes[self.index(item)] == hash(item))
 
     def __reversed__(self):
         """Return a reversed iterator."""
@@ -911,7 +911,7 @@ class Bypassers(metaclass=BypassersMeta):
                     raise TypeError("unhashable type: %r" %
                                     type(binding[0]).__name__)
                 if binding[0] in self.keys():
-                    index = self.keys.index(binding[0])
+                    index = self.index(binding[0])
                     for i, each in enumerate(binding):
                         if each is NoValue:
                             binding[i] = self.items[index][i]
@@ -959,6 +959,12 @@ class Bypassers(metaclass=BypassersMeta):
         if items[0] in self.keys():
             return
         self.update(items)
+
+    def index(self, item):
+        """Retrive the internal index for the given item."""
+        if item not in self:
+            raise ValueError("%s is not in bypasser" % item)
+        return self.keys.index(item)
 
     def add(self, *settings):
         """Add new unbound settings. Ignore existing settings."""
@@ -1011,7 +1017,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Unbind and return all attributes of a random setting."""
         if not len(self):
             raise KeyError("popitem(): bypasser is empty")
-        index = self.keys.index(sorted(self.keys(), key=sorter)[0])
+        index = self.index(sorted(self.keys(), key=sorter)[0])
         try:
             return self[index]
         finally:
