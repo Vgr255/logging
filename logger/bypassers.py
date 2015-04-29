@@ -836,7 +836,7 @@ class Bypassers(metaclass=BypassersMeta):
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            self.add(value)
+            self.add(*value)
             return self
 
         if hasattr(value, "__iter__") and hasattr(value, "__next__"):
