@@ -879,7 +879,9 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __neg__(self):
         """Remove and return a random item of self."""
-        return self.popitem()
+        if self:
+            return self.popitem()
+        return None
 
     def __invert__(self):
         """Create a new empty bypasser."""
