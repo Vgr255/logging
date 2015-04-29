@@ -546,14 +546,6 @@ class Bypassers(metaclass=BypassersMeta):
         methods.remove("attributes")
         return set(methods + list(self.__names__))
 
-    def __bool__(self):
-        """Return True if at least one setting is bound."""
-        args = []
-        for mapper, index, handler in self.__class__.attributes.get("items"):
-            if handler is not None:
-                args.append(getattr(self, mapper)())
-        return any(args)
-
     def __contains__(self, item):
         """Return True if item is a setting, False otherwise."""
         return (item in self.keys() and is_hashable(item) and
@@ -856,6 +848,15 @@ class Bypassers(metaclass=BypassersMeta):
     def __invert__(self):
         """Create a new empty bypasser."""
         return self.__class__()
+
+    @property
+    def is_bound(self):
+        """Return True if at least one setting is bound."""
+        args = []
+        for mapper, index, handler in self.__class__.attributes.get("items"):
+            if handler is not None:
+                args.append(getattr(self, mapper)())
+        return any(args)
 
     def update(self, *names):
         """Update the bindings with the given items."""
