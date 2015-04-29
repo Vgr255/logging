@@ -972,8 +972,11 @@ class Bypassers(metaclass=BypassersMeta):
 
     def clear(self):
         """Remove all settings and bindings."""
-        for item in self.keys()[:]:
-            self.remove(item)
+        try:
+            while True:
+                self.popitem()
+        except KeyError:
+            pass
 
 class PairsMapping(BaseMapping):
     """Inner mapping for the pairs argument of the Bypassers."""
