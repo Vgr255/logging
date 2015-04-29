@@ -410,7 +410,7 @@ class BypassersMeta(type):
         instance = cls.__new__(cls)
 
         instance._fallbacks = cls.attributes.get("fallbacks")
-        instance.__hashes__ = []
+        instance._hashes = []
 
         mappers = make_sub(cls.__name__, cls.__names__)
         for i, name in enumerate(cls.__names__):
@@ -562,7 +562,7 @@ class Bypassers(metaclass=BypassersMeta):
         if item not in self:
             raise KeyError(item)
         index = self.keys.index(item)
-        del self.__hashes__[index]
+        del self._hashes[index]
         for name in self.__names__:
             del getattr(self, name)[index]
 
@@ -598,7 +598,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return a list of the methods available."""
         methods = dir(self.__class__)
         methods.remove("attributes")
-        return set(methods + list(self.__names__) + ["__hashes__"])
+        return set(methods + list(self.__names__))
 
     def __bool__(self):
         """Return True if at least one setting is bound."""
@@ -611,7 +611,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __contains__(self, item):
         """Return True if item is a setting, False otherwise."""
         return (item in self.keys() and is_hashable(item) and
-                self.__hashes__[self.keys.index(item)] == hash(item))
+                self._hashes[self.keys.index(item)] == hash(item))
 
     def __reversed__(self):
         """Return a reversed iterator."""
@@ -621,7 +621,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if self and other are the same."""
         try:
             if (self.items() == other.items() and
-                self.__hashes__ == other.__hashes__):
+                self._hashes == other._hashes):
                 return True
             if frozenset(self) == frozenset(other):
                 return True
@@ -914,7 +914,7 @@ class Bypassers(metaclass=BypassersMeta):
                 if binding[0] in self.keys():
                     index = self.keys.index(binding[0])
                     # also prevent re-attribution should hashing fail
-                    if self.__hashes__[index] != hash(binding[0]):
+                    if self._hashes[index] != hash(binding[0]):
                         raise KeyError(binding[0])
                     for i, each in enumerate(binding):
                         if each is NoValue:
@@ -933,7 +933,7 @@ class Bypassers(metaclass=BypassersMeta):
 
                 else:
                     index = len(self.keys())
-                    self.__hashes__.append(hash(binding[0]))
+                    self._hashes.append(hash(binding[0]))
                     for mapper, indexes, handler in items:
                         new = []
                         for i in indexes:
