@@ -60,49 +60,6 @@ class NoValue(sys.__class__, metaclass=MetaNoValue):
         """Return False no matter what."""
         return False
 
-class RunnerIterator:
-    """Generate an iterator of sorted items.
-
-    This iterator runs over all the items of the given items, sorted in
-    alphabetical order. It will raise RuntimeError if the items are
-    changed during iteration. The `reverse` argument is a boolean value
-    that tells the iterator to yield the items in reverse alphabetical
-    order.
-
-    """
-
-    def __init__(self, items, reverse=False):
-        """Create a new iterator."""
-        self.items = items
-        self.original = items
-        self.forced = list(items)
-        if hasattr(items, "copy"):
-            self.original = items.copy()
-        if hasattr(items, "items"):
-            self.dict_items = list(items.items())
-        self.items_ = list(items)
-        self.items_.sort(key=sorter)
-        self.index_ = len(items) + 1
-
-    def __iter__(self):
-        """Return the iterator."""
-        return self
-
-    def __next__(self):
-        """Return the items of self."""
-        if self.index_ == 1:
-            raise StopIteration
-
-        if hasattr(self, "dict_items") and (list(self.items.items()) !=
-                                                 self.dict_items):
-            raise RuntimeError("dictionary changed size during iteration")
-        if self.items != self.original or self.forced != list(self.items):
-            raise RuntimeError("container changed size during iteration")
-
-        self.index_ -= 1
-
-        return self.items_[-self.index_]
-
 class BypassersIterator:
     """Special iterator for the members of a Bypassers instance.
 
@@ -192,7 +149,7 @@ def bypassers_iterator(instance, reverse, method):
             yield getattr(instance, name)
 
     else:
-        iterator = RunnerIterator(instance.keys(), reverse)
+        iterator = iter(sorted(instance.keys(), key=sorter, reverse=reverse))
         while True:
             yield next(iterator)
 
@@ -209,7 +166,7 @@ class Container:
 
     def __iter__(self):
         """Return an iterator over the items of self."""
-        return RunnerIterator(self._items)
+        return iter(sorted(self._items, key=sorter))
 
     def __len__(self):
         """Return the amount of items in self."""
