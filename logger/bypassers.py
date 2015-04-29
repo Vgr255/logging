@@ -781,7 +781,7 @@ class Bypassers(metaclass=BypassersMeta):
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            for item in self.keys()[:]:
+            for item in self[:]:
                 if item not in value:
                     self.remove(item)
             return self
@@ -910,7 +910,7 @@ class Bypassers(metaclass=BypassersMeta):
                 if not is_hashable(binding[0]):
                     raise TypeError("unhashable type: %r" %
                                     type(binding[0]).__name__)
-                if binding[0] in self.keys():
+                if binding[0] in self:
                     index = self.index(binding[0])
                     for i, each in enumerate(binding):
                         if each is NoValue:
@@ -941,7 +941,7 @@ class Bypassers(metaclass=BypassersMeta):
                             getattr(self, mapper)[index] = tuple(ix)
 
                 else:
-                    index = len(self.keys())
+                    index = len(self)
                     self._hashes.append(hash(binding[0]))
                     for mapper, indexes, handler in items:
                         new = []
@@ -956,7 +956,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def extend(self, items):
         """Add a new full binding."""
-        if items[0] in self.keys():
+        if items[0] in self:
             return
         self.update(items)
 
@@ -970,7 +970,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Add new unbound settings. Ignore existing settings."""
         all_settings = []
         for setting in settings:
-            if setting in self.keys():
+            if setting in self:
                 continue
             lst = [NoValue] * len(self.__class__.attributes.get("values"))
             lst[0] = setting
@@ -1015,7 +1015,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def popitem(self):
         """Unbind and return all attributes of a random setting."""
-        if not len(self):
+        if not self:
             raise KeyError("popitem(): bypasser is empty")
         index = self.index(sorted(self.keys(), key=sorter)[0])
         try:
