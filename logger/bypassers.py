@@ -495,9 +495,6 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __getitem__(self, item):
         """Return the internal mapping of the setting."""
-        if (isinstance(item, slice) and
-            item.start is item.stop is item.step is None):
-            return self.copy() # special case for self[:]
         if item not in self:
             raise KeyError(item)
         return tuple(self.values[self.keys.index(item)])
