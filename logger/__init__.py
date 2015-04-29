@@ -634,9 +634,6 @@ class Translater:
       a dict for 'format_dict'; this is done to accept any object, not
       just built-in ones.
 
-    - It requires an iterable of strings to be passed in. Passing a single
-      string will not work as intended.
-
     """
 
     def __init__(self, *, main=None, module=None, modules=None, first=None,
@@ -661,7 +658,11 @@ class Translater:
 
         format = copy(format, list)
         format_dict = copy(format_dict, dict)
-        format_mod = copy(format_mod, list)
+
+        if isinstnace(format_mod, tuple):
+            format_mod = list(format_mod)
+        else:
+            format_mod = [str(format_mod)]
 
         def enum(iterable):
             if hasattr(iterable, "items"):
@@ -709,6 +710,7 @@ class Translater:
                         line = module
 
                 if line != original and iterable == output:
+                    format_mod = tuple(format_mod)
                     line = line.format(*format, **format_dict) % format_mod
 
                 iterable[i] = line
