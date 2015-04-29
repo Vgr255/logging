@@ -849,6 +849,10 @@ class Bypassers(metaclass=BypassersMeta):
         """Return a deep copy of self."""
         return self.copy()
 
+    def __neg__(self):
+        """Remove and return a random item of self."""
+        return self.popitem()
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes.get("items")
