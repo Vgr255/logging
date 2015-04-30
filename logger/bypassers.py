@@ -498,7 +498,7 @@ class Bypassers(metaclass=BypassersMeta):
         if isinstance(index, int):
             if index < 0:
                 index += len(self)
-            if index < len(self):
+            if index < self:
                 return tuple(self.items[index])
             raise IndexError("bypasser index out of range")
 
@@ -514,7 +514,7 @@ class Bypassers(metaclass=BypassersMeta):
         if isinstance(index, int):
             if index < 0:
                 index += len(self)
-            if index < len(self):
+            if index < self:
                 self.update((self.keys[index],) + self(value))
 
         elif isinstance(index, slice):
@@ -530,7 +530,7 @@ class Bypassers(metaclass=BypassersMeta):
         if isinstance(index, int):
             if index < 0:
                 index += len(self)
-            if index < len(self):
+            if index < self:
                 self.discard(self.keys[index])
 
         elif isinstance(index, slice):
@@ -609,10 +609,20 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __lt__(self, other):
         """Return True if self is less than other."""
-        if len(self) < len(other):
+        length = len(self)
+        if length.__lt__(other) is not NotImplemented and length < other:
             return True
-        if len(self) > len(other) or self == other:
+        if length.__gt__(other) is not NotImplemented and length > other:
             return False
+        if self == other:
+            return False
+        try:
+            if length < len(other):
+                return True
+            if length > len(other):
+                return False
+        except TypeError: # no len()
+            pass
 
         if isinstance(other, type(self)):
             count = 0
@@ -666,7 +676,16 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __le__(self, other):
         """Return True if self is equal or less than other."""
-        return (self == other) or self.__lt__(other)
+        if self == other:
+            return True
+        if len(self) <= other:
+            return True
+        try:
+            if len(self) <= len(other):
+                return True
+        except TypeError:
+            pass
+        return self.__lt__(other)
 
     def __ge__(self, other):
         """Return True if self is equal or greater than other."""
