@@ -515,7 +515,7 @@ class Bypassers(metaclass=BypassersMeta):
             if index < 0:
                 index += len(self)
             if index < self:
-                self.update((self.keys[index],) + self(value))
+                self.update((self.find(index),) + self(value))
 
         elif isinstance(index, slice):
             for i in range(*index.indices(len(self))):
@@ -531,7 +531,7 @@ class Bypassers(metaclass=BypassersMeta):
             if index < 0:
                 index += len(self)
             if index < self:
-                self.discard(self.keys[index])
+                self.discard(self.find(index))
 
         elif isinstance(index, slice):
             items = list(self)
@@ -978,6 +978,12 @@ class Bypassers(metaclass=BypassersMeta):
         if items[0] in self:
             return
         self.update(items)
+
+    def find(self, index):
+        """Retrieve the item at location index."""
+        if index < self:
+            return self.keys[index]
+        raise IndexError("bypasser index out of range")
 
     def index(self, item):
         """Retrive the internal index for the given item."""
