@@ -1259,10 +1259,9 @@ class Bypassers(metaclass=BypassersMeta):
                             for m, ind, hndlr in items:
                                 if hndlr in (None, NoValue):
                                     continue
-                                if set(ind) & set(indexes):
-                                    for i in ind:
-                                        ix[indexes.index(i)] = getattr(self,
-                                                               m)[index]
+                                for i in (set(ind) & set(indexes)):
+                                    ix[indexes.index(i)] = (getattr(self, m)
+                                                                    [index])
 
                         if len(ix) == 1:
                             getattr(self, mapper)[index] = ix[0]
