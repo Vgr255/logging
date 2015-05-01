@@ -996,17 +996,22 @@ class log_usage:
 
     def __init__(self, func=None):
         """Prepare the decorator."""
-        funcion = tuple(type(fn) for fn in (pick, self.__init__, len))
+        from inspect import (
+
+            isclass,
+            isroutine,
+
+        )
 
         if func is None:
             self.handler = self._default_handler().logger
-        elif isinstance(func, type) and issubclass(func, base):
+        elif isclass(func) and issubclass(func, base):
             self.handler = func().logger
-        elif isinstance(func, base):
+        elif isinstance(func, self._default_handler):
             self.handler = func.logger
-        elif isinstance(func, type):
+        elif isclass(func):
             self.handler = func()
-        elif isinstance(func, function) or isinstance(func.__class__, type):
+        elif isroutine(func) or isclass(func.__class__):
             self.handler = func
         else:
             self.handler = self._default_handler().logger
