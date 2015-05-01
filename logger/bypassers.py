@@ -1026,7 +1026,7 @@ class Bypassers(metaclass=BypassersMeta):
         for setting in settings:
             if setting in self:
                 continue
-            lst = [NoValue] * len(self.__class__.attributes["values"]
+            lst = [NoValue] * len(self.__class__.attributes["values"])
             lst[0] = setting
             all_settings.append(lst)
         self.update(*all_settings)
