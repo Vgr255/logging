@@ -1010,7 +1010,12 @@ class Bypassers(metaclass=BypassersMeta):
 
     def find(self, index):
         """Retrieve the item at location index."""
-        if index < self:
+        if not isinstance(index, int):
+            raise TypeError("bypasser indexes must be integers, not %s" %
+                            index.__class__.__name__)
+        if index < 0:
+            index += len(self)
+        if 0 <= index < len(self):
             return self.keys[index]
         raise IndexError("bypasser index out of range")
 
