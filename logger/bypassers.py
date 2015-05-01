@@ -42,6 +42,10 @@ class MetaNoValue(type):
             return nv
         raise TypeError("type 'NoValue' is not an acceptable base type")
 
+    def __repr__(cls):
+        """Return a representation for type(NoValue)."""
+        return "<class 'NoValue'>"
+
 class NoValue(sys.__class__, metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
 
