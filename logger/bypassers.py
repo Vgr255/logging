@@ -846,7 +846,8 @@ class Bypassers(metaclass=BypassersMeta):
         """Update self with items from all iterables."""
         if hasattr(value, "items"):
             for items in value.items():
-                self.extend(items)
+                if items[0] not in self:
+                    self.update(items)
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
@@ -876,7 +877,7 @@ class Bypassers(metaclass=BypassersMeta):
                 if items[0] in self:
                     self.remove(items[0])
                 else:
-                    self.extend(items)
+                    self.update(items)
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
@@ -986,11 +987,19 @@ class Bypassers(metaclass=BypassersMeta):
                         elif len(new) > 1:
                             getattr(self, mapper).append(tuple(new))
 
-    def extend(self, items):
-        """Add a new full binding."""
-        if items[0] in self:
-            return
-        self.update(items)
+    def extend(self, **keywords):
+        """Add a new full binding with named pairings."""
+        values = self.__class__.attributes["values"]
+        if len(keywords) < len(values):
+            raise TypeError("not enough parameters given to extend()")
+        if len(keywords) > len(values):
+            raise TypeError("too many parameters given to extend()")
+        lst = [None] * len(values)
+        for name, value in keywords.items():
+            if name not in values:
+                raise ValueError("unrecognized parameter: %r" % name)
+            lst[values.index(name)] = value
+        self.update(lst)
 
     def find(self, index):
         """Retrieve the item at location index."""
