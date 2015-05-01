@@ -1251,6 +1251,9 @@ def parse_def(function, HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
                                   annotations.get(arg)))
             else:
                 for arg in varnames:
+                    ret = 0
+                    if arg in annotations:
+                        ret += HAS_ANNOTATION
                     params.append(arguments(arg, None, ret,
                                   annotations.get(arg)))
 
