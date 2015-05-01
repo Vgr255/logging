@@ -294,29 +294,25 @@ class BypassersMeta(type):
     checking of various variables. To create a Bypassers mapping, you
     need to subclass the Bypassers class.
 
-    In the class body, you can set a few variables that will determine
-    how the mapping will behave. These are as follow:
+    In the class body, you need to set a few variables that will
+    determine how the mapping will behave. These are as follow:
 
     'values':
                     Iterable of the names of each parameter in the
                     mapping.
 
-        Default:    ("setting",)
-
     'items':
                     Iterable of 3-tuples which will be checked against
                     when performing various checks. See below.
 
-        Default:    ()
+    All of the aforementioned parameters are mandatory. If any of
+    these are missing, a TypeError will be raised. Any superfluous
+    parameter that don't match a method from the base class will be
+    silently ignored.
 
-    None of these parameters are mandatory, however, not entering any
-    of the above will result in an extremely basic class without much
-    functionality. If a parameter is not set, its default value will be
-    used. See the classes below for an example.
-
-    It is possible to define the methods that your Bypassers will use,
-    however the default methods are made to work with any number of
-    arguments, as long as the class body defines the correct arguments.
+    It is possible to override the behaviour of the base methods from
+    the Bypassers class. However, doing so is usually not required, as
+    the base methods are made to function with any number of arguments.
 
     """
 
