@@ -590,7 +590,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __contains__(self, item):
         """Return True if item is a setting, False otherwise."""
         return (item in self.keys() and is_hashable(item) and
-                self._hashes[self.index(item)] == hash(item))
+                self._hashes[self.keys.index(item)] == hash(item))
 
     def __reversed__(self):
         """Return a reversed iterator."""
