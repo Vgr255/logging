@@ -414,7 +414,7 @@ class TypeLogger(BaseLogger):
         if write:
             output = self._get_output(output, sep).splitlines()
             alines = [x for x in self.logfiles if x in
-                                 self.bypassers["all"][0]]
+                                 self.bypassers("all")[0]]
             getter = [file]
             if logall:
                 getter.append(logall)
@@ -432,7 +432,7 @@ class TypeLogger(BaseLogger):
 
         if len(types) == 1 and "*" in types: # allows any iterable
             for log in self.logfiles:
-                if log not in self.bypassers["files"][0]:
+                if log not in self.bypassers("files")[0]:
                     if display:
                         self.logger(*output, type=log, display=True, **rest)
                         display = False # display only once
