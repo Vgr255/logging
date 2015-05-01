@@ -355,9 +355,9 @@ class BypassersMeta(type):
             raise TypeError("the %s class cannot be called directly" %
                             cls.__name__)
 
-        if keywords and len(keywords) < len(cls.attributes.values):
+        if keywords and len(keywords) < len(cls.attributes["values"]):
             raise TypeError("not enough named arguments")
-        if len(keywords) > len(cls.attributes.values):
+        if len(keywords) > len(cls.attributes["values"]):
             raise TypeError("too many named arguments")
 
         instance = cls.__new__(cls)
