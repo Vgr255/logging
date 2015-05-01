@@ -383,114 +383,395 @@ class BypassersMeta(type):
 class Bypassers(metaclass=BypassersMeta):
     """Base class to subclass to create Bypassers class.
 
-    This mapping is aimed at emulating a dictionnary, and as such has
-    the same methods that a dictionnary has. However, due to the fact
-    that this mapping takes exactly five arguments instead of the
-    standard one or two, more methods were added, named after standard
-    methods from other objects, such as sets and lists. This can be
-    subclassed for more functionality.
+    This is a special mapping used for the `bypassers` argument of the
+    logger classes. It is constructed using a metaclass, which allows
+    basic customization of the behaviour and arguments of the class.
+    The methods are taken from the first class created by the metaclass
+    in the method resolution order chain. As such, it is possible to
+    create new base Bypassers class without subclassing this particular
+    class. This class exposes a full functional API, which allows users
+    full customization over the instance. There are a few aliases
+    for some command available.
 
-    Functional API:
+    The bypassers retain insertion order, and it is also accessible
+    through the external API. To create a new bypasser, it is possible
+    to supply an arbitrary number of iterables, that will be passed on
+    to the `update` method.
 
-    Note: This API provides functionality to allow any of the five
-    arguments to be read and modified. If you want to use this
-    functional API yourself, you must first read this documentation,
-    as some methods do not behave as you would expect them to due to
-    the unique nature of this mapping.
+    Note that, while hashing cannot be used for fast lookup of values,
+    it is used as a way to ensure the settings are set-like. There can
+    only be one of each setting, and they must be hashable. Trying to
+    assign a non-hashable variable will result in a TypeError, and the
+    mapping will likely be left in a partially-modified state. If, for
+    some reason, the hash of a setting changes after it has been
+    inserted, it will become unreachable (even though it will still
+    occupy space). This can be remedied by iterating over the items,
+    re-assigning, or deleting (from the index) such attribute.
 
-    To create the `bypassers` instance, you must call the created class
-    with the proper amount of arguments, which differs depending on the
-    various implementations.
+    From this point on, `bypasser` will refer to an instance of any
+    Bypassers class (a subclass of the present class). It is assumed
+    that it was constructed properly. Each method and operation is
+    followed by another line, one indent deeper, which states the
+    return value of the operation. Unless otherwise stated, a class as
+    a return value means that it will return an instance of the
+    specified class. A Bypassers instance refers to an instance of any
+    subclass. A return value of `bypasser` means that the original
+    instance will be returned. A return value of `<...>` means that any
+    type may be returned from the method.
 
-    bypassers[setting]
-                                        Access the internal mapping
+    The `bypasser` instance can be created by calling the class, with
+    or without iterables, and with or without keyword arguments. If
+    passing keyword arguments, this can only affect one setting.
 
-    bypassers[setting] = other
-                                        Copy a setting's bindings
+    If overriding methods, please note that `__init__` does not
+    actually get any of the passed in arguments; instead, they are
+    passed to the `update` (for iterables) and `extend` (for keyword
+    arguments) methods, after `__init__` is called. Both the `__new__`
+    and `__init__` method will be called without any argument, except
+    the class for `__new__` and the instance for `__init__`. Following
+    normal Python rules, `__init__` will only be called if `__new__`
+    returns an instance of the passed-in class.
 
-    del bypassers[setting]
-                                        Remove the setting's bindings
+    All of the methods are as follow:
 
-    str(bypassers) | repr(bypassers)
-                                        Show all the attributes that
-                                        are currently active. Note that
-                                        the two calls differ
+    bypasser[n]
+                        Get the nth item in insertion order. Raise
+                        IndexError if `n` is out of range
 
-    len(bypassers)
-                                        Return the number of settings
+        -> tuple
 
-    x in bypassers
-                                        Return True if x is a setting,
-                                        False otherwise
+    bypasser[a:b:c]
+                        Return a new instance with the items contained
+                        in the slice
 
-    for x in bypassers
-                                        Iterate over all settings in
-                                        alphabetical order
+        -> Bypassers
 
-    bool(bypassers)
-                                        Return True if at least one 
-                                        setting is bound, False
-                                        otherwise
+    bypasser[n] = x
+                        Set the nth item in insertion order to the
+                        items of setting `x`. Raise KeyError if `x` is
+                        not a setting
 
-    dir(bypassers)
-                                        Return a list of all methods
+        -> None
 
-    bypassers.extend(iterable)
-                                        Add a new binding; need an
-                                        iterable, ignored if setting
-                                        exists
+    bypasser[a:b:c] = x
+                        Set all the items in range(a, b, c) to the
+                        items of setting `x`
 
-    bypassers.update(iterable)
-                                        Update existing bindings with
-                                        iterables or add new bindings
+        -> None
 
-    bypassers.add(setting)
-                                        Add new unbound settings,
-                                        ignored for existing settings
+    del bypasser[n]
+                        Delete the setting at index `n`
 
-    bypassers.pop(setting)
-                                        Return the iterable bound to
-                                        the setting and remove all the
-                                        setting's bindings
+        -> None
 
-    bypassers.popitem()
-                                        Remove and return a random
-                                        binding, five-tuple
+    del bypasser[a:b:c]
+                        Delete all the settings at indexes in
+                        range(a, b, c)
 
-    bypassers.get(setting, fallback)
-                                        Return the iterable bound to
-                                        the setting. If the setting
-                                        does not exist, 'fallback' will
-                                        be returned; defaults to None
+        -> None
 
-    bypassers.setdefault(item, fb)
-                                        Set the default fallback for
-                                        setting 'item' to 'fb'; this
-                                        only affects .get
+    repr(bypasser)
+                        Return a string of the class in the form
+                        BypasserClassName((item=value, ...), ...)
 
-    bypassers.count(iters)
-                                        Return the number of settings
-                                        which are set to use this
-                                        (module, attr) pair
+        -> str
 
-    bypassers.copy()
-                                        Return a deep copy
+    str(bypasser)
+                        Return a string of the items in the form
+                        (<setting: ..., ...>, <...>)
 
-    bypassers.clear()
-                                        Remove all settings and their
-                                        bindings
+        -> str
 
-    Equality testing (== and !=) can be used to compare two different
-    instances of the Bypassers mapping. If they have exactly the same
-    mapping (same settings bound to the same types, pairs, module and
-    attribute), both instances will be considered to be equal. This
-    also works even if the other instance is not a Bypassers instance,
-    provided they have a similar API. To check if two variables are the
-    same instance, use 'is' instead.
+    bypasser(x)
+                        Retrieve the values associated with the setting
+                        `x`. Raise KeyError if `x` is not a setting
 
-    The view objects of this class are changeable. This means that they
-    reflect any changes that happened to the mapping. It is also
-    guaranteed that the view objects' items will be sorted.
+        -> tuple
+
+    for x in bypasser | list(bypasser) | iter(bypasser) | ...
+                        Return a special iterator used to iterate over
+                        the Bypassers instances
+
+        -> BypassersIterator
+
+    len(bypasser)
+                        Return the total number of settings currently
+                        defined in bypasser
+
+        -> int
+
+    dir(bypasser)
+                        Return a list of all methods and non-private
+                        instance attributes
+
+        -> list
+
+    x in bypasser
+                        Return True if `x` is a setting
+
+        -> bool
+
+    reversed(bypassed)
+                        Return a reversed iterator over the items of
+                        the bypasser. This uses the same special
+                        iterator as iter(bypasser)
+
+        -> BypassersIterator
+
+    bypasser == other
+                        Return True if `other` has the same items as
+                        bypasser, or at least the same settings
+
+        -> bool
+
+    bypasser != other
+                        Same as `not (bypassers == other)`
+
+        -> bool
+
+    bypasser < other
+                        Return True if bypasser is considered to be
+                        less than `other`. This is done through
+                        counting of the various attributes, as well as
+                        the total length of both bypasser and `other`
+
+        -> bool
+
+    bypasser <= other
+                        Return True if (bypasser < other) or if they
+                        have the same length. This is an intentional
+                        asymmetry with the `==` operand
+
+        -> bool
+
+    bypasser > other
+                        Same as `not (bypasser <= other)`
+
+        -> bool
+
+    bypasser >= other
+                        Return True if (bypasser > other) or if they
+                        have the same length
+
+        -> bool
+
+    bypasser + other
+                        Return a new instance of bypasser with the
+                        items from other added
+
+        -> Bypassers
+
+    other + bypasser
+                        Same as `bypasser + other`
+
+        -> Bypassers
+
+    bypasser += other
+                        Same as `bypasser + other`, except it modifies
+                        the instance in-place
+
+        -> bypasser
+
+    bypasser - other
+                        Return a new instance of bypasser with the
+                        items from other removed, if applicable
+
+        -> Bypassers
+
+    other - bypasser
+                        Return a new instance of other, if possible,
+                        with the items from bypasser removed, if
+                        applicable
+
+        -> type(other)
+
+    bypasser -= other
+                        Same as `bypasser - other`, except it modifies
+                        the instance in-place
+
+        -> bypasser
+
+    bypasser & other
+                        Return a new instance of bypasser which holds
+                        the items from both bypasser and `other`
+
+        -> Bypassers
+
+    other & bypasser
+                        Same as `bypasser & other`
+
+        -> Bypassers
+
+    bypasser &= other
+                        Same as `bypasser & other`, except it modifies
+                        the instance in-place
+
+        -> bypasser
+
+    bypasser | other
+                        Return an instance of bypasser with the items
+                        from both bypasser and `other`. If `other` is
+                        a Bypassers instance, the items from bypasser
+                        will take precedence over those in `other`, if
+                        there's any conflict
+
+        -> Bypassers
+
+    other | bypasser
+                        Same as `bypasser | other`
+
+        -> Bypassers
+
+    bypasser |= other
+                        Same as `bypasser | other`, except it modifies
+                        the instance in-place
+
+        -> bypasser
+
+    bypasser ^ other
+                        Return an instance of bypasser with the items
+                        from either bypasser or other. Items present in
+                        both will not be included
+
+        -> Bypassers
+
+    other ^ bypasser
+                        Same as `bypasser ^ other`
+
+        -> Bypassers
+
+    bypasser ^= other
+                        Same as `bypasser ^ other`, except it modifies
+                        the instance in-place
+
+        -> bypasser
+
+    +bypasser
+                        Return a deep copy of bypasser. It is an alias
+                        for `bypasser.copy()`
+
+        -> Bypassers
+
+    -bypasser
+                        Remove and return a random binding of bypasser.
+                        It is an alias for `bypasser.popitem()`,
+                        except that it will not raise an exception if
+                        bypasser has no item; instead it will return a
+                        tuple of `None` items with the same length as
+                        a `popitem()` tuple would have. This is to
+                        ensure that for loops or other code which
+                        expects a specific number of arguments don't
+                        fail
+
+        -> tuple
+
+    ~bypasser
+                        Return a new, empty instance of bypasser (it
+                        does not alter bypasser itself). This is an
+                        alias for `type(bypasser)()`
+
+        -> Bypassers
+
+    bypasser.is_bound
+                        Boolean value that states whether or not the
+                        bypasser instance has bound settings. A setting
+                        is considered bound if the third item of the
+                        three-tuples given in the `items` parameter has
+                        an assigned value at the specified location
+
+        -> bool
+
+    bypasser.update(iterable, ...)
+                        Update the bypasser's mapping with the iterable
+                        given. It can accept any number of iterables
+
+        -> None
+
+    bypasser.extend(setting=..., ...=..., ...)
+                        Update the bypasser's mapping with the keyword
+                        arguments given. This can only affect one
+                        setting at a time. It will raise a TypeError if
+                        not enough (or too many) parameters are given
+
+        -> None
+
+    bypasser.find(index)
+                        Return the setting at index `index`. Raise
+                        TypeError if `index` is not an integer. Raise
+                        IndexError if `index` is out of range
+
+        -> <...>
+
+    bypasser.index(item)
+                        Return the internal index for setting `item`.
+                        Raise KeyError if `item` is not a setting
+
+        -> int
+
+    bypasser.add(setting, ...)
+                        Add a new, unbound setting. Ignore it if the
+                        setting already exists. This can accept any
+                        number of settings
+
+        -> None
+
+    bypasser.remove(setting)
+                        Remove the setting from bypasser. Raise
+                        KeyError if the setting is not present
+
+        -> None
+
+    bypasser.discard(setting)
+                        Remove the setting from bypasser. Ignore the
+                        operation if the setting is not present
+
+        -> None
+
+    bypasser.count(iterable)
+                        Return the number of times `iterable` appears
+                        in the bypasser
+
+        -> int
+
+    bypasser.setdefault(item)
+                        Return the setting `item` if it exists. If it
+                        does not exist, add a new setting `item` and
+                        return it
+
+        -> tuple
+
+    bypasser.pop(item)
+                        Return the binding of setting `item` if it
+                        exists. Raise KeyError if the setting is not
+                        present. Remove the setting for bypasser
+
+        -> tuple
+
+    bypasser.popitem()
+                        Return a full binding and remove the binding
+                        from bypasser. Raise KeyError if `bypasser` is
+                        empty. The binding that will be removed is
+                        non-random; it will always be the first item
+                        when iterating through the bypasser in sorted
+                        ordering
+
+        -> tuple
+
+    bypasser.get(item, fallback=None)
+                        Return the binding of setting `item` if it
+                        exists. If it does not exist, and `fallback` is
+                        a tuple, return `fallback`, otherwise return a
+                        tuple consisting of n-1 `fallback` items
+
+        -> tuple
+
+    bypasser.copy()
+                        Return a deep copy (one layer deep) of bypasser
+
+        -> Bypassers
+
+    bypasser.clear()
+                        Remove all existing settings and their bindings
 
     """
 
