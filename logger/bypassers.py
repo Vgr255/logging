@@ -336,15 +336,15 @@ class BypassersMeta(type):
         original = {k:v for k,v in namespace.items() if k in allowed}
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
+        for name in ("values", "items"):
+            if name not in attr:
+                raise TypeError("missing required %r parameter" % name)
+
         cls = super().__new__(metacls, name, bases, original)
 
         cls.attributes = attr
-        cls.attributes.setdefault("values", ("setting",))
-        cls.attributes.setdefault("items", (("keys", (0,), None),
-                                            ("values", (1,), None),
-                                            ("items", (0, 1), None)))
 
-        cls.__names__ = tuple(x[0] for x in cls.attributes.get("items"))
+        cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
 
         return cls
 
@@ -544,7 +544,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return a representation of the items in self."""
         args = []
         string = "("
-        for name in self.__class__.attributes.get("values"):
+        for name in self.__class__.attributes["values"]:
             string = string + name + "=%r, "
         string = string[:-2] + ")"
         for binding in self.items():
@@ -554,7 +554,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __str__(self):
         """Return a string of the class' items."""
         args = []
-        num = len(self.__class__.attributes.get("values")) - 1
+        num = len(self.__class__.attributes["values"]) - 1
         string = "<%s: " + ", ".join(["%s"] * num) + ">"
         for binding in self.items():
             args.append(string % binding)
@@ -924,7 +924,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if at least one setting is bound."""
         args = []
         for setting in self:
-            for mapper, index, handler in type(self).attributes.get("items"):
+            for mapper, index, handler in self.__class__.attributes["items"]:
                 if handler not in (None, NoValue):
                     for i in index:
                         args.append(self(setting)[i])
@@ -932,7 +932,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def update(self, *names):
         """Update the bindings with the given items."""
-        items = self.__class__.attributes.get("items")
+        items = self.__class__.attributes["items"]
         for name in names:
             item = (name,)
             if hasattr(name, "items"):
@@ -1010,7 +1010,7 @@ class Bypassers(metaclass=BypassersMeta):
         for setting in settings:
             if setting in self:
                 continue
-            lst = [NoValue] * len(self.__class__.attributes.get("values"))
+            lst = [NoValue] * len(self.__class__.attributes["values"]
             lst[0] = setting
             all_settings.append(lst)
         self.update(*all_settings)
@@ -1070,11 +1070,11 @@ class Bypassers(metaclass=BypassersMeta):
     def copy(self):
         """Return a deep copy of self."""
         new = []
-        getter = self.__class__.attributes.get
+        attr = self.__class__.attributes
         for binding in self.items():
             binding = list(binding)
-            for mapper, indexes, handler in getter("items"):
-                for i, name in enumerate(getter("values")):
+            for mapper, indexes, handler in attr["items"]:
+                for i, name in enumerate(attr["values"]):
                     if handler not in (None, NoValue) and i in indexes:
                         binding[i] = binding[i].copy()
             new.append(binding)
