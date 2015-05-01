@@ -10,7 +10,9 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
            "log_usage", "log_use", "chk_def"]
 
+from datetime import datetime
 import shutil
+import time
 import sys
 import re
 

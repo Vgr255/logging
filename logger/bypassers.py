@@ -2,8 +2,6 @@
 
 """Implementation of the Bypassers handlers."""
 
-from datetime import datetime
-import time
 import sys
 
 __all__ = ["NoValue", "BaseBypassers", "TypeBypassers", "LevelBypassers"]
