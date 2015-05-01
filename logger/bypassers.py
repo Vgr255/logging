@@ -4,7 +4,7 @@
 
 import sys
 
-__all__ = ["NoValue", "BaseBypassers", "TypeBypassers", "LevelBypassers"]
+__all__ = ["NoValue"]
 
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
@@ -345,6 +345,10 @@ class BypassersMeta(type):
         cls.attributes = attr
 
         cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
+
+        if name not in globals():
+            globals()[name] = cls
+        __all__.append(name) # if we got here, it succeeded
 
         return cls
 
