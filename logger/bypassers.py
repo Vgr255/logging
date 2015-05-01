@@ -921,7 +921,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove and return a random item of self."""
         if self:
             return self.popitem()
-        return tuple([None] * len(self.__class__.attributes["values"]))
+        return (None,) * len(self.__class__.attributes["values"])
 
     def __invert__(self):
         """Create a new empty bypasser."""
