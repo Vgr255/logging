@@ -336,9 +336,9 @@ class BypassersMeta(type):
         original = {k:v for k,v in namespace.items() if k in allowed}
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
-        for name in ("values", "items"):
-            if name not in attr:
-                raise TypeError("missing required %r parameter" % name)
+        for value in ("values", "items"):
+            if value not in attr:
+                raise TypeError("missing required %r parameter" % value)
 
         cls = super().__new__(metacls, name, bases, original)
 
