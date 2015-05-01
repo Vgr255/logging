@@ -676,8 +676,11 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if self is equal or less than other."""
         if self == other:
             return True
-        if len(self) <= other:
-            return True
+        try:
+            if len(self) <= other:
+                return True
+        except TypeError:
+            pass
         try:
             if len(self) <= len(other):
                 return True
@@ -687,6 +690,18 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __ge__(self, other):
         """Return True if self is equal or greater than other."""
+        if self == other:
+            return True
+        try:
+            if len(self) >= other:
+                return True
+        except TypeError:
+            pass
+        try:
+            if len(self) >= len(other):
+                return True
+        except TypeError:
+            pass
         if self.__lt__(other) is NotImplemented:
             return NotImplemented
         return not (self < other)
