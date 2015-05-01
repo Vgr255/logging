@@ -1084,9 +1084,11 @@ class Bypassers(metaclass=BypassersMeta):
 
     def get(self, item, fallback=None):
         """Return the setting's bindings or fallback."""
-        if item not in self:
+        if item in self:
+            return self(item)
+        if isinstance(fallback, tuple):
             return fallback
-        return self(item)
+        return (fallback,) * (len(self.__class__.attributes["values"]) - 1)
 
     def copy(self):
         """Return a deep copy of self."""
