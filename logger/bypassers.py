@@ -806,6 +806,8 @@ class Bypassers(metaclass=BypassersMeta):
                 index += len(self)
             if index < self:
                 self.update((self.find(index),) + self(value))
+            else:
+                raise IndexError("bypasser index out of range")
 
         elif isinstance(index, slice):
             for i in range(*index.indices(len(self))):
@@ -821,7 +823,9 @@ class Bypassers(metaclass=BypassersMeta):
             if index < 0:
                 index += len(self)
             if index < self:
-                self.discard(self.find(index))
+                self.remove(self.find(index))
+            else:
+                raise IndexError("bypasser index out of range")
 
         elif isinstance(index, slice):
             items = list(self)
