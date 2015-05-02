@@ -1381,11 +1381,10 @@ class Bypassers(metaclass=BypassersMeta):
     def copy(self):
         """Return a deep copy of self."""
         new = []
-        attr = self.__class__.attributes
         for binding in self.items():
             binding = list(binding)
-            for mapper, indexes, handler in attr["items"]:
-                for i, name in enumerate(attr["values"]):
+            for m, indexes, handler in self.__class__.attributes["items"]:
+                for i, name in enumerate(self.__class__.attributes["values"]):
                     if handler not in (None, NoValue) and i in indexes:
                         binding[i] = binding[i].copy()
             new.append(binding)
