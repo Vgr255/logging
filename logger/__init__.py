@@ -49,7 +49,32 @@ def check_bypass(func):
 
     return inner
 
-class BaseLogger:
+class MetaLogger(type):
+    """Metaclass to handle the various loggers."""
+
+    allowed_bases = []
+
+    def __new__(meta, name, bases, namespace, allowed_base=False):
+        """Create a new logger class."""
+        cls = super().__new__(meta, name, bases, namespace)
+        if allowed_base:
+            meta.allowed_bases.append(cls)
+        if len(bases) > 1 and bases[0] not in meta.allowed_bases:
+            raise TypeError("improper base class: %r" % bases[0].__name__)
+        return cls
+
+    def __init__(meta, name, bases, namespace, **kwargs):
+        """Set up the logger."""
+        if name.startswith("Translated"):
+            name = name[10:]
+        if name.endswith("Logger"):
+            cls._bp_handler = name[:-6].lower()
+
+    def __repr__(cls):
+        """Return a string of itself."""
+        return "<logger %r>" % cls.__name__
+
+class BaseLogger(metaclass=MetaLogger):
     """Base Logger class for your everyday needs.
 
     This can be inherited to create custom classes.
@@ -102,8 +127,6 @@ class BaseLogger:
         Default:    True
 
     """
-
-    _bp_handler = "base"
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
                        print_ts=None, split=None, bypassers=None, **kwargs):
@@ -373,8 +396,6 @@ class TypeLogger(BaseLogger):
 
     """
 
-    _bp_handler = "type"
-
     def __init__(self, *, write=None, display=None, logfiles=None, **kwargs):
         """Create a new type-based logger."""
 
@@ -489,7 +510,7 @@ class TypeLogger(BaseLogger):
 
         self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
-class Translater(BaseLogger):
+class Translater(BaseLogger, allowed_base=True):
     """Logging class to use to translate lines.
 
     This is inherited from the BaseLogger class.
@@ -819,8 +840,6 @@ class LevelLogger(BaseLogger):
                     number or None.
 
     """
-
-    _bp_handler = "level"
 
     def __init__(self, *, level=None, file=None, **kwargs):
         """Create a new levelled logging instance."""
