@@ -1054,7 +1054,8 @@ class log_use(log_usage):
         """Handle the calling of the function itself."""
         return self.call(self.func, args, kwargs, self.handler)
 
-def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
+def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
+                   HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
     """Parse the function and method definitions. This is recursive.
 
     This can be used to parse functions, methods, classes and
@@ -1065,9 +1066,6 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[]):
 
     if handler is parser is None:
         handler = BaseLogger().logger
-
-    HAS_VALUE = 0b01
-    HAS_ANNOTATION = 0b10
 
     from inspect import (
 
