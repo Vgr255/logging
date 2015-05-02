@@ -1227,6 +1227,14 @@ class Bypassers(metaclass=BypassersMeta):
                         args.append(self(setting)[i])
         return any(args)
 
+    @property
+    def ordered(self):
+        """Return the internal ordering of the items."""
+        lst = [None] * len(self)
+        for item in self:
+            lst[self.index(item)] = item
+        return tuple(lst)
+
     def update(self, *names):
         """Update the bindings with the given items."""
         items = self.__class__.attributes["items"]
