@@ -63,7 +63,7 @@ class MetaLogger(type):
             raise TypeError("improper base class: %r" % bases[0].__name__)
         return cls
 
-    def __init__(meta, name, bases, namespace, **kwargs):
+    def __init__(cls, name, bases, namespace, **kwargs):
         """Set up the logger."""
         if name.startswith("Translated"):
             name = name[10:]
