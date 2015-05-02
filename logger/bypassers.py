@@ -785,7 +785,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __getitem__(self, index):
         """Get the relevant items mapping(s)."""
-        if isinstance(index, int):
+        if hasattr(index, "__index__"):
             if index < 0:
                 index += len(self)
             if index < self:
@@ -801,7 +801,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __setitem__(self, index, value):
         """Bind a setting to another setting's bindings."""
-        if isinstance(index, int):
+        if hasattr(index, "__index__"):
             if index < 0:
                 index += len(self)
             if index < self:
@@ -819,7 +819,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __delitem__(self, index):
         """Remove the setting(s) and all relevant bindings."""
-        if isinstance(index, int):
+        if hasattr(index, "__index__"):
             if index < 0:
                 index += len(self)
             if index < self:
