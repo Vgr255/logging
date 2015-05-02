@@ -710,7 +710,7 @@ class Translater(BaseLogger):
         format = copy(format, list)
         format_dict = copy(format_dict, dict)
 
-        if isinstnace(format_mod, tuple):
+        if isinstance(format_mod, tuple):
             format_mod = list(format_mod)
         else:
             format_mod = [str(format_mod)]
