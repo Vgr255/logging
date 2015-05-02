@@ -42,7 +42,10 @@ def check_bypass(func):
         try:
             return getattr(bypassers, name)(func, self, *output, **kwargs)
         finally:
-            del self.bypassed
+            try:
+                del self.bypassed
+            except AttributeError:
+                pass # already deleted
 
     return inner
 
