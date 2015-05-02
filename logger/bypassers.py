@@ -18,6 +18,42 @@ def is_hashable(obj): # taken from collections.Hashable
                 return True
             return False
 
+def extend_index(index, max_len):
+    """Extend a tuple of indexes to support Ellipsis."""
+    indexes = []
+    for i in index:
+        if len(indexes) > 1 and indexes[-1] is Ellipsis:
+            if hasattr(i, "__index__"):
+                indexes.pop()
+                indexes.extend(range(indexes[-1], i + 1))
+            else:
+                raise TypeError("%s cannot be interpreted as an integer" %
+                                i.__class__.__name__)
+
+        elif hasattr(i, "__index__"):
+            if i < 0:
+                i += max_len
+            indexes.append(i)
+
+        elif i is Ellipsis:
+            if indexes and hasattr(indexes[-1], "__index__"):
+                indexes.append(Ellipsis)
+            elif not indexes:
+                raise IndexError("cannot begin a range by ellipsis")
+            else:
+                raise TypeError("%s cannot be interpreted as an integer" %
+                                indexes[-1].__class__.__name__)
+
+        else:
+            raise TypeError("%s cannot be interpreted as an integer" %
+                            i.__class__.__name__)
+
+    if indexes and not hasattr(indexes[-1], "__index__"):
+        raise TypeError("%s cannot be interpreted as an integer" %
+                        indexes[-1].__class__.__name__)
+
+    return indexes
+
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
     # come up with a better solution, I'm all open
@@ -454,6 +490,13 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> Bypassers
 
+    bypasser[a, ..., b, c]
+                        Return a new instance with the items of the
+                        indexes given. A literal `...` means to include
+                        every item between `a` and `b`, inclusively
+
+        -> Bypassers
+
     bypasser[n] = x
                         Set the nth item in insertion order to the
                         items of setting `x`. Raise KeyError if `x` is
@@ -467,6 +510,12 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> None
 
+    bypasser[a, ..., b, c] = x
+                        Set all the items with the matching indexes to
+                        the items of setting `x`
+
+        -> None
+
     del bypasser[n]
                         Delete the setting at index `n`
 
@@ -475,6 +524,11 @@ class Bypassers(metaclass=BypassersMeta):
     del bypasser[a:b:c]
                         Delete all the settings at indexes in
                         range(a, b, c)
+
+        -> None
+
+    del bypasser[a, ..., b, c]
+                        Delete all the settings at the indexes given
 
         -> None
 
@@ -689,6 +743,12 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> bool
 
+    bypasser.ordered
+                        Return a (read-only) view of the internal
+                        ordering of the settings in the bypasser
+
+        -> tuple
+
     bypasser.update(iterable, ...)
                         Update the bypasser's mapping with the iterable
                         given. It can accept any number of iterables
@@ -795,6 +855,12 @@ class Bypassers(metaclass=BypassersMeta):
         elif isinstance(index, slice):
             return self.__class__(*self.items[index])
 
+        elif isinstance(index, tuple):
+            new = ~self
+            for i in extend_index(index, len(self)):
+                new.update(self[i])
+            return new
+
         else:
             raise TypeError("bypasser indices must be integers, not %s" %
                             index.__class__.__name__)
@@ -813,6 +879,10 @@ class Bypassers(metaclass=BypassersMeta):
             for i in range(*index.indices(len(self))):
                 self[i] = value # call itself recursively
 
+        elif isinstance(index, tuple):
+            for i in extend_index(index):
+                self[i] = value
+
         else:
             raise TypeError("bypasser indices must be integers, not %s" %
                             index.__class__.__name__)
@@ -830,6 +900,11 @@ class Bypassers(metaclass=BypassersMeta):
         elif isinstance(index, slice):
             items = list(self)
             for i in range(*index.indices(len(self))):
+                self.remove(items[i])
+
+        elif isinstance(index, tuple):
+            items = list(self)
+            for i in extend_index(index):
                 self.remove(items[i])
 
         else:
