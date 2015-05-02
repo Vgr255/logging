@@ -489,12 +489,31 @@ class TypeLogger(BaseLogger):
 
         self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
-class Translater:
+class Translater(BaseLogger):
     """Logging class to use to translate lines.
 
     This is inherited from the BaseLogger class.
     This needs to be used in multiple inheritence to work properly.
     The parameters are the same as for the base class, plus these:
+
+    all_languages:
+                    Dictionary of {language:short} pairs. The language
+                    is used for the standard lookup of the language.
+                    The value is the 2-characters abbreviation of the
+                    language. The default value is "English" for the
+                    key, and "en" for the value. This must contain all
+                    languages that this class will be asked to
+                    translate to, see below for restrictions.
+
+        Default:    {"English": "en"}
+
+    check:
+                    Boolean value that will determine if a line should
+                    be checked for translation or not. If False, the
+                    line will not be checked and will be printed or
+                    writen to the file as-is
+
+        Default:    True
 
     main:
                     The main language that will be used. This is
@@ -502,6 +521,18 @@ class Translater:
                     that will be used to write to the normal files. It
                     will always be written to the files, no matter what
                     language is being used.
+
+        Default:    "English"
+
+    current:
+                    The current language, used for translating and
+                    printing to screen. When writing to one or more
+                    files, the files that this language's lines are
+                    written into will be prepended with the
+                    two-characters short language abbreviation that was
+                    given in the all_languages dict, followed by a
+                    single underscore and the file's name. This will
+                    not be done if the language is the same as 'main'.
 
         Default:    "English"
 
@@ -639,19 +670,36 @@ class Translater:
 
     """
 
-    def __init__(self, *, main=None, module=None, modules=None, first=None,
-                 pattern=None, **kwargs):
+    def __init__(self, *, main=None, current=None, module=None, modules=None,
+                 first=None, pattern=None, all_languages=None, check=None,
+                 **kwargs):
         """Create a new translater object."""
 
         super().__init__(**kwargs)
 
         self.main = pick(main, "English")
+        self.current = pick(current, self.main)
+
+        langs = {"English": "en"}
+
+        if all_languages is not None:
+            self.all_languages = all_languages
+            for long, short in lang.items():
+                self.all_languages[long] = self.all_languages.get(long, short)
+        else:
+            self.all_languages = langs
+
+        self.check = pick(check, True)
 
         self.module = module
         self.modules = modules
 
         self.first = pick(first, "language")
         self.pattern = pick(pattern, "[A-Z0-9_]*")
+
+        self.bypassers.add("check", "translate")
+        self.bypassers.update(("translate",) +
+                self.bypassers("translate")[:-2] + (None, True))
 
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
@@ -718,71 +766,10 @@ class Translater:
 
                 iterable[i] = line
 
-class TranslatedTypeLogger(Translater, TypeLogger):
-    """Implement translated type-based logging.
-
-    This is used to implement translated type-based logging.
-    The parameters are the same as the Translater and the Logger,
-    with the following additions:
-
-    all_languages:
-                    Dictionary of {language:short} pairs. The language
-                    is used for the standard lookup of the language.
-                    The value is the 2-characters abbreviation of the
-                    language. The default value is "English" for the
-                    key, and "en" for the value. This must contain all
-                    languages that this class will be asked to
-                    translate to, see below for restrictions.
-
-        Default:    {"English": "en"}
-
-    current:
-                    The current language, used for translating and
-                    printing to screen. When writing to one or more
-                    files, the files that this language's lines are
-                    written into will be prepended with the
-                    two-characters short language abbreviation that was
-                    given in the all_languages dict, followed by a
-                    single underscore and the file's name. This will
-                    not be done if the language is the same as 'main'.
-
-        Default:    "English"
-
-    check:
-                    Boolean value that will determine if a line should
-                    be checked for translation or not. If False, the
-                    line will not be checked and will be printed or
-                    writen to the file as-is
-
-        Default:    True
-    """
-
-    def __init__(self, *, all_languages=None, current=None, check=None,
-                       **kwargs):
-        """Create a new instance of type-based translated logging."""
-
-        super().__init__(**kwargs)
-
-        langs = {"English": "en"}
-
-        if all_languages is not None:
-            self.all_languages = all_languages
-            for long, short in langs.items():
-                self.all_languages[long] = self.all_languages.get(long, short)
-        else:
-            self.all_languages = langs
-
-        self.current = pick(current, self.main)
-        self.check = pick(check, True)
-
-        self.bypassers.update(("translate", set(), [], None, True))
-        self.bypassers.add("check")
-
     @check_bypass
-    def logger(self, *output, file=None, type=None, sep=None, check=None,
-               language=None, format=None, format_dict=None, format_mod=None,
-               **kwargs):
-        """Log a line after translating it."""
+    def logger(self, *output, file=None, sep=None, check=None, language=None,
+               format=None, format_dict=None, format_mod=None, **kwargs):
+        """Translate a line then log it."""
 
         sep = pick(sep, self.separator)
 
@@ -797,19 +784,23 @@ class TranslatedTypeLogger(Translater, TypeLogger):
 
         if ("translate" not in self.bypassed and check and
                                language != self.main):
+
             trout = output[:]
             self.translate(trout, language, format, format_dict, format_mod)
 
             trfile = self.all_languages[language] + "_" + file
 
-            super().logger(*trout, file=trfile, type=type, sep=sep, **kwargs)
+            super().logger(*trout, file=trfile, sep=sep, **kwargs)
 
             display = False
 
         if check:
             self.translate(output, self.main, format, format_dict, format_mod)
 
-        super().logger(*output, file=file, type=type, sep=sep, **kwargs)
+        super().logger(*output, file=file, sep=sep, **kwargs)
+
+class TranslatedTypeLogger(Translater, TypeLogger):
+    """Implement translated type-based logging."""
 
 class LevelLogger(BaseLogger):
     """Implement levelled logging.
