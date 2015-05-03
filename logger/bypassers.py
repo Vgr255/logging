@@ -414,7 +414,8 @@ class BypassersMeta(type):
     def __call__(cls, *names, **keywords):
         """Create a new Bypassers instance."""
 
-        if cls in cls.__class__.classes:
+        if cls in (cls.__class__.classes["base"] +
+                   cls.__class__.classes["feature"]):
             raise TypeError("the %s class cannot be called directly" %
                             cls.__name__)
 
