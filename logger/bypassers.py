@@ -4,7 +4,7 @@
 
 import sys
 
-__all__ = ["NoValue"]
+__all__ = ["NoValue"] # the Bypassers get added to this later
 
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
