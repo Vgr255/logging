@@ -1050,7 +1050,7 @@ class log_usage:
 
         if func is None:
             self.handler = self._default_handler().logger
-        elif isclass(func) and issubclass(func, base):
+        elif isclass(func) and issubclass(func, self._default_handler):
             self.handler = func().logger
         elif isinstance(func, self._default_handler):
             self.handler = func.logger
