@@ -1056,7 +1056,7 @@ class log_usage:
             self.handler = func.logger
         elif isclass(func):
             self.handler = func()
-        elif isroutine(func) or isclass(func.__class__):
+        elif isroutine(func):
             self.handler = func
         else:
             self.handler = self._default_handler().logger
