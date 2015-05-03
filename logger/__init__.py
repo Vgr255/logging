@@ -1063,7 +1063,16 @@ class log_usage:
 
     def __call__(self, func):
         """Call the handler."""
+        self.func = func
         return lambda *args, **rest: self.call(func, args, rest, self.handler)
+
+    def __get__(self, instance, owner):
+        """Make the decorator work properly on methods."""
+        def caller(*args, **kwargs):
+            if instance is not None:
+                args = (instance,) + args
+            return self.call(self.func, args, kwargs, self.handler)
+        return caller
 
     @classmethod
     def call(cls, func, args, kwargs, handler=None):
