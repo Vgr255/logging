@@ -37,15 +37,18 @@ def handle_bypass(func):
 def check_bypass(func):
     """Handler to get the proper bypass check decorator."""
     def inner(self, *output, **kwargs):
-        self.bypassed = {}
-        name = "check_bypass_" + self._bp_handler
-        try:
-            return getattr(bypassers, name)(func, self, *output, **kwargs)
-        finally:
+        if not hasattr(self, "bypassed"):
+            self.bypassed = {}
+            name = "check_bypass_" + self._bp_handler
             try:
-                del self.bypassed
-            except AttributeError:
-                pass # already deleted
+                return getattr(bypassers, name)(func, self, *output, **kwargs)
+            finally:
+                try:
+                    del self.bypassed
+                except AttributeError:
+                    pass # already deleted
+
+        return func(self, *output, **kwargs)
 
     return inner
 
