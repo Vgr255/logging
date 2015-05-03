@@ -848,6 +848,39 @@ class LevelLogger(BaseLogger):
         self.default_level = pick(level, 0)
         self.default_file = pick(file, "normal.log")
 
+    @check_bypass
+    def logger(self, *output, file=None, level=None, display=None, write=None,
+               sep=None, split=None, use_utc=None, ts_format=None,
+               print_ts=None, **kwargs):
+        """Log everything to screen and/or file. Always use this."""
+
+        sep = pick(sep, self.separator)
+        split = self.bypassed.get("splitter", pick(split, self.split))
+        display = self.bypassed.get("display", pick(display, self.display))
+        write = self.bypassed.get("write", pick(write, self.write))
+
+        timestamp = self._get_timestamp(use_utc, ts_format)
+        # this is the file to write everything to
+        logall = self.bypassed.get("logall")
+
+        if display:
+            self._print(*output, sep=sep, use_utc=use_utc, split=split,
+                         ts_format=ts_format, print_ts=print_ts)
+        if write:
+            output = self._get_output(output, sep).splitlines()
+            alines = [x for x in self.logfiles if x in
+                                 self.bypassers("all")[0]]
+            getter = [file]
+            if logall:
+                getter.append(logall)
+            for log in getter:
+                if (log == logall and type not in alines) or log is None:
+                    continue
+                atypes = "type.%s - " % type if log == logall else ""
+                with open(log, "a", encoding="utf-8", errors="replace") as f:
+                    for writer in output:
+                        f.write(timestamp + atypes + writer + "\n")
+
     def logger(self, *output, level=None, **kwargs):
         """Log a line based on level given."""
 
