@@ -1381,7 +1381,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def find(self, index):
         """Retrieve the item at location index."""
-        if not isinstance(index, int):
+        if not hasattr(index, "__index__"):
             raise TypeError("bypasser indexes must be integers, not %s" %
                             index.__class__.__name__)
         if index < 0:
