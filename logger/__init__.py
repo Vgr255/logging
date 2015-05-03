@@ -1295,19 +1295,15 @@ def parse_def(function, HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
 
         if code.co_argcount:
             if defaults > 0:
-                for arg in varnames[:-defaults]:
-                    ret = 0
-                    if arg in annotations:
-                        ret += HAS_ANNOTATION
-                    params.append(arguments(arg, None, ret,
-                                  annotations.get(arg)))
+                lister = varnames[:-defaults]
             else:
-                for arg in varnames:
-                    ret = 0
-                    if arg in annotations:
-                        ret += HAS_ANNOTATION
-                    params.append(arguments(arg, None, ret,
-                                  annotations.get(arg)))
+                lister = varnames
+            for arg in lister:
+                ret = 0
+                if arg in annotations:
+                    ret += HAS_ANNOTATION
+                params.append(arguments(arg, None, ret,
+                              annotations.get(arg)))
 
         if defargs:
             named_pos = code.co_argcount - len(defargs)
