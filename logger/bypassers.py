@@ -357,15 +357,19 @@ class BypassersMeta(type):
     """
 
     allowed = {}
-    classes = []
+    classes = dict(base=[], subclass=[])
 
     def __new__(metacls, name, bases, namespace):
         """Create a new Bypassers class."""
-        if not any(b in metacls.classes for b in bases):
+        if not any(base in metacls.classes["base"] for base in bases):
             metacls.allowed[name] = set(namespace)
             cls = super().__new__(metacls, name, bases, namespace)
-            metacls.classes.append(cls)
+            metacls.classes["base"].append(cls)
             return cls
+
+        for base in bases:
+            if base in metacls.classes["subclass"]:
+                raise TypeError("cannot subclass %r" % base.__name__)
 
         allowed = metacls.allowed[bases[-1].__name__]
 
@@ -383,6 +387,8 @@ class BypassersMeta(type):
                 raise ValueError("names cannot start with an underscore")
 
         cls = super().__new__(metacls, name, bases, original)
+
+        metacls.classes["subclass"].append(cls)
 
         cls.attributes = attr
 
