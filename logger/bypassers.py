@@ -357,10 +357,14 @@ class BypassersMeta(type):
     """
 
     allowed = {}
-    classes = dict(base=[], subclass=[])
+    classes = dict(base=[], subclass=[], feature=[])
 
     def __new__(metacls, name, bases, namespace):
         """Create a new Bypassers class."""
+        for base in bases:
+            if base in metacls.classes["subclass"]:
+                raise TypeError("cannot subclass %r" % base.__name__)
+
         if not any(base in metacls.classes["base"] for base in bases):
             metacls.allowed[name] = set(namespace)
             cls = super().__new__(metacls, name, bases, namespace)
@@ -368,13 +372,20 @@ class BypassersMeta(type):
             return cls
 
         for base in bases:
-            if base in metacls.classes["subclass"]:
-                raise TypeError("cannot subclass %r" % base.__name__)
-
-        allowed = metacls.allowed[bases[-1].__name__]
+            if base.__name__ in metacls.allowed:
+                allowed = metacls.allowed[base.__name__]
+                break
+        else:
+            raise TypeError("no proper base class found")
 
         original = {k:v for k,v in namespace.items() if k in allowed}
         attr = {k:v for k,v in namespace.items() if k not in allowed}
+
+        if not attr:
+            metacls.allowed[name] = set(original)
+            cls = super().__new__(metacls, name, bases, original)
+            metacls.classes["feature"].append(cls)
+            return cls
 
         for value in ("values", "items"):
             if value not in attr:
