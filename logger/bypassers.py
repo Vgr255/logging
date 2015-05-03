@@ -376,6 +376,12 @@ class BypassersMeta(type):
             if value not in attr:
                 raise TypeError("missing required %r parameter" % value)
 
+        for x in attr["items"]:
+            if x[0] in original:
+                raise ValueError("name already used: %r")
+            if x[0][0] == "_":
+                raise ValueError("names cannot start with an underscore")
+
         cls = super().__new__(metacls, name, bases, original)
 
         cls.attributes = attr
