@@ -132,34 +132,26 @@ class BaseLogger(metaclass=MetaLogger):
     """
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
-                       print_ts=None, split=None, bypassers=None, **kwargs):
+                       print_ts=None, split=None, bypassers=None,
+                       display=None, write=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
 
         self.separator = pick(sep, " ")
 
+        self.display = pick(display, True)
+        self.write = pick(write, True)
+
         self.use_utc = pick(use_utc, False)
         self.print_ts = pick(print_ts, False)
         self.split = pick(split, True)
-
-        # this needs to be list/tuple of (setting, types, pairs,
-        # module, attr) tuples; the setting is the setting to bypass;
-        # types is a list of types to check for to determine if
-        # bypassing should occur, same about the pairs, except for
-        # module/attr matches; module and attr are used with getattr()
-        # to bypass the value of setting with the one found in the
-        # given module, for the given attribute; module of None means
-        # to use the attr as the direct value; making the type None
-        # will also indicate that any type can be triggered. To
-        # indicate a lack of value for any parameter, pass NoValue, as
-        # None has a special meaning
 
         func = getattr(globals()["bypassers"], self._bp_handler.capitalize() +
                                                "Bypassers")
 
         self.bypassers = func(*pick(bypassers, ()))
-        self.bypassers.add("timestamp", "splitter")
+        self.bypassers.add("timestamp", "splitter", "display", "write")
 
         # this can have {tzname} and {tzoffset} for formatting
         # this adds respectively a timezone in the format UTC or EST
@@ -266,15 +258,54 @@ class BaseLogger(metaclass=MetaLogger):
                 msg = sep.join((msg, line))
         return msg
 
+    @check_bypass
     def logger(self, *output, sep=None, file=None, split=None,
-               use_utc=None, ts_format=None, print_ts=None):
+               use_utc=None, ts_format=None, print_ts=None,
+               display=None, write=None):
         """Base method to make sure it always exists."""
         output = self._get_output(output, pick(sep, self.separator))
-        self._print(output, sep=sep, use_utc=use_utc, ts_format=ts_format,
-                            print_ts=print_ts, split=split)
-        if file is not None:
-            with open(file, "a") as f:
+        display = pick(display, self.display)
+        write = pick(write, self.write)
+
+        if display:
+            self._print(output, sep=sep, use_utc=use_utc, ts_format=ts_format,
+                                print_ts=print_ts, split=split)
+
+        if write and file is not None:
+            with open(file, "a", encoding="utf-8", errors="replace") as f:
                 f.write(output + "\n")
+
+    def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
+                        **rest):
+        """Print a docstring using proper formatting."""
+        newlined = False
+        indent = None
+        lines = []
+
+        sep = pick(sep, "\n")
+
+        output = self._get_output(output, sep)
+        for line in output.expandtabs(tabs).splitlines():
+            if not newlined and not line.lstrip(): # first empty line
+                newlined = True
+            elif newlined and indent is None and line.lstrip():
+                indent = len(line) - len(line.lstrip())
+                line = line.lstrip()
+            elif indent is not None:
+                if line and line[indent:] == line.lstrip():
+                    line = line.lstrip()
+                elif (len(line) - len(line.lstrip())) > indent:
+                    line = line[indent:]
+                elif (len(line) - len(line.lstrip())) < indent:
+                    line = line.lstrip()
+            lines.append(line)
+
+        while lines and not lines[-1].strip():
+            lines.pop()
+        while lines and not lines[0].strip():
+            lines.pop(0)
+
+        self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
 class TypeLogger(BaseLogger):
     """Main Logger class for general and specific logging purposes.
@@ -399,13 +430,10 @@ class TypeLogger(BaseLogger):
 
     """
 
-    def __init__(self, *, write=None, display=None, logfiles=None, **kwargs):
+    def __init__(self, *, logfiles=None, **kwargs):
         """Create a new type-based logger."""
 
         super().__init__(**kwargs)
-
-        self.display = pick(display, True)
-        self.write = pick(write, True)
 
         files = {"normal": "logger.log"}
 
@@ -423,7 +451,7 @@ class TypeLogger(BaseLogger):
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, split=None, use_utc=None, ts_format=None,
-               print_ts=None):
+               print_ts=None, **kwargs):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
@@ -480,38 +508,6 @@ class TypeLogger(BaseLogger):
     def show(self, *output, type="show", display=True, write=False, **rest):
         """Explicit way to only print to screen."""
         self.logger(*output, type=type, display=display, write=write, **rest)
-
-    def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
-                        **rest):
-        """Print a docstring using proper formatting."""
-        newlined = False
-        indent = None
-        lines = []
-
-        sep = pick(sep, "\n")
-
-        output = self._get_output(output, sep)
-        for line in output.expandtabs(tabs).splitlines():
-            if not newlined and not line.lstrip(): # first empty line
-                newlined = True
-            elif newlined and indent is None and line.lstrip():
-                indent = len(line) - len(line.lstrip())
-                line = line.lstrip()
-            elif indent is not None:
-                if line and line[indent:] == line.lstrip():
-                    line = line.lstrip()
-                elif (len(line) - len(line.lstrip())) > indent:
-                    line = line[indent:]
-                elif (len(line) - len(line.lstrip())) < indent:
-                    line = line.lstrip()
-            lines.append(line)
-
-        while lines and not lines[-1].strip():
-            lines.pop()
-        while lines and not lines[0].strip():
-            lines.pop(0)
-
-        self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
 class Translater(BaseLogger, allowed_base=True):
     """Logging class to use to translate lines.
