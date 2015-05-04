@@ -17,40 +17,134 @@ import sys
 import re
 
 from logger import bypassers
+from logger.bypassers import NoValue
 
 def pick(arg, default):
     """Handler for default versus given argument."""
     return default if arg is None else arg
 
-def handle_bypass(func):
+class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
-    def inner(self, *args, **kwargs):
-        if not hasattr(self, "bypassed"):
-            self.bypassed = {}
-            try:
-                return func(self, *args, **kwargs)
-            finally:
-                del self.bypassed
-        return func(self, *args, **kwargs)
-    return inner
 
-def check_bypass(func):
-    """Handler to get the proper bypass check decorator."""
-    def inner(self, *output, **kwargs):
-        if not hasattr(self, "bypassed"):
-            self.bypassed = {}
-            name = "check_bypass_" + self._bp_handler
-            try:
-                return getattr(bypassers, name)(func, self, *output, **kwargs)
-            finally:
+    def __init__(self, func):
+        """Create a new bypass handler."""
+        self.func = func
+
+    def __get__(self, instance, owner):
+        """Access the method through the instance."""
+        if instance is None:
+            return self
+        def handler(*args, **kwargs):
+            if not hasattr(instance, "bypassed"):
+                instance.bypassed = {}
                 try:
+                    return self.func(instance, *args, **kwargs)
+                finally:
                     del self.bypassed
-                except AttributeError:
-                    pass # already deleted
 
-        return func(self, *output, **kwargs)
+            return self.func(instance, *args, **kwargs)
 
-    return inner
+        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
+            setattr(handler, attr, getattr(self.func, attr))
+
+        return handler
+
+class check_bypass:
+    """Handler to get the proper bypass check decorator."""
+
+    def __init__(self, func):
+        """Create the bypass checker."""
+        self.func = func
+
+    def __get__(self, instance, owner):
+        """Access the method through the instance."""
+        if instance is None:
+            return self
+        def checker(*args, **kwargs):
+            if not hasattr(instance, "bypassed"):
+                instance.bypassed = {}
+                name = "_check_%s_" % owner._bp_handler
+                if not hasattr(self, name):
+                    raise TypeError("%r does not have a bypass handler" %
+                                    owner.__name__)
+                try:
+                    return getattr(self, name)(instance, *args, **kwargs)
+                finally:
+                    try:
+                        del instance.bypassed
+                    except AttributeError:
+                        pass # already deleted
+
+            return self.func(instance, *args, **kwargs)
+
+        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
+            setattr(checker, attr, getattr(self.func, attr))
+
+        return checker
+
+    @staticmethod
+    def _get_setting(module, attr, catch=False):
+        """Get the proper setting from inside a dictionary or module."""
+        if module is None:
+            return attr
+        try:
+            value = module[attr]
+        except (TypeError, KeyError, IndexError):
+            try:
+                value = getattr(module, attr)
+            except AttributeError:
+                if catch:
+                    return False
+                raise
+        return value
+
+    def _check_base_(self, instance, *args, **kwargs):
+        """Checker for the base class."""
+        for setting, pairs, mod, attr in instance.bypassers.items():
+            if mod is NoValue or attr is NoValue:
+                continue
+            for module, attribute in pairs:
+                if self._get_setting(module, attribute, catch=True):
+                    instance.bypassed[setting] = self._get_setting(mod, attr)
+                    break
+
+        return self.func(instance, *args, **kwargs)
+
+    def _check_type_(self, instance, *args, type=None, file=None, **kwargs):
+        """Checker for the type-based loggers."""
+        if file is type is None:
+            type = "normal"
+
+        if type is None:
+            for t, f in instance.logfiles.items():
+                if f == file:
+                    type = t
+                    break
+            else:
+                type = "normal"
+
+        if file is None:
+            file = instance.logfiles.get(type, instance.logfiles["normal"])
+
+        for setting, types, pairs, mod, attr in instance.bypassers.items():
+            if mod is NoValue or attr is NoValue:
+                continue
+            for module, attribute in pairs:
+                if self._get_setting(module, attribute, catch=True):
+                    instance.bypassed[setting] = self._get_setting(mod, attr)
+                    break
+            else:
+                if type in types:
+                    instance.bypassed[setting] = self._get_setting(mod, attr)
+
+        return self.func(instance, *args, type=type, file=file, **kwargs)
+
+    def _check_level_(self, instance, *args, level=None, file=None, **kwargs):
+        """Checker for the level-based loggers."""
+        if file is None:
+            file = instance.default_file
+        if level is None:
+            level = instance.default_level
 
 class MetaLogger(type):
     """Metaclass to handle the various loggers."""
