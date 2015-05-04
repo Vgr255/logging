@@ -195,6 +195,20 @@ class BaseLogger(metaclass=MetaLogger):
 
         Default:    False
 
+    display:
+                    Default parameter to determine if the loggers
+                    should print to screen. This can be overriden when
+                    calling the method, on a per-line basis.
+
+        Default:    True
+
+    write:
+                    Default parameter to determine if the loggers
+                    should write to a file. This can be overriden when
+                    calling the method, on a per-line basis.
+
+        Default:    True
+
     ts_format:
                     Format string for timestamps. The parameters are
                     the same as the time module's 'strftime' function.
@@ -222,6 +236,76 @@ class BaseLogger(metaclass=MetaLogger):
                     split when printing to screen.
 
         Default:    True
+
+    bypassers:
+                    This is an iterable of (setting, types, pairs,
+                    module, attr) iterables. 'types' is an iterable of
+                    all types that can match this bypasser. 'pairs' is
+                    an iterable of two-tuples, the first argument is
+                    the module, a dictionary or None, the second
+                    argument is the attribute to search for in the
+                    module or dict; if the module is None, the
+                    bypassers will use the attribute as its direct
+                    value look-up. After this mangling, if the value is
+                    True in a boolean context, then the override will
+                    occur, and the setting's value will be overridden
+                    by the module and attribute's look-up, in the same
+                    way that the pairs are check for truth testing.
+                    'setting' is the setting to bypass when the
+                    previously-mentioned conditionals evaluate to True,
+                    so if at least one of the types matches the type
+                    that the logger was called with, or if the value
+                    evaluates to True. Do note that the types and pairs
+                    parameters expect sets as parameters, and will fail
+                    if not given as such. They can, however, be any
+                    other object with the same API as sets. This is
+                    done to allow the values to be modified and for the
+                    modifications to carry over to the bypassers. Do
+                    note that this parameter expects an iterable of
+                    five-tuples, or an empty iterable.
+
+        Default:    See below
+
+    Available settings for the bypassers:
+
+    These are the available settings to bypass. Do note that the
+    default of all these settings is to not do anything, and must be
+    explicitely set otherwise.
+
+    "timestamp":
+                    Will be used to replace the standard timestamp when
+                    writing to file. It will not use that value to
+                    perform the timestamp getting operation. Rather, it
+                    will use the string given directly. If a different
+                    timestamp for various reasons is the desired
+                    result, a manual call to the _get_timestamp method
+                    will need to be done. This is typically used to
+                    remove a timestamp, so it will be used with the
+                    pair of (None, ''), effectively removing the
+                    timestamp.
+
+    "splitter":
+                    This will be used to determine if clever splitting
+                    should occur when printing to screen. Clever
+                    splitting splits the line at the latest space
+                    before the line gets to the end of the terminal's
+                    length. By default, this is True, and can be
+                    changed when calling, on a per-line basis. This
+                    bypasser overrides that.
+
+    "display":
+                    This is used to override the per-line setting that
+                    decides whether the line should be printed to the
+                    screen. This is set to True by default, and can be
+                    overriden when calling on a per-line basis. This
+                    bypasser can be used to bypass this setting.
+
+    "write":
+                    This is used to override the per-line setting that
+                    decides whether the line should be written to the
+                    file or not. This is set to True by default, and
+                    can be overriden when calling on a per-line basis.
+                    This bypasser can override that parameter.
 
     """
 
@@ -402,25 +486,9 @@ class BaseLogger(metaclass=MetaLogger):
         self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
 class TypeLogger(BaseLogger):
-    """Main Logger class for general and specific logging purposes.
-
-    This is inherited from the BaseLogger class.
+    """Type-based logger class.
 
     The options are the same as the base class, with these additions:
-
-    display:
-                    Default parameter to determine if the loggers
-                    should print to screen. This can be overriden when
-                    calling the method, on a per-line basis.
-
-        Default:    True
-
-    write:
-                    Default parameter to determine if the loggers
-                    should write to a file. This can be overriden when
-                    calling the method, on a per-line basis.
-
-        Default:    True
 
     logfiles:
                     Dictionary of {type:file} pairs. The type is the
@@ -430,75 +498,7 @@ class TypeLogger(BaseLogger):
 
         Default:    {"normal": "logger.log", "all": "mixed.log"}
 
-    bypassers:
-                    This is an iterable of (setting, types, pairs,
-                    module, attr) iterables. 'types' is an iterable of
-                    all types that can match this bypasser. 'pairs' is
-                    an iterable of two-tuples, the first argument is
-                    the module, a dictionary or None, the second
-                    argument is the attribute to search for in the
-                    module or dict; if the module is None, the
-                    bypassers will use the attribute as its direct
-                    value look-up. After this mangling, if the value is
-                    True in a boolean context, then the override will
-                    occur, and the setting's value will be overridden
-                    by the module and attribute's look-up, in the same
-                    way that the pairs are check for truth testing.
-                    'setting' is the setting to bypass when the
-                    previously-mentioned conditionals evaluate to True,
-                    so if at least one of the types matches the type
-                    that the logger was called with, or if the value
-                    evaluates to True. Do note that the types and pairs
-                    parameters expect sets as parameters, and will fail
-                    if not given as such. They can, however, be any
-                    other object with the same API as sets. This is
-                    done to allow the values to be modified and for the
-                    modifications to carry over to the bypassers. Do
-                    note that this parameter expects an iterable of
-                    five-tuples, or an empty iterable.
-
-        Default:    See below
-
-    Available settings for the bypassers:
-
-    These are the available settings to bypass. Do note that the
-    default of all these settings is to not do anything, and must be
-    explicitely set otherwise.
-
-    "timestamp":
-                    Will be used to replace the standard timestamp when
-                    writing to file. It will not use that value to
-                    perform the timestamp getting operation. Rather, it
-                    will use the string given directly. If a different
-                    timestamp for various reasons is the desired
-                    result, a manual call to the _get_timestamp method
-                    will need to be done. This is typically used to
-                    remove a timestamp, so it will be used with the
-                    pair of (None, ''), effectively removing the
-                    timestamp.
-
-    "splitter":
-                    This will be used to determine if clever splitting
-                    should occur when printing to screen. Clever
-                    splitting splits the line at the latest space
-                    before the line gets to the end of the terminal's
-                    length. By default, this is True, and can be
-                    changed when calling, on a per-line basis. This
-                    bypasser overrides that.
-
-    "display":
-                    This is used to override the per-line setting that
-                    decides whether the line should be printed to the
-                    screen. This is set to True by default, and can be
-                    overriden when calling on a per-line basis. This
-                    bypasser can be used to bypass this setting.
-
-    "write":
-                    This is used to override the per-line setting that
-                    decides whether the line should be written to the
-                    file or not. This is set to True by default, and
-                    can be overriden when calling on a per-line basis.
-                    This bypasser can override that parameter.
+    Additions to the bypassers:
 
     "logall":
                     Defaulting to None, this setting's bypassed value
@@ -540,7 +540,7 @@ class TypeLogger(BaseLogger):
         else:
             self.logfiles = files
 
-        self.bypassers.add("display", "write", "logall", "files", "all")
+        self.bypassers.add("logall", "files", "all")
 
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
