@@ -2,8 +2,6 @@
 
 """Implementation of the Bypassers handlers."""
 
-import sys
-
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
 def is_dunder(name):
@@ -71,10 +69,9 @@ class MetaNoValue(type):
 
     def __new__(meta, cls, bases, clsdict):
         """Ensure there is one (and only one) NoValue singleton."""
-        if "_novalue" not in sys.modules:
+        if "NoValue" not in globals():
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
-            sys.modules["_novalue"] = nv
             return nv
         raise TypeError("type 'NoValue' is not an acceptable base type")
 
@@ -82,17 +79,12 @@ class MetaNoValue(type):
         """Return a representation for type(NoValue)."""
         return "<class 'NoValue'>"
 
-class NoValue(sys.__class__, metaclass=MetaNoValue):
+class NoValue(metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
-
-    def __init__(self):
-        """Instantiate the module with the class' name."""
-        cls = self.__class__
-        super(cls, self).__init__(cls.__name__, cls.__doc__)
 
     def __repr__(self):
         """Return the explicit NoValue string."""
-        return 'NoValue'
+        return "NoValue"
 
     def __bool__(self):
         """Return False no matter what."""
