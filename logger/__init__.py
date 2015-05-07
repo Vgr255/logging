@@ -1166,6 +1166,10 @@ class log_usage:
             if instance is not None:
                 args = (instance,) + args
             return self.call(self.func, args, kwargs, self.handler)
+
+        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
+            if hasattr(self.func, attr):
+                setattr(caller, attr, getattr(self.func, attr))
         return caller
 
     @classmethod
@@ -1187,7 +1191,7 @@ class log_usage:
             params = "".join(params)
 
         # regex pattern for translation: r"^Call: .+\..+\(.*\)$"
-        handler("Call: %s.%s(%s)" % (func.__module__, func.__name__, params))
+        handler("Call: %s(%s)" % (func.__qualname__, params))
 
         return func(*args, **kwargs)
 
