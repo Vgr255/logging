@@ -1258,16 +1258,16 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
             pass
         elif hasattr(mod, "__file__"):
             msg.append("Reading file %r\n" % mod.__file__)
-        else:
+        elif hasattr(mod, "__module__"):
             msg.append("Reading class %r" % mod.__name__)
+        else:
+            msg.append("Reading module %r" % mod.__name__)
 
         name = name.__name__
 
         if ismethod(runner):
             fn = runner.__func__
-            c = runner.__self__.__class__
-            fname = fn.__name__
-            func.append(((name, c, fname), "Method %r of class " + c, fn))
+            func.append((fn.__qualname__, "Method %r of class " + c, fn))
             msg.append("Parsing method %r" % fname)
 
         elif isclass(runner):
@@ -1283,19 +1283,19 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
             chk_def(*runner.__dict__.values(), parser=runner)
 
         elif isfunction(runner) or isgenerator(runner):
+            name = runner.__qualname__
             code = getattr(runner, "__code__",
                    getattr(runner, "gi_code", None))
 
             gen = "generator " if code.co_flags & CO_GENERATOR else ""
 
             if isclass(parser):
-                func.append(((name, parser.__name__, runner.__name__),
-                     (gen + "method %r of class ").capitalize() +
-                                                   parser.__name__, runner))
+                func.append((name, (gen + "method %r of class ").capitalize()
+                             + parser.__name__, runner))
                 msg.append("Parsing %smethod %r" % (gen, name))
             else:
-                func.append(((name, runner.__name__),
-                           (gen + "function %r").capitalize(), runner))
+                func.append((name, (gen + "function %r").capitalize(),
+                             runner))
                 msg.append("Parsing %sfunction %r" % (gen, name))
 
     if handler is None and parser is not None:
@@ -1308,7 +1308,7 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
             code = function.__code__
 
             lineno = code.co_firstlineno
-            fname = code.co_filename
+            fname = code.co_name
 
             msg.append("\n%s at line %r" % ((name % fname), lineno))
 
@@ -1322,13 +1322,12 @@ def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
                     continue
                 string = fn.name
                 if fn.checker & HAS_ANNOTATION:
-                    string += ": %r" % fn.annotation
+                    string += ": %r" % (fn.annotation,)
                 if fn.checker & HAS_VALUE:
-                    string += "=%r" % fn.value
+                    string += "=%r" % (fn.value,)
                 args.append(string)
 
-            string = "Definition: %s(%s)" % (".".join(path),
-                                             ", ".join(args))
+            string = "Definition: %s(%s)" % (path, ", ".join(args))
 
             if ret is not None:
                 string += " -> %r" % ret.annotation
