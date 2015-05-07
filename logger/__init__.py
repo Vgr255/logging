@@ -8,7 +8,7 @@ __status__ = "Refactor"
 __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
-           "log_usage", "log_use", "chk_def"]
+           "log_usage", "log_use", "total_decorate", "chk_def"]
 
 from datetime import datetime
 import shutil
@@ -1211,6 +1211,51 @@ class log_use(log_usage):
     def __call__(self, *args, **kwargs):
         """Handle the calling of the function itself."""
         return self.call(self.func, args, kwargs, self.handler)
+
+def total_decorate(cls=None, *, handler=log_use, name=None):
+    """Decorate all of the class' methods with `handler`.
+
+    There are three ways to use this class decorator:
+
+    @total_decorate
+    class loggingdict(dict): pass
+
+    loggingdict()
+    Call: dict.__new__(<class 'loggingdict'>)
+    Call: dict.__init__({})
+
+    ...
+
+    @total_decorate(handler=my_custom_handler)
+    class logginglist(list): pass
+
+    logginglist()
+    Call: dict.__new__(<class 'logginglist'>)
+    Call: dict.__init__([])
+
+    ...
+
+    loggingdict = total_decorate(dict, name="loggingdict")
+
+    As demonstrated, this is possible to use this on user-created
+    classes as well as built-in ones. This is very verbose and should
+    only be used for debugging purposes.
+
+    """
+
+    if cls is None:
+        return lambda cls: total_decorate(cls, handler=handler, name=name)
+
+    namespace = {x: handler(getattr(cls, x)) for x in dir(cls) if x not in
+                 ("__repr__", "__str__") and callable(getattr(cls, x))}
+
+    bases = (cls,) + cls.__bases__
+
+    if object in bases: # remove `object` from __bases__ (not __mro__)
+        index = bases.index(object)
+        bases = bases[:index] + bases[index+1:]
+
+    return type(pick(name, cls.__name__), bases, namespace)
 
 def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
                    HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
