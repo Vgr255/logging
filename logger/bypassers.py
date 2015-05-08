@@ -276,7 +276,7 @@ class BypassersMeta(type):
 
         for x in attr["items"]:
             if x[0] in original:
-                raise ValueError("name already used: %r")
+                raise ValueError("%r: name already exists" % x[0])
             if x[0][0] == "_":
                 raise ValueError("names cannot start with an underscore")
 
