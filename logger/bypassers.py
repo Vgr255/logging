@@ -1446,12 +1446,6 @@ class Bypassers(metaclass=BypassersMeta):
                 cnt += 1
         return cnt
 
-    def setdefault(self, item):
-        """Set the default fallback for the setting."""
-        if item not in self:
-            self.add(item)
-        return self(item)
-
     def pop(self, item):
         """Remove and return the bindings of the setting."""
         try:
