@@ -142,19 +142,6 @@ class Container:
 class BaseMapping(Container):
     """Lightweight class for inner iteration."""
 
-    def __add__(self, items):
-        """Return a new iterable with all items."""
-        new = self._items.copy()
-        new.update(items)
-        return self.__class__(new)
-
-    __radd__ = __add__ # same thing
-
-    def __iadd__(self, items):
-        """Update and return self with items."""
-        self._items.update(items)
-        return self._items
-
     def __getattr__(self, attr):
         """Delegate an attribute not found to the items set."""
         return getattr(self._items, attr)
