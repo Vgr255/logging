@@ -1226,12 +1226,12 @@ def total_decorate(cls=None, *, handler=log_use, name=None):
 
     ...
 
-    @total_decorate(handler=my_custom_handler)
-    class logginglist(list): pass
+    @total_decorate(handler=my_custom_handler, name="logginglist")
+    class _list(list): pass
 
-    logginglist()
-    Call: dict.__new__(<class 'logginglist'>)
-    Call: dict.__init__([])
+    _list()
+    Call: list.__new__(<class 'logginglist'>)
+    Call: list.__init__([])
 
     ...
 
