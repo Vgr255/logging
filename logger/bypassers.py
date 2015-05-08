@@ -87,99 +87,6 @@ class NoValue(metaclass=MetaNoValue):
         """Return False no matter what."""
         return False
 
-class BypassersIterator:
-    """Special iterator for the members of a Bypassers instance.
-
-    This iterator takes a Bypassers instance as the first parameter. It
-    can accept a second, optional parameter, which is used to determine
-    how to iterate through the mapping. Leaving this undefined or using
-    any other value than the ones stated here will iterate through the
-    keys in alphabetical order. If constructed from an external source
-    (such as iter), the method can be changed through iterator.method,
-    before calling iter() on itself. Changing the method used can be done
-    before the iterator is created.
-
-    The valid names for the iteration method are as follow:
-
-    'name':
-                Return all items in order from the first view object,
-                then from the second, and up to the last. The items are
-                iterated one at a time.
-
-    'all':
-                Return all items in order from the first view object,
-                then from the second, and up to the last. The items are
-                iterated all in one batch.
-
-    'index':
-                Return the first item from all view objects, then from
-                the second view object, and so on to the last one. The
-                items are iterated one at a time.
-
-    'grouped':
-                Return the first item from all view objects, then from
-                the second view object, and so on to the last one. The
-                items are iterated all in one batch.
-
-    """
-
-    def __init__(self, instance, reverse=False, method=None):
-        """Create a new bypassers iterator."""
-        self.iterator = None
-        self.instance = instance
-        self.reverse = reverse
-        self.method = method
-
-    def __setattr__(self, name, value):
-        """Disallow attribute changing when the iterator exists."""
-        if hasattr(self, name) and self.iterator is not None:
-            raise RuntimeError(("cannot change attribute %r after the " +
-                                "iterator has been constructed") % name)
-        super().__setattr__(name, value)
-
-    def __iter__(self):
-        """Return the iterator object."""
-        self.iterator = bypassers_iterator(self.instance, self.reverse,
-                                                          self.method)
-        return self
-
-    def __next__(self):
-        """Return the next item in the list."""
-        if self.iterator is None:
-            self.__iter__()
-        return next(self.iterator)
-
-def bypassers_iterator(instance, reverse, method):
-    """Inner iterator for the bypassers iterator."""
-
-    step = (reverse * 2 - 1) * -1
-
-    if method == "name":
-        for name in instance.__names__:
-            for i in range(0, len(instance), step):
-                yield getattr(instance, name)[i]
-
-    elif method == "index":
-        for i in range(0, len(instance), step):
-            for name in instance.__names__:
-                yield getattr(instance, name)[i]
-
-    elif method == "grouped":
-        for i in range(0, len(instance), step):
-            names = []
-            for name in instance.__names__:
-                names.append(getattr(instance, name)[i])
-            yield names
-
-    elif method == "all":
-        for name in instance.__names__:
-            yield getattr(instance, name)
-
-    else:
-        iterator = iter(sorted(instance.keys(), key=sorter, reverse=reverse))
-        while True:
-            yield next(iterator)
-
 class Container:
     """Base container class for various purposes."""
 
@@ -564,10 +471,9 @@ class Bypassers(metaclass=BypassersMeta):
         -> tuple
 
     for x in bypasser | list(bypasser) | iter(bypasser) | ...
-                        Return a special iterator used to iterate over
-                        the Bypassers instances
+                        Return the items in bypasser one at a time
 
-        -> BypassersIterator
+        -> <...>
 
     len(bypasser)
                         Return the total number of settings currently
@@ -587,11 +493,10 @@ class Bypassers(metaclass=BypassersMeta):
         -> bool
 
     reversed(bypassed)
-                        Return a reversed iterator over the items of
-                        the bypasser. This uses the same special
-                        iterator as iter(bypasser)
+                        Return the items one at a time, in reversed
+                        insertion order
 
-        -> BypassersIterator
+        -> <...>
 
     bypasser == other
                         Return True if `other` has the same items as
@@ -951,8 +856,9 @@ class Bypassers(metaclass=BypassersMeta):
         return tuple(self.values[self.index(item)])
 
     def __iter__(self):
-        """Return the special iterator for the Bypassers."""
-        return BypassersIterator(self)
+        """Return the items of self one at a time."""
+        for item in self.keys():
+            yield item
 
     def __len__(self):
         """Return the total number of items in self."""
@@ -971,7 +877,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __reversed__(self):
         """Return a reversed iterator."""
-        return BypassersIterator(self, reverse=True)
+        for i in range(0, len(self), -1):
+            yield self(i)
 
     def __eq__(self, other):
         """Return True if self and other are the same."""
