@@ -976,15 +976,17 @@ class Bypassers(metaclass=BypassersMeta):
                 return True
         except TypeError:
             pass
-        if self.__lt__(other) is NotImplemented:
+        result = self.__lt__(other)
+        if result is NotImplemented:
             return NotImplemented
-        return not (self < other)
+        return not result
 
     def __gt__(self, other):
         """Return True if self is greater than other."""
-        if self.__le__(other) is NotImplemented:
+        result = self.__le__(other)
+        if result is NotImplemented:
             return NotImplemented
-        return not (self <= other)
+        return not result
 
     def __add__(self, value):
         """Return a new instance with new the attributes."""
