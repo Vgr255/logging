@@ -739,8 +739,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __reversed__(self):
         """Return a reversed iterator."""
-        for i in range(0, len(self), -1):
-            yield self(i)
+        return reversed(list(self))
 
     def __eq__(self, other):
         """Return True if self and other are the same."""
