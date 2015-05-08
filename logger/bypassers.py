@@ -548,13 +548,6 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> Bypassers
 
-    other - bypasser
-                        Return a new instance of other, if possible,
-                        with the items from bypasser removed, if
-                        applicable
-
-        -> type(other)
-
     bypasser -= other
                         Same as `bypasser - other`, except it modifies
                         the instance in-place
@@ -1024,35 +1017,6 @@ class Bypassers(metaclass=BypassersMeta):
     def __sub__(self, value):
         """Return a new instance without the setting or bindings."""
         return self.copy().__isub__(value)
-
-    def __rsub__(self, value):
-        """Remove the attributes in self from value."""
-        if hasattr(value, "remove"):
-            value = value.copy()
-            for item in self:
-                if item in value:
-                    value.remove(item)
-            return value
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            new = []
-            for item in value:
-                if item not in self:
-                    new.append(item)
-            return type(value)(new)
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            new = []
-            while True:
-                try:
-                    item = next(value)
-                except StopIteration:
-                    break
-                if item not in self:
-                    new.append(item)
-            return type(value)(new)
-
-        return NotImplemented
 
     def __isub__(self, value):
         """Remove the settings or bindings from self."""
