@@ -849,9 +849,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __dir__(self):
         """Return a list of the methods available."""
-        methods = dir(self.__class__)
-        methods.remove("attributes")
-        return set(methods + list(self.__names__))
+        names = set(x for x in dir(self.__class__))
+        return names - {"attributes"} | set(self.__names__)
 
     def __contains__(self, item):
         """Return True if item is a setting, False otherwise."""
