@@ -14,9 +14,9 @@ def is_hashable(obj): # taken from collections.Hashable
         if "__hash__" in cls.__dict__:
             if cls.__dict__["__hash__"]:
                 return True
-            return False
+            break
 
-
+    return False
 
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
