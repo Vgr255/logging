@@ -72,12 +72,9 @@ class MetaNoValue(type):
         if "NoValue" not in globals():
             nv = super().__new__(meta, cls, bases, clsdict)()
             nv.__class__.__new__ = lambda cls: nv
+            nv.__class__.__qualname__ = "NoValue"
             return nv
         raise TypeError("type 'NoValue' is not an acceptable base type")
-
-    def __repr__(cls):
-        """Return a representation for type(NoValue)."""
-        return "<class 'NoValue'>"
 
 class NoValue(metaclass=MetaNoValue):
     """Express the lack of value, as None has a special meaning."""
