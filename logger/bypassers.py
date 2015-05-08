@@ -280,6 +280,9 @@ class BypassersMeta(type):
             if x[0][0] == "_":
                 raise ValueError("names cannot start with an underscore")
 
+        if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
+            raise ValueError("need at least `keys`, `values` and `items`")
+
         cls = super().__new__(metacls, name, bases, original)
 
         metacls.classes["subclass"].append(cls)
