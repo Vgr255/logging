@@ -16,41 +16,7 @@ def is_hashable(obj): # taken from collections.Hashable
                 return True
             return False
 
-def extend_index(index, max_len):
-    """Extend a tuple of indexes to support Ellipsis."""
-    indexes = []
-    for i in index:
-        if len(indexes) > 1 and indexes[-1] is Ellipsis:
-            if hasattr(i, "__index__"):
-                indexes.pop()
-                indexes.extend(range(indexes[-1], i + 1))
-            else:
-                raise TypeError("%s cannot be interpreted as an integer" %
-                                i.__class__.__name__)
 
-        elif hasattr(i, "__index__"):
-            if i < 0:
-                i += max_len
-            indexes.append(i)
-
-        elif i is Ellipsis:
-            if indexes and hasattr(indexes[-1], "__index__"):
-                indexes.append(Ellipsis)
-            elif not indexes:
-                raise IndexError("cannot begin a range by ellipsis")
-            else:
-                raise TypeError("%s cannot be interpreted as an integer" %
-                                indexes[-1].__class__.__name__)
-
-        else:
-            raise TypeError("%s cannot be interpreted as an integer" %
-                            i.__class__.__name__)
-
-    if indexes and not hasattr(indexes[-1], "__index__"):
-        raise TypeError("%s cannot be interpreted as an integer" %
-                        indexes[-1].__class__.__name__)
-
-    return indexes
 
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
@@ -388,57 +354,19 @@ class Bypassers(metaclass=BypassersMeta):
 
     All of the methods are as follow:
 
-    bypasser[n]
-                        Get the nth item in insertion order. Raise
-                        IndexError if `n` is out of range
+    bypasser[item]
+                        Return the values bound to the setting `item`
 
         -> tuple
 
-    bypasser[a:b:c]
-                        Return a new instance with the items contained
-                        in the slice
-
-        -> Bypassers
-
-    bypasser[a, ..., b, c]
-                        Return a new instance with the items of the
-                        indexes given. A literal `...` means to include
-                        every item between `a` and `b`, inclusively
-
-        -> Bypassers
-
-    bypasser[n] = x
-                        Set the nth item in insertion order to the
-                        items of setting `x`. Raise KeyError if `x` is
-                        not a setting
+    bypasser[item] = other
+                        Set the values of setting `item` to those of
+                        setting `other`
 
         -> None
 
-    bypasser[a:b:c] = x
-                        Set all the items in range(a, b, c) to the
-                        items of setting `x`
-
-        -> None
-
-    bypasser[a, ..., b, c] = x
-                        Set all the items with the matching indexes to
-                        the items of setting `x`
-
-        -> None
-
-    del bypasser[n]
-                        Delete the setting at index `n`
-
-        -> None
-
-    del bypasser[a:b:c]
-                        Delete all the settings at indexes in
-                        range(a, b, c)
-
-        -> None
-
-    del bypasser[a, ..., b, c]
-                        Delete all the settings at the indexes given
+    del bypasser[item]
+                        Delete the setting `item`
 
         -> None
 
@@ -454,11 +382,12 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> str
 
-    bypasser(x)
-                        Retrieve the values associated with the setting
-                        `x`. Raise KeyError if `x` is not a setting
+    bypasser(index)
+                        Retrieve the setting at internal index `index`.
+                        Raise TypeError if `index` is not an integer.
+                        Raise IndexError if the index is out of range.
 
-        -> tuple
+        -> <...>
 
     for x in bypasser | list(bypasser) | iter(bypasser) | ...
                         Return the items in bypasser one at a time
@@ -664,13 +593,6 @@ class Bypassers(metaclass=BypassersMeta):
 
         -> None
 
-    bypasser.find(index)
-                        Return the setting at index `index`. Raise
-                        TypeError if `index` is not an integer. Raise
-                        IndexError if `index` is out of range
-
-        -> <...>
-
     bypasser.index(item)
                         Return the internal index for setting `item`.
                         Raise KeyError if `item` is not a setting
@@ -742,75 +664,25 @@ class Bypassers(metaclass=BypassersMeta):
     bypasser.clear()
                         Remove all existing settings and their bindings
 
+        -> None
+
     """
 
-    def __getitem__(self, index):
-        """Get the relevant items mapping(s)."""
-        if hasattr(index, "__index__"):
-            if index < 0:
-                index += len(self)
-            if index < self:
-                return tuple(self.items[index])
-            raise IndexError("bypasser index out of range")
+    def __getitem__(self, item):
+        """Get the values associated with the item."""
+        if item in self:
+            return tuple(self.values[self.index(item)])
+        raise KeyError(item)
 
-        elif isinstance(index, slice):
-            return self.__class__(*self.items[index])
-
-        elif isinstance(index, tuple):
-            new = ~self
-            for i in extend_index(index, len(self)):
-                new.update(self[i])
-            return new
-
-        else:
-            raise TypeError("bypasser indices must be integers, not %s" %
-                            index.__class__.__name__)
-
-    def __setitem__(self, index, value):
+    def __setitem__(self, item, value):
         """Bind a setting to another setting's bindings."""
-        if hasattr(index, "__index__"):
-            if index < 0:
-                index += len(self)
-            if index < self:
-                self.update((self.find(index),) + self(value))
-            else:
-                raise IndexError("bypasser index out of range")
+        if value in self:
+            self.update((item,) + self[value])
+        raise KeyError(value)
 
-        elif isinstance(index, slice):
-            for i in range(*index.indices(len(self))):
-                self[i] = value # call itself recursively
-
-        elif isinstance(index, tuple):
-            for i in extend_index(index):
-                self[i] = value
-
-        else:
-            raise TypeError("bypasser indices must be integers, not %s" %
-                            index.__class__.__name__)
-
-    def __delitem__(self, index):
-        """Remove the setting(s) and all relevant bindings."""
-        if hasattr(index, "__index__"):
-            if index < 0:
-                index += len(self)
-            if index < self:
-                self.remove(self.find(index))
-            else:
-                raise IndexError("bypasser index out of range")
-
-        elif isinstance(index, slice):
-            items = list(self)
-            for i in range(*index.indices(len(self))):
-                self.remove(items[i])
-
-        elif isinstance(index, tuple):
-            items = list(self)
-            for i in extend_index(index):
-                self.remove(items[i])
-
-        else:
-            raise TypeError("bypasser indices must be integers, not %s" %
-                            index.__class__.__name__)
+    def __delitem__(self, item):
+        """Remove the setting and all relevant bindings."""
+        self.remove(item)
 
     def __repr__(self):
         """Return a representation of the items in self."""
@@ -832,11 +704,17 @@ class Bypassers(metaclass=BypassersMeta):
             args.append(string % binding)
         return "(" + ", ".join(args) + ")"
 
-    def __call__(self, item):
-        """Return the internal mapping of the setting."""
-        if item not in self:
-            raise KeyError(item)
-        return tuple(self.values[self.index(item)])
+    def __call__(self, index):
+        """Return the setting at the index given."""
+        if not hasattr(index, "__index__"):
+            raise TypeError("bypasser indexes must be integers, not %s" %
+                            index.__class__.__name__)
+
+        if index < 0:
+            index += len(self)
+        if 0 <= index < len(self):
+            return self.keys[index]
+        raise IndexError("bypasser index out of range")
 
     def __iter__(self):
         """Return the items of self one at a time."""
@@ -1025,7 +903,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove the settings or bindings from self."""
         if hasattr(value, "items"):
             for items in value.items():
-                if items[0] in self and self(items[0]) == tuple(items[1:]):
+                if items[0] in self and self[items[0]] == tuple(items[1:]):
                     self.remove(items[0])
             return self
 
@@ -1056,12 +934,12 @@ class Bypassers(metaclass=BypassersMeta):
         """Update self to only contain items both in self and value."""
         if hasattr(value, "items"):
             for items in value.items():
-                if items[0] not in self or self(items[0]) != tuple(items[1:]):
+                if items[0] not in self or self[items[0]] != tuple(items[1:]):
                     self.discard(items[0])
             return self
 
         if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            for item in self[:]:
+            for item in list(self):
                 if item not in value:
                     self.remove(item)
             return self
@@ -1176,7 +1054,7 @@ class Bypassers(metaclass=BypassersMeta):
             for mapper, index, handler in self.__class__.attributes["items"]:
                 if handler not in (None, NoValue):
                     for i in index:
-                        args.append(self(setting)[i])
+                        args.append(self[setting][i-1])
         return any(args)
 
     @property
@@ -1256,17 +1134,6 @@ class Bypassers(metaclass=BypassersMeta):
             lst[values.index(name)] = value
         self.update(lst)
 
-    def find(self, index):
-        """Retrieve the item at location index."""
-        if not hasattr(index, "__index__"):
-            raise TypeError("bypasser indexes must be integers, not %s" %
-                            index.__class__.__name__)
-        if index < 0:
-            index += len(self)
-        if 0 <= index < len(self):
-            return self.keys[index]
-        raise IndexError("bypasser index out of range")
-
     def index(self, item):
         """Retrive the internal index for the given item."""
         if item not in self:
@@ -1310,7 +1177,7 @@ class Bypassers(metaclass=BypassersMeta):
     def pop(self, item):
         """Remove and return the bindings of the setting."""
         try:
-            return self(item)
+            return self[item]
         finally:
             self.discard(item)
 
@@ -1320,14 +1187,14 @@ class Bypassers(metaclass=BypassersMeta):
             raise KeyError("popitem(): bypasser is empty")
         index = self.index(sorted(self.keys(), key=sorter)[0])
         try:
-            return self[index]
+            return self.items[index]
         finally:
-            del self[index]
+            self.remove(self(index))
 
     def get(self, item, fallback=None):
         """Return the setting's bindings or fallback."""
         if item in self:
-            return self(item)
+            return self[item]
         if isinstance(fallback, tuple):
             return fallback
         return (fallback,) * (len(self.__class__.attributes["values"]) - 1)
