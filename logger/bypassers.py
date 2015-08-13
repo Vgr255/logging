@@ -22,7 +22,7 @@ def sorter(x):
     if "__lt__" not in type(x).__dict__:
         return "????????"
     if not isinstance(x, str):
-        return "????" + str(x)
+        return "????" + str(x).lower()
     return x.lower()
 
 def convert_to_od(mapping, order):
