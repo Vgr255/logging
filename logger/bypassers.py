@@ -2,6 +2,8 @@
 
 """Implementation of the Bypassers handlers."""
 
+from .decorators import *
+
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
 def is_dunder(name):
@@ -20,19 +22,10 @@ def sorter(x):
         return "????" + str(x)
     return x.lower()
 
-class MetaNoValue(type):
-    """Metaclass responsible for ensuring uniqueness."""
 
-    def __new__(meta, cls, bases, clsdict):
-        """Ensure there is one (and only one) NoValue singleton."""
-        if "NoValue" not in globals():
-            nv = super().__new__(meta, cls, bases, clsdict)()
-            nv.__class__.__new__ = lambda cls: nv
-            nv.__class__.__qualname__ = "NoValue"
-            return nv
-        raise TypeError("type 'NoValue' is not an acceptable base type")
 
-class NoValue(metaclass=MetaNoValue):
+@Singleton
+class NoValue:
     """Express the lack of value, as None has a special meaning."""
 
     def __repr__(self):
