@@ -131,6 +131,8 @@ def create_viewers(name, items, instance):
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
         MetaViewer(name, sub, pos, instance)
 
+Bypassers = None # temporary value until it is created
+
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
 
@@ -162,23 +164,21 @@ class BypassersMeta(type):
     """
 
     allowed = {}
-    classes = dict(base=[], subclass=[], feature=[])
+    classes = dict(subclass=[], feature=[])
 
-    def __new__(metacls, name, bases, namespace):
+    def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
         for base in bases:
-            if base in metacls.classes["subclass"]:
+            if base in meta.classes["subclass"]:
                 raise TypeError("cannot subclass %r" % base.__name__)
 
-        if not any(base in metacls.classes["base"] for base in bases):
-            metacls.allowed[name] = set(namespace)
-            cls = super().__new__(metacls, name, bases, namespace)
-            metacls.classes["base"].append(cls)
-            return cls
+        if Bypassers is None and name == "Bypassers":
+            meta.allowed[name] = set(namespace)
+            return super().__new__(meta, name, bases, namespace)
 
         for base in bases:
-            if base.__name__ in metacls.allowed:
-                allowed = metacls.allowed[base.__name__]
+            if base.__name__ in meta.allowed:
+                allowed = meta.allowed[base.__name__]
                 break
         else:
             raise TypeError("no proper base class found")
@@ -187,9 +187,9 @@ class BypassersMeta(type):
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
         if not attr:
-            metacls.allowed[name] = set(original)
-            cls = super().__new__(metacls, name, bases, original)
-            metacls.classes["feature"].append(cls)
+            meta.allowed[name] = set(original)
+            cls = super().__new__(meta, name, bases, original)
+            meta.classes["feature"].append(cls)
             return cls
 
         for value in ("values", "items"):
@@ -203,54 +203,43 @@ class BypassersMeta(type):
                 raise ValueError("names cannot start with an underscore")
 
         if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
-            raise ValueError("need at least `keys`, `values` and `items`")
+            raise ValueError("need at least 'keys', 'values' and 'items'")
 
-        cls = super().__new__(metacls, name, bases, original)
+        cls = super().__new__(meta, name, bases, original)
 
-        metacls.classes["subclass"].append(cls)
+        meta.classes["subclass"].append(cls)
 
         cls.attributes = attr
 
         cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
 
-        if name not in globals():
-            globals()[name] = cls
-        __all__.append(name) # if we got here, it succeeded
+        if cls.__module__ == __name__:
+            __all__.append(name) # if we got here, it succeeded
 
         return cls
 
-    def __call__(cls, *names, **keywords):
+    def __call__(cls, names):
         """Create a new Bypassers instance."""
 
-        if cls in (cls.__class__.classes["base"] +
-                   cls.__class__.classes["feature"]):
+        if cls is Bypassers or cls in cls.__class__.classes["feature"]:
             raise TypeError("the %s class cannot be called directly" %
                             cls.__name__)
 
-        if keywords and len(keywords) < len(cls.attributes["values"]):
-            raise TypeError("not enough named arguments")
-        if len(keywords) > len(cls.attributes["values"]):
-            raise TypeError("too many named arguments")
+        self = cls.__new__(cls)
 
-        instance = cls.__new__(cls)
+        self.__mapping__ = collections.OrderedDict()
 
-        instance._hashes = []
+        create_viewers(cls.__name__, cls.__class__.attributes["items"], self)
 
-        mappers = make_sub(cls.__name__, cls.__names__)
-        for i, name in enumerate(cls.__names__):
-            setattr(instance, name, mappers[i]())
-
-        if isinstance(instance, cls):
-            ret = cls.__init__(instance)
+        if isinstance(self, cls):
+            ret = cls.__init__(self)
             if ret is not None:
                 raise TypeError("__init__() should return None, not %r" %
                                 ret.__class__.__name__)
 
-        instance.update(*names)
-        if keywords:
-            instance.extend(**keywords)
+        self.update(*names)
 
-        return instance
+        return self
 
     def __repr__(cls):
         """Return a string of itself."""
