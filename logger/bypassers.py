@@ -297,360 +297,59 @@ class Bypassers(metaclass=BypassersMeta):
     normal Python rules, `__init__` will only be called if `__new__`
     returns an instance of the passed-in class.
 
-    All of the methods are as follow:
-
-    bypasser[item]
-                        Return the values bound to the setting `item`
-
-        -> tuple
-
-    bypasser[item] = other
-                        Set the values of setting `item` to those of
-                        setting `other`
-
-        -> None
-
-    del bypasser[item]
-                        Delete the setting `item`
-
-        -> None
-
-    repr(bypasser)
-                        Return a string of the class in the form
-                        BypasserClassName((item=value, ...), ...)
-
-        -> str
-
-    str(bypasser)
-                        Return a string of the items in the form
-                        (<setting: ..., ...>, <...>)
-
-        -> str
-
-    bypasser(index)
-                        Retrieve the setting at internal index `index`.
-                        Raise TypeError if `index` is not an integer.
-                        Raise IndexError if the index is out of range.
-
-        -> <...>
-
-    for x in bypasser | list(bypasser) | iter(bypasser) | ...
-                        Return the items in bypasser one at a time
-
-        -> <...>
-
-    len(bypasser)
-                        Return the total number of settings currently
-                        defined in bypasser
-
-        -> int
-
-    dir(bypasser)
-                        Return a list of all methods and non-private
-                        instance attributes
-
-        -> list
-
-    x in bypasser
-                        Return True if `x` is a setting
-
-        -> bool
-
-    reversed(bypassed)
-                        Return the items one at a time, in reversed
-                        insertion order
-
-        -> <...>
-
-    bypasser == other
-                        Return True if `other` has the same items as
-                        bypasser, or at least the same settings
-
-        -> bool
-
-    bypasser != other
-                        Same as `not (bypassers == other)`
-
-        -> bool
-
-    bypasser < other
-                        Return True if bypasser is considered to be
-                        less than `other`. This is done through
-                        counting of the various attributes, as well as
-                        the total length of both bypasser and `other`
-
-        -> bool
-
-    bypasser <= other
-                        Return True if (bypasser < other) or if they
-                        have the same length. This is an intentional
-                        asymmetry with the `==` operand
-
-        -> bool
-
-    bypasser > other
-                        Same as `not (bypasser <= other)`
-
-        -> bool
-
-    bypasser >= other
-                        Return True if (bypasser > other) or if they
-                        have the same length
-
-        -> bool
-
-    bypasser + other
-                        Return a new instance of bypasser with the
-                        items from other added
-
-        -> Bypassers
-
-    other + bypasser
-                        Same as `bypasser + other`
-
-        -> Bypassers
-
-    bypasser += other
-                        Same as `bypasser + other`, except it modifies
-                        the instance in-place
-
-        -> bypasser
-
-    bypasser - other
-                        Return a new instance of bypasser with the
-                        items from other removed, if applicable
-
-        -> Bypassers
-
-    bypasser -= other
-                        Same as `bypasser - other`, except it modifies
-                        the instance in-place
-
-        -> bypasser
-
-    bypasser & other
-                        Return a new instance of bypasser which holds
-                        the items from both bypasser and `other`
-
-        -> Bypassers
-
-    other & bypasser
-                        Same as `bypasser & other`
-
-        -> Bypassers
-
-    bypasser &= other
-                        Same as `bypasser & other`, except it modifies
-                        the instance in-place
-
-        -> bypasser
-
-    bypasser | other
-                        Return an instance of bypasser with the items
-                        from both bypasser and `other`. If `other` is
-                        a Bypassers instance, the items from bypasser
-                        will take precedence over those in `other`, if
-                        there's any conflict
-
-        -> Bypassers
-
-    other | bypasser
-                        Same as `bypasser | other`
-
-        -> Bypassers
-
-    bypasser |= other
-                        Same as `bypasser | other`, except it modifies
-                        the instance in-place
-
-        -> bypasser
-
-    bypasser ^ other
-                        Return an instance of bypasser with the items
-                        from either bypasser or other. Items present in
-                        both will not be included
-
-        -> Bypassers
-
-    other ^ bypasser
-                        Same as `bypasser ^ other`
-
-        -> Bypassers
-
-    bypasser ^= other
-                        Same as `bypasser ^ other`, except it modifies
-                        the instance in-place
-
-        -> bypasser
-
-    +bypasser
-                        Return a deep copy of bypasser. It is an alias
-                        for `bypasser.copy()`
-
-        -> Bypassers
-
-    -bypasser
-                        Remove and return a random binding of bypasser.
-                        It is an alias for `bypasser.popitem()`,
-                        except that it will not raise an exception if
-                        bypasser has no item; instead it will return a
-                        tuple of `None` items with the same length as
-                        a `popitem()` tuple would have. This is to
-                        ensure that for loops or other code which
-                        expects a specific number of arguments don't
-                        fail
-
-        -> tuple
-
-    ~bypasser
-                        Return a new, empty instance of bypasser (it
-                        does not alter bypasser itself). This is an
-                        alias for `type(bypasser)()`
-
-        -> Bypassers
-
-    bypasser.is_bound
-                        Boolean value that states whether or not the
-                        bypasser instance has bound settings. A setting
-                        is considered bound if the third item of the
-                        three-tuples given in the `items` parameter has
-                        an assigned value at the specified location
-
-        -> bool
-
-    bypasser.ordered
-                        Return a (read-only) view of the internal
-                        ordering of the settings in the bypasser
-
-        -> tuple
-
-    bypasser.update(iterable, ...)
-                        Update the bypasser's mapping with the iterable
-                        given. It can accept any number of iterables
-
-        -> None
-
-    bypasser.extend(setting=..., ...=..., ...)
-                        Update the bypasser's mapping with the keyword
-                        arguments given. This can only affect one
-                        setting at a time. It will raise a TypeError if
-                        not enough (or too many) parameters are given
-
-        -> None
-
-    bypasser.index(item)
-                        Return the internal index for setting `item`.
-                        Raise KeyError if `item` is not a setting
-
-        -> int
-
-    bypasser.add(setting, ...)
-                        Add a new, unbound setting. Ignore it if the
-                        setting already exists. This can accept any
-                        number of settings
-
-        -> None
-
-    bypasser.remove(setting)
-                        Remove the setting from bypasser. Raise
-                        KeyError if the setting is not present
-
-        -> None
-
-    bypasser.discard(setting)
-                        Remove the setting from bypasser. Ignore the
-                        operation if the setting is not present
-
-        -> None
-
-    bypasser.count(iterable)
-                        Return the number of times `iterable` appears
-                        in the bypasser
-
-        -> int
-
-    bypasser.setdefault(item)
-                        Return the setting `item` if it exists. If it
-                        does not exist, add a new setting `item` and
-                        return it
-
-        -> tuple
-
-    bypasser.pop(item)
-                        Return the binding of setting `item` if it
-                        exists. Raise KeyError if the setting is not
-                        present. Remove the setting for bypasser
-
-        -> tuple
-
-    bypasser.popitem()
-                        Return a full binding and remove the binding
-                        from bypasser. Raise KeyError if `bypasser` is
-                        empty. The binding that will be removed is
-                        non-random; it will always be the first item
-                        when iterating through the bypasser in sorted
-                        ordering
-
-        -> tuple
-
-    bypasser.get(item, fallback=None)
-                        Return the binding of setting `item` if it
-                        exists. If it does not exist, and `fallback` is
-                        a tuple, return `fallback`, otherwise return a
-                        tuple consisting of n-1 `fallback` items
-
-        -> tuple
-
-    bypasser.copy()
-                        Return a deep copy (one layer deep) of bypasser
-
-        -> Bypassers
-
-    bypasser.clear()
-                        Remove all existing settings and their bindings
-
-        -> None
-
     """
 
-    def __getitem__(self, item):
-        """Get the values associated with the item."""
-        if item in self:
-            return tuple(self.values[self.index(item)])
-        raise KeyError(item)
+    @attribute
+    def __mapping__(self):
+        """Underlying OrderedDict mapping."""
 
-    def __setitem__(self, item, value):
-        """Bind a setting to another setting's bindings."""
-        if value in self:
-            self.update((item,) + self[value])
-        raise KeyError(value)
+    def __iter__(self):
+        """Iterate over the items of self."""
+        yield from self.__mapping__
 
-    def __delitem__(self, item):
-        """Remove the setting and all relevant bindings."""
-        self.remove(item)
+    def __reversed__(self):
+        """Iterate over the items of self in reverse order."""
+        yield from reversed(self.__mapping__)
+
+    def __len__(self):
+        """Return the length of self."""
+        return len(self.__mapping__)
+
+    def __contains__(self, item):
+        """Return True if item is in self, False otherwise."""
+        return item in self.__mapping__
 
     def __repr__(self):
-        """Return a representation of the items in self."""
-        args = []
-        string = "("
-        for name in self.__class__.attributes["values"]:
-            string = string + name + "=%r, "
-        string = string[:-2] + ")"
-        for binding in self.items():
-            args.append(string % binding)
-        return "%s(%s)" % (self.__class__.__name__, ", ".join(args))
+        """Accurate representation of self."""
+        display = []
+        for key in self.__mapping__:
+            for values in self.__mapping__[key]:
+                display.append((key, *values))
+        return "%s(%s)" % (self.__class__.__name__, display)
 
-    def __str__(self):
-        """Return a string of the class' items."""
-        args = []
-        num = len(self.__class__.attributes["values"]) - 1
-        string = "<%s: " + ", ".join(["%s"] * num) + ">"
-        for binding in self.items():
-            args.append(string % binding)
-        return "(" + ", ".join(args) + ")"
+    def __eq__(self, other):
+        """Return True if self and other are equivalent, False otherwise."""
+        if hasattr(other, "__mapping__"):
+            return self.__mapping__ == other.__mapping__
+        if hasattr(other, "items"):
+            if set(self) == set(other):
+                for item in self.items():
+                    if item != other[item[0]]:
+                        return False
+                return True
+        return False
+
+    def __ne__(self, other):
+        """Return False if self and other are equivalent, True otherwise."""
+        return not (self == other)
+
+    def __dir__(self):
+        """Return a list of all methods and attributes."""
+        names = set(dir(self.__class__))
+        return names - {"attributes"} | self.__names__
 
     def __call__(self, index):
-        """Return the setting at the index given."""
+        """Return the setting at index given."""
         if not hasattr(index, "__index__"):
             raise TypeError("bypasser indexes must be integers, not %s" %
                             index.__class__.__name__)
@@ -658,356 +357,43 @@ class Bypassers(metaclass=BypassersMeta):
         if index < 0:
             index += len(self)
         if 0 <= index < len(self):
-            return self.keys[index]
+            for i, setting in enumerate(self):
+                if i == index:
+                    return setting
         raise IndexError("bypasser index out of range")
 
-    def __iter__(self):
-        """Return the items of self one at a time."""
-        for item in self.keys():
-            yield item
+    def __add__(self, other):
+        """Return a new instance with settings from other."""
+        return self.__iadd__(other, copy=True)
 
-    def __len__(self):
-        """Return the total number of items in self."""
-        return len(self.keys())
+    def __radd__(self, other):
+        """Return a new instance with settings from other (reversed)."""
+        return self.__iadd__(other, reversed=True, copy=True)
 
-    def __dir__(self):
-        """Return a list of the methods available."""
-        names = set(x for x in dir(self.__class__))
-        return names - {"attributes"} | set(self.__names__)
+    def __iadd__(self, other, reversed=False, copy=False):
+        """Add all settings from other into self."""
+        if hasattr(other, "__mapping__"):
+            if copy:
+                self = self.copy()
+            for setting in other:
+                if setting in self:
+                    self.__mapping__.move_to_end(setting, last=(not reversed))
+                for values in other[setting]:
+                    self.update((setting, *values))
 
-    def __contains__(self, item):
-        """Return True if item is a setting, False otherwise."""
-        if not is_hashable(item):
-            raise TypeError("unhashable type: %r" % item.__class__.__name__)
-        return (item in self.keys() and
-                self._hashes[self.keys.index(item)] == hash(item))
+        # XXX TODO
 
-    def __reversed__(self):
-        """Return a reversed iterator."""
-        return reversed(list(self))
-
-    def __eq__(self, other):
-        """Return True if self and other are the same."""
-        try:
-            if (frozenset(self.items()) == frozenset(other.items()) and
-                set(self._hashes) == set(other._hashes)):
-                return True
-            if frozenset(self) == frozenset(other):
-                return True
-        except Exception:
-            return False
-        return False
-
-    def __ne__(self, other):
-        """Return True if self and other are not the same."""
-        return not (self == other)
-
-    def __lt__(self, other):
-        """Return True if self is less than other."""
-        length = len(self)
-        if length.__lt__(other) is not NotImplemented and length < other:
-            return True
-        if length.__gt__(other) is not NotImplemented and length > other:
-            return False
-        if self == other:
-            return False
-        try:
-            if length < len(other):
-                return True
-            if length > len(other):
-                return False
-        except TypeError: # no len()
-            pass
-
-        if isinstance(other, type(self)):
-            count = 0
-            for current, iterator in ((self, other), (other, self)):
-                for binding in current.items():
-                    if binding[0] not in iterator:
-                        count += 1
-                        continue
-                    rest = binding[1:]
-                    for items in iterator[binding[0]]:
-                        if items == rest:
-                            continue
-                        for i, item in enumerate(rest):
-                            if items[i] == item:
-                                continue
-                            if items[i] < item:
-                                count += 1
-                            else:
-                                count -= 1
-
-                count *= -1
-
-            return count < 0
-
-        if hasattr(other, "__iter__") and not hasattr(other, "__next__"):
-            count = 0
-            for current, iterator in ((self, other), (other, self)):
-                for item in current:
-                    if item not in iterator:
-                        count += 1
-                        continue
-                count *= -1
-
-            return count < 0
-
-        if hasattr(other, "__iter__") and hasattr(other, "__next__"):
-            count = 0
-            while True:
-                try:
-                    item = next(other)
-                except StopIteration:
-                    break
-                if item in self:
-                    count -= 1
-                else:
-                    count += 1
-
-            return count < 0
-
-        return NotImplemented
-
-    def __le__(self, other):
-        """Return True if self is equal or less than other."""
-        if self == other:
-            return True
-        try:
-            if len(self) <= other:
-                return True
-        except TypeError:
-            pass
-        try:
-            if len(self) <= len(other):
-                return True
-        except TypeError:
-            pass
-        return self.__lt__(other)
-
-    def __ge__(self, other):
-        """Return True if self is equal or greater than other."""
-        if self == other:
-            return True
-        try:
-            if len(self) >= other:
-                return True
-        except TypeError:
-            pass
-        try:
-            if len(self) >= len(other):
-                return True
-        except TypeError:
-            pass
-        result = self.__lt__(other)
-        if result is NotImplemented:
-            return NotImplemented
-        return not result
-
-    def __gt__(self, other):
-        """Return True if self is greater than other."""
-        result = self.__le__(other)
-        if result is NotImplemented:
-            return NotImplemented
-        return not result
-
-    def __add__(self, value):
-        """Return a new instance with new the attributes."""
-        return self.copy().__iadd__(value)
-
-    def __radd__(self, value):
-        """Return a new instance with the new attributes (reversed)."""
-        return self.copy().__iadd__(value)
-
-    def __iadd__(self, value):
-        """Update self with the new attributes."""
-        if hasattr(value, "items"):
-            self.update(*value.items())
-            return self
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            self.add(*value)
-            return self
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            while True:
-                try:
-                    self.add(next(value))
-                except StopIteration:
-                    break
-            return self
-
-        return NotImplemented
-
-    def __sub__(self, value):
-        """Return a new instance without the setting or bindings."""
-        return self.copy().__isub__(value)
-
-    def __isub__(self, value):
-        """Remove the settings or bindings from self."""
-        if hasattr(value, "items"):
-            for items in value.items():
-                if items[0] in self and self[items[0]] == tuple(items[1:]):
-                    self.remove(items[0])
-            return self
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            for item in value:
-                self.remove(item)
-            return self
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            while True:
-                try:
-                    self.discard(next(value))
-                except StopIteration:
-                    break
-            return self
-
-        return NotImplemented
-
-    def __and__(self, value):
-        """Return an iterable of the items both in self and value."""
-        return self.copy().__iand__(value)
-
-    def __rand__(self, value):
-        """Return an iterable of the items both in self and value."""
-        return self.copy().__iand__(value)
-
-    def __iand__(self, value):
-        """Update self to only contain items both in self and value."""
-        if hasattr(value, "items"):
-            for items in value.items():
-                if items[0] not in self or self[items[0]] != tuple(items[1:]):
-                    self.discard(items[0])
-            return self
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            for item in list(self):
-                if item not in value:
-                    self.remove(item)
-            return self
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            new = []
-            while True:
-                try:
-                    item = next(value)
-                except StopIteration:
-                    break
-                if item in self:
-                    new.append(item)
-
-            self.clear()
-            self.update(*new)
-            return self
-
-        return NotImplemented
-
-    def __or__(self, value):
-        """Return an iterable with items from all iterables."""
-        return self.copy().__ior__(value)
-
-    def __ror__(self, value):
-        """Return an iterable with items from all iterables."""
-        return self.copy().__ior__(value)
-
-    def __ior__(self, value):
-        """Update self with items from all iterables."""
-        if hasattr(value, "items"):
-            for items in value.items():
-                if items[0] not in self:
-                    self.update(items)
-            return self
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            self.add(*value)
-            return self
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            while True:
-                try:
-                    self.add(next(value))
-                except StopIteration:
-                    break
-            return self
-
-    def __xor__(self, value):
-        """Return an iterable of all unique items."""
-        return self.copy().__ixor__(value)
-
-    def __rxor__(self, value):
-        """Return an iterable of all unique items."""
-        return self.copy().__ixor__(value)
-
-    def __ixor__(self, value):
-        """Update self to keep only the unique items."""
-        if hasattr(value, "items"):
-            for items in value.items():
-                if items[0] in self:
-                    self.remove(items[0])
-                else:
-                    self.update(items)
-            return self
-
-        if hasattr(value, "__iter__") and not hasattr(value, "__next__"):
-            for item in frozenset(value):
-                if item in self:
-                    self.remove(item)
-                else:
-                    self.add(item)
-            return self
-
-        if hasattr(value, "__iter__") and hasattr(value, "__next__"):
-            done = []
-            while True:
-                try:
-                    item = next(value)
-                except StopIteration:
-                    break
-                if item in done:
-                    continue
-                done.append(item)
-                if item in self:
-                    self.remove(item)
-                else:
-                    self.add(item)
-            return self
-
-        return NotImplemented
-
-    def __pos__(self):
-        """Return a deep copy of self."""
-        return self.copy()
-
-    def __neg__(self):
-        """Remove and return a random item of self."""
-        if self:
-            return self.popitem()
-        return (None,) * len(self.__class__.attributes["values"])
-
-    def __invert__(self):
-        """Create a new empty bypasser."""
-        return self.__class__()
-
-    @property
-    def is_bound(self):
-        """Return True if at least one setting is bound."""
-        args = []
-        for setting in self:
-            for mapper, index, handler in self.__class__.attributes["items"]:
-                if handler not in (None, NoValue):
-                    for i in index:
-                        args.append(self[setting][i-1])
-        return any(args)
-
-    @property
-    def ordered(self):
-        """Return the internal ordering of the items."""
-        lst = [None] * len(self)
-        for item in self:
-            lst[self.index(item)] = item
-        return tuple(lst)
+    # The following is the OLD CODE of the update method!
+    # It does NOT work with the current implementation
+    # Do NOT attempt to tackle this code while tired or otherwise less able to code
+    # This function holds the wisdom of many late nights spent debugging
+    # It may seem arcane, but every bit of it is NEEDED
+    # With the new implementation, if you don't end up with a method which
+    # is AT LEAST almost as long as this one, you're doing it wrong
+    # It's a pain, and probably that most of the code doesn't even work anymore
+    # Thankfully, code doesn't rust, and may still be recycled
+    # It is the most important method of this class, it must be done right
+    # At least 15 different test cases will be needed to cover this one method
 
     def update(self, *names):
         """Update the bindings with the given items."""
@@ -1064,170 +450,3 @@ class Bypassers(metaclass=BypassersMeta):
                         elif len(new) > 1:
                             getattr(self, mapper).append(tuple(new))
 
-    def extend(self, **keywords):
-        """Add a new full binding with named pairings."""
-        values = self.__class__.attributes["values"]
-        if len(keywords) < len(values):
-            raise TypeError("not enough parameters given to extend()")
-        if len(keywords) > len(values):
-            raise TypeError("too many parameters given to extend()")
-        lst = [None] * len(values)
-        for name, value in keywords.items():
-            if name not in values:
-                raise ValueError("unrecognized parameter: %r" % name)
-            lst[values.index(name)] = value
-        self.update(lst)
-
-    def index(self, item):
-        """Retrive the internal index for the given item."""
-        if item not in self:
-            raise ValueError("%s is not in bypasser" % item)
-        return self.keys.index(item)
-
-    def add(self, *settings):
-        """Add new unbound settings. Ignore existing settings."""
-        all_settings = []
-        for setting in settings:
-            if setting in self:
-                continue
-            lst = [NoValue] * len(self.__class__.attributes["values"])
-            lst[0] = setting
-            all_settings.append(lst)
-        self.update(*all_settings)
-
-    def remove(self, item):
-        """Remove the setting. Raise KeyError upon failure."""
-        if item not in self:
-            raise KeyError(item)
-        self.discard(item)
-
-    def discard(self, item):
-        """Remove the setting if it exists."""
-        if item not in self:
-            return
-        index = self.index(item)
-        del self._hashes[index]
-        for name in self.__names__:
-            del getattr(self, name)[index]
-
-    def count(self, iters):
-        """Return the number of matching pairs."""
-        cnt = 0
-        for runner in self.items():
-            if runner[-len(iters):] == tuple(iters):
-                cnt += 1
-        return cnt
-
-    def pop(self, item):
-        """Remove and return the bindings of the setting."""
-        try:
-            return self[item]
-        finally:
-            self.discard(item)
-
-    def popitem(self):
-        """Unbind and return all attributes of a random setting."""
-        if not self:
-            raise KeyError("popitem(): bypasser is empty")
-        index = self.index(sorted(self.keys(), key=sorter)[0])
-        try:
-            return self.items[index]
-        finally:
-            self.remove(self(index))
-
-    def get(self, item, fallback=None):
-        """Return the setting's bindings or fallback."""
-        if item in self:
-            return self[item]
-        if isinstance(fallback, tuple):
-            return fallback
-        return (fallback,) * (len(self.__class__.attributes["values"]) - 1)
-
-    def copy(self):
-        """Return a deep copy of self."""
-        new = []
-        for binding in self.items():
-            binding = list(binding)
-            for m, indexes, handler in self.__class__.attributes["items"]:
-                for i in range(len(self.__class__.attributes["values"])):
-                    if handler not in (None, NoValue) and i in indexes:
-                        binding[i] = binding[i].copy()
-            new.append(binding)
-        return self.__class__(*new)
-
-    def clear(self):
-        """Remove all settings and bindings."""
-        while self:
-            self.popitem()
-
-class PairsMapping(BaseMapping):
-    """Inner mapping for the pairs argument of the Bypassers."""
-
-    def __init__(self, items):
-        """Handle the items properly if None."""
-        if items in (None, NoValue):
-            items = []
-        self._items = items
-
-    def update(self, new):
-        """Update the items list with new."""
-        for item in new:
-            if item not in self._items:
-                self._items.append(item)
-
-class TypesMapping(BaseMapping):
-    """Inner mapping for the types argument of the Bypassers."""
-
-class LevelsMapping(BaseMapping):
-    """Inner mapping for the levels argument of the Bypassers."""
-
-class NamesMapping(BaseMapping):
-    """Inner mapping for the names argument of the Bypassers."""
-
-class BaseBypassers(Bypassers):
-    """Base Bypassers class."""
-
-    values = ("setting", "pairs", "module", "attr")
-    items = (("keys",        (0,),           None),
-             ("pairs",       (1,),           PairsMapping),
-             ("attributes",  (2, 3),         NoValue),
-             ("values",      (1, 2, 3),      None),
-             ("items",       (0, 1, 2, 3),   None),
-            )
-
-class TypeBypassers(Bypassers):
-    """Type-based Bypassers class."""
-
-    values = ("setting", "types", "pairs", "module", "attr")
-    items = (("keys",       (0,),           None),
-             ("types",      (1,),           TypesMapping),
-             ("pairs",      (2,),           PairsMapping),
-             ("attributes", (3, 4),         NoValue),
-             ("values",     (1, 2, 3, 4),   None),
-             ("items",      (0, 1, 2, 3, 4),None),
-            )
-
-class LevelBypassers(Bypassers):
-    """Level-based Bypassers class."""
-
-    values = ("setting", "levels", "pairs", "module", "attr")
-    items = (("keys",       (0,),           None),
-             ("levels",     (1,),           LevelsMapping),
-             ("pairs",      (2,),           PairsMapping),
-             ("attributes", (3, 4),         NoValue),
-             ("values",     (1, 2, 3, 4),   None),
-             ("items",      (0, 1, 2, 3, 4),None),
-            )
-
-class NamesBypassers(Bypassers):
-    """Names-based Bypassers class."""
-
-    values = ("setting", "names", "levels", "pairs", "module", "attr")
-    items = (("keys",       (0,),           None),
-             ("names",      (1,),           NamesMapping),
-             ("levels",     (2,),           LevelsMapping),
-             ("pairs",      (3,),           PairsMapping),
-             ("attributes", (4, 5),         NoValue),
-             ("values",     (1, 2, 3, 4, 5),None),
-             ("items",      (0,1,2,3,4,5),  None),
-            )
