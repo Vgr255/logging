@@ -8,16 +8,6 @@ def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
     return name[:2] == name[-2:] == "__" and "_" not in (name[2], name[-3])
 
-def is_hashable(obj): # taken from collections.Hashable
-    """Return True if obj is hashable, False otherwise."""
-    for cls in obj.__class__.__mro__:
-        if "__hash__" in cls.__dict__:
-            if cls.__dict__["__hash__"]:
-                return True
-            break
-
-    return False
-
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
     # come up with a better solution, I'm all open
