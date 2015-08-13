@@ -16,8 +16,8 @@ import time
 import sys
 import re
 
-from logger import bypassers
-from logger.bypassers import NoValue
+from . import bypassers
+from .bypassers import NoValue
 
 def pick(arg, default):
     """Handler for default versus given argument."""
