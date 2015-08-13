@@ -62,127 +62,74 @@ class NoValue:
         """Return False no matter what."""
         return False
 
-class Container:
-    """Base container class for various purposes."""
+class Viewer:
+    """Return a view object over the items of the instance."""
 
-    def __init__(self, items):
-        """Create a new items set."""
-        if items in (None, NoValue):
-            items = set()
-        if isinstance(items, type):
-            items = items() # pass in 'list' to create a new list, etc
-        self._items = items
+    def __init__(self, name, value, position, instance):
+        self.name = name
+        self.value = value
+        self.position = position
+        self.instance = instance
+
+    def __repr__(self):
+        return "<%r iterator>" % self.name
 
     def __iter__(self):
-        """Return an iterator over the items of self."""
-        return iter(sorted(self._items, key=sorter))
+        """Return a modular iterator over the items in the instance."""
+        mapping = self.instance.__mapping__
+        if self.name == "keys":
+            yield from mapping
+        elif self.name == "values":
+            for key in mapping:
+                yield from mapping[key]
+        elif self.name == "items":
+            for key in mapping:
+                for values in mapping[key]:
+                    yield (key, *values)
+        else:
+            for key in mapping:
+                for values in mapping[key]:
+                    all_values = (key, *values)
+                    concat = []
+                    for i in self.position:
+                        concat.append(all_values[i])
+                    yield tuple(concat)
 
-    def __len__(self):
-        """Return the amount of items in self."""
-        return len(self._items)
+class MetaViewer(type):
+    """Metaclass for view objects."""
 
-    def __contains__(self, item):
-        """Return True if item is in self."""
-        return item in self._items
-
-    def __str__(self):
-        """Return a string of all items."""
-        return "%s(%s)" % (self.__class__.__name__,
-               ", ".join(repr(item) for item in self))
-
-    def __repr__(self):
-        """Return a representation of the items in self."""
-        return repr(self._items)
-
-    def __dir__(self):
-        """Return a list of all methods."""
-        return set(dir(self.__class__) + list(x for x in self.__dict__
-                                   if x[0] != "_" or is_dunder(x)))
-
-    def __eq__(self, other):
-        """Return self == other."""
-        try:
-            if self._items == other._items:
-                return True
-            if frozenset(self._items) == frozenset(other):
-                return True
-        except Exception:
-            return False
-        return False
-
-    def __ne__(self, other):
-        """Return self != other."""
-        return not (self == other)
-
-class BaseMapping(Container):
-    """Lightweight class for inner iteration."""
-
-    def __getattr__(self, attr):
-        """Delegate an attribute not found to the items set."""
-        return getattr(self._items, attr)
-
-class Viewer(Container):
-    """Viewer object for the Bypassers mapping."""
-
-    def __init__(self, self_):
-        """Create a new viewer handler."""
-        self.self = self_
-        self._items = self_._items
-
-    def __str__(self):
-        """Return a string of self."""
-        return "%s(%s)" % (self.self.__class__.__name__,
-               ", ".join(repr(item) for item in self))
-
-    def __getitem__(self, index_):
-        """Return the matching value."""
-        return self._items[index_]
-
-class BaseViewer:
-    """Base viewer class for the Bypassers mapping."""
-
-    def __init__(self):
+    def __new__(meta, name, sub, index, instance):
         """Create a new view object."""
-        self._items = []
-        self._viewer = Viewer(self)
+        bases = ()
+        namespace = {}
 
-    def __getitem__(self, index_):
-        """Return the item at the index given."""
-        return self._items[index_]
+        cls = super().__new__(meta, name + sub, bases, namespace)
+        cls.value = sub
+        cls.position = index
+        cls.self = instance
 
-    def __setitem__(self, index_, item):
-        """Assign the item at the index given."""
-        self._items[index_] = item
+        setattr(instance, sub.lower(), cls)
 
-    def __delitem__(self, index_):
-        """Remove the item at the index given."""
-        del self._items[index_]
+        return cls
 
-    def __dir__(self):
-        """Return a list of all methods."""
-        return dir(self.__class__)
+    def __init__(cls, *args, **kwargs):
+        """Catch superfluous arguments."""
 
-    def __repr__(self):
-        """Return a representation of the viewer."""
-        n = len(__name__) + 2
-        return "<" + super().__repr__()[n:].replace(" object", " view object")
+    def __repr__(cls):
+        """Return the representation of self."""
+        return "<%r view object>" % cls.__name__
 
-    def __call__(self):
-        """Return the view object."""
-        return self._viewer
+    def __call__(cls):
+        """Return an iterator over the items in the mapping."""
+        return Viewer(cls.__name__, cls.value, cls.position, cls.self)
 
-    def __getattr__(self, attr):
-        """Delegate any attribute not found to the inner list."""
-        return getattr(self._items, attr)
+def create_viewers(name, items, instance):
+    """Create the view objects for class with name 'name'."""
 
-def make_sub(name, names):
-    """Generate view objects."""
-    subs = []
-    for sub in names:
+    for sub, pos, _ in items:
         sub = sub.capitalize()
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
-        subs.append(type(name + sub, (BaseViewer,), {"__doc__": doc}))
-    return subs
+        MetaViewer(name, sub, pos, instance)
 
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
