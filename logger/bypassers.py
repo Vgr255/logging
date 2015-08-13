@@ -233,7 +233,7 @@ class BypassersMeta(type):
 
         return cls
 
-    def __call__(cls, names):
+    def __call__(cls, names=None):
         """Create a new Bypassers instance."""
 
         if cls is Bypassers or cls in cls.__class__.classes["feature"]:
@@ -252,7 +252,8 @@ class BypassersMeta(type):
                 raise TypeError("__init__() should return None, not %r" %
                                 ret.__class__.__name__)
 
-        self.update(*names)
+        if names is not None:
+            self.update(*names)
 
         return self
 
