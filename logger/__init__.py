@@ -12,6 +12,7 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
 
 from datetime import datetime
 import shutil
+import types
 import time
 import sys
 import re
@@ -865,31 +866,64 @@ class LevelLogger(BaseLogger):
 class TranslatedLevelLogger(Translater, LevelLogger):
     """Implement a way to have levelled logging with translating."""
 
-class LoggingLevels(sys.__class__):
-    """Module class for logging levels."""
+class LoggingLevels(types.SimpleNamespace):
+    """Namespace for storing logging levels."""
 
-    def __init__(self, *mappings, **items):
-        """Create a new items mapping."""
-        super().__init__(self.__class__.__name__, self.__class__.__doc__)
-        for mapping in mappings:
-            for level, value in mapping.items():
-                setattr(self, level, value)
+    def __init__(self, *args, **kwargs):
+        """Accept a dict as an optional positional argument."""
+        if len(args) > 1:
+            raise TypeError("%s() takes at most 1 positional arguments but %i were given" %
+                           (self.__class__.__name__, len(args)))
 
-        for level, value in items.items():
-            setattr(self, level, value)
+        if args:
+            self.__dict__.update(args[0])
+
+        super().__init__(**kwargs)
 
     def __iter__(self):
-        """Iterate over the items of self."""
-        return (x for x in self.__dict__ if not bypassers.is_dunder(x))
+        """Return an iterator over the items of self."""
+        yield from self.__dict__
+
+    def __contains__(self, item):
+        """Return True if item is in self, False otherwise."""
+        for value in self:
+            if value == item:
+                return True
+        return False
 
     def __reversed__(self):
         """Iterate over the items by value instead of key."""
         return (self.__dict__[item] for item in self)
 
-    @property
-    def __reversed_lookup__(self):
-        """Return a swapped dictionary."""
-        return {self.__dict__[item]: item for item in self}
+    def __getitem__(self, item):
+        """Get an item from the underlying dict."""
+        return self.__dict__[item]
+
+    def __setitem__(self, item, value):
+        """Set an item to the underlying dict."""
+        self.__dict__[item] = value
+
+    def __delitem__(self, item):
+        """Delete an item from the underlying dict."""
+        del self.__dict__[item]
+
+    def __repr__(self):
+        """Return an accurate representation of self."""
+        non_identifier = []
+        identifiers = []
+        for key in self:
+            if not isinstance(key, str):
+                non_identifier.append("{0}: {1!r}".format(key, self[key]))
+            else:
+                identifiers.append("{0}={1!r}".format(key, self[key]))
+
+        if non_identifier and identifiers:
+            return "%s({%s}, %s)" % (self.__class__.__name__, ", ".join(non_identifier), ", ".join(identifiers))
+        if non_identifier:
+            return "%s({%s})" % (self.__class__.__name__, ", ".join(non_identifier))
+        if identifiers:
+            return "%s(%s)" % (self.__class__.__name__, ", ".join(identifiers))
+        return "%s()" % self.__class__.__name__
 
 class NamesLogger(LevelLogger):
     """Implement named levels logging.
