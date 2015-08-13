@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env python3
 
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
-           "total_decorate"]
+           "total_decorate", "attribute"]
 
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
@@ -325,3 +325,53 @@ def total_decorate(cls=None, *, handler=log_use, name=None):
         bases = bases[:index] + bases[index+1:]
 
     return type(cls)(pick(name, cls.__name__), bases, namespace)
+
+class attribute:
+    """Class-level attribute for instance variables.
+
+    >>> from logger.decorators import attribute
+    >>> class Foo:
+    ...     def __init__(self):
+    ...         self.bar = 42
+    ...     @attribute
+    ...     def bar(self):
+    ...         '''The answer to life, the universe, and everything.'''
+    ...         print("This should not happen!")    
+    ...         raise Exception("This will never be triggered")
+    ...
+    >>> Foo.bar
+    The answer to life, the universe, and everything.
+    >>> foo = Foo()
+    >>> foo.bar
+    42
+    >>> class Bar:
+    ...     @attribute
+    ...     def baz(self):
+    ...         raise Exception("Attribute 'baz' wasn't changed")
+    ...
+    >>> Bar.baz
+    <attribute 'baz' of 'Bar' objects>
+    >>> bar = Bar()
+    >>> bar.baz
+    <bound method Bar.baz of ...>
+    >>> bar.baz()
+    Traceback (most recent call last):
+      ...
+    Exception: Attribute 'baz' wasn't changed
+
+    """
+
+    def __init__(self, func):
+        self.__func__ = func
+        self.__name__ = func.__name__
+        self.__doc__ = func.__doc__
+
+    def __get__(self, instance, owner):
+        self.__objclass__ = owner
+        if instance is None:
+            return self
+        return self.__func__.__get__(instance, owner)
+
+    def __repr__(self):
+        return (self.__doc__ or "<attribute %r of %r objects>" %
+               (self.__name__, self.__objclass__.__name__))
