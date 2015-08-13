@@ -14,20 +14,14 @@ class handle_bypass:
         """Access the method through the instance."""
         if instance is None:
             return self
-        def handler(*args, **kwargs):
-            if not hasattr(instance, "bypassed"):
-                instance.bypassed = {}
-                try:
-                    return self.func(instance, *args, **kwargs)
-                finally:
-                    del self.bypassed
+        if not hasattr(instance, "bypassed"):
+            instance.bypassed = {}
+            try:
+                return lambda *args, **kwargs: self.func(instance, *args, **kwargs)
+            finally:
+                del instance.bypassed
 
-            return self.func(instance, *args, **kwargs)
-
-        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
-            setattr(handler, attr, getattr(self.func, attr))
-
-        return handler
+        return self.func.__get__(instance, owner)
 
 class check_bypass:
     """Handler to get the proper bypass check decorator."""
@@ -40,27 +34,18 @@ class check_bypass:
         """Access the method through the instance."""
         if instance is None:
             return self
-        def checker(*args, **kwargs):
-            if not hasattr(instance, "bypassed"):
-                instance.bypassed = {}
-                name = "_check_%s_" % owner._bp_handler
-                if not hasattr(self, name):
-                    raise TypeError("%r does not have a bypass handler" %
-                                    owner.__name__)
-                try:
-                    return getattr(self, name)(instance, *args, **kwargs)
-                finally:
-                    try:
-                        del instance.bypassed
-                    except AttributeError:
-                        pass # already deleted
+        if not hasattr(instance, "bypassed"):
+            instance.bypassed = {}
+            name = "_check_%s_" % owner._bp_handler
+            if not hasattr(self, name):
+                raise TypeError("%r does not have a bypass handler" % owner.__name__)
 
-            return self.func(instance, *args, **kwargs)
+            try:
+                return lambda *args, **kwargs: getattr(self, name)(instance, *args, **kwargs)
+            finally:
+                del instance.bypassed
 
-        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
-            setattr(checker, attr, getattr(self.func, attr))
-
-        return checker
+        return self.func.__get__(instance, owner)
 
     @staticmethod
     def _get_setting(module, attr, catch=False):
@@ -233,9 +218,6 @@ class log_usage:
                 args = (instance,) + args
             return self.call(self.func, args, kwargs, self.handler)
 
-        for attr in ("__name__", "__qualname__", "__doc__", "__module__"):
-            if hasattr(self.func, attr):
-                setattr(caller, attr, getattr(self.func, attr))
         return caller
 
     @classmethod
@@ -249,7 +231,7 @@ class log_usage:
             handler = cls._default_handler().logger
 
         if handler is func:
-            raise RuntimeError("cannot decorate the function with itself")
+            raise RecursionError("recursive decoration detected")
 
         params = (", ".join(repr(x) for x in args),
                   ", ".join("%s=%r" % (k,v) for k,v in kwargs.items()))
