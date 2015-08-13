@@ -37,14 +37,14 @@ class MetaLogger(type):
             meta.allowed_bases.append(cls)
         if len(bases) > 1 and bases[0] not in meta.allowed_bases:
             raise TypeError("improper base class: %r" % bases[0].__name__)
-        return cls
-
-    def __init__(cls, name, bases, namespace, **kwargs):
-        """Set up the logger."""
         if name.startswith("Translated"):
             name = name[10:]
         if name.endswith("Logger"):
             cls._bp_handler = name[:-6].lower()
+        return cls
+
+    def __init__(*args, **kwargs):
+        """Catch any keyword arguments."""
 
     def __repr__(cls):
         """Return a string of itself."""
