@@ -886,10 +886,7 @@ class LoggingLevels(types.SimpleNamespace):
 
     def __contains__(self, item):
         """Return True if item is in self, False otherwise."""
-        for value in self:
-            if value == item:
-                return True
-        return False
+        return value in self.__dict__
 
     def __reversed__(self):
         """Iterate over the items by value instead of key."""
@@ -910,20 +907,16 @@ class LoggingLevels(types.SimpleNamespace):
     def __repr__(self):
         """Return an accurate representation of self."""
         non_identifier = []
-        identifiers = []
-        for key in self:
+        identifiers = [None]
+        for key in sorted(self.__dict__):
             if not isinstance(key, str):
                 non_identifier.append("{0}: {1!r}".format(key, self[key]))
             else:
                 identifiers.append("{0}={1!r}".format(key, self[key]))
 
-        if non_identifier and identifiers:
-            return "%s({%s}, %s)" % (self.__class__.__name__, ", ".join(non_identifier), ", ".join(identifiers))
-        if non_identifier:
-            return "%s({%s})" % (self.__class__.__name__, ", ".join(non_identifier))
-        if identifiers:
-            return "%s(%s)" % (self.__class__.__name__, ", ".join(identifiers))
-        return "%s()" % self.__class__.__name__
+        identifiers[0] = "{%s}" % ", ".join(non_identifier)
+
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(identifiers))
 
 class NamesLogger(LevelLogger):
     """Implement named levels logging.
