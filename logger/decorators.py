@@ -1,7 +1,7 @@
 ﻿#!/usr/bin/env python3
 
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
-           "total_decorate", "attribute"]
+           "total_decorate", "attribute", "Singleton"]
 
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
@@ -375,3 +375,74 @@ class attribute:
     def __repr__(self):
         return (self.__doc__ or "<attribute %r of %r objects>" %
                (self.__name__, self.__objclass__.__name__))
+
+class Singleton(type):
+    """Create a unique name (similar to None).
+
+    This creates a singleton from a class definition. The class will be
+    instantiated, and it will be re-assigned with a special metaclass.
+    If the class already used a metaclass, it will be used with the
+    super metaclass. This mimics the behaviour of the built-in None.
+
+    >>> from logger.decorators import Singleton
+    >>> @Singleton
+    ... class MySingleton: pass
+    ...
+    >>> MySingleton
+    <Singleton 'MySingleton'>
+    >>> MySingleton is type(MySingleton)()
+    True
+    >>> class Subclass(type(MySingleton)): pass
+    ...
+    Traceback (most recent call last):
+      ...
+    TypeError: type 'MySingleton' is not an acceptable base type
+
+    """
+
+    def __new__(cls, value, *args, _real=False):
+        """Create a new singleton."""
+
+        if (len(args) == 2 and
+            isinstance(args[0], tuple) and
+            isinstance(args[1], dict) and
+            value == "singleton" and _real):
+                return super().__new__(cls, value, *args)
+
+        if args or _real:
+            raise TypeError("Cannot use %r as a metaclass" % cls.__name__)
+
+        meta = type(value) # get the proper metaclass
+
+        class singleton(meta, metaclass=cls, _real=True):
+            """Metaclass for magic singletons."""
+
+            def __new__(*args, **kwargs):
+                """Prevent subclassing."""
+                try:
+                    class M(type(None)): pass
+                except TypeError as e:
+                    raise TypeError(str(e).replace("NoneType",
+                                    value.__name__)) from None
+
+                raise TypeError("Cannot create metaclass")
+
+        singleton.__qualname__ = singleton.__name__ = value.__name__
+        singleton.__module__ = value.__module__
+
+        names = dict(value.__dict__)
+
+        if "__repr__" not in names:
+            names["__repr__"] = lambda self: "<Singleton %r>" % value.__name__
+
+        new = meta.__new__(singleton, value.__name__,
+                           value.__bases__, names)
+
+        ret = object.__new__(new)
+
+        new.__new__ = lambda *args, **kwargs: ret
+
+        return ret
+
+    def __init__(*args, **kwargs):
+        """Catch keyword arguments."""
