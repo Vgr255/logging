@@ -3,7 +3,8 @@
 """Implementation of the Bypassers handlers."""
 
 import collections
-import enum # for conversion
+import types
+import enum
 
 from .decorators import *
 
@@ -212,6 +213,20 @@ class BypassersMeta(type):
         cls.attributes = attr
 
         cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
+
+        def attr(): pass
+
+        code = attr.__code__
+
+        for item in cls.__names__:
+            attr.__name__ = item
+            attr.__doc__ = "Return a view object over the %s of self." % item
+            attr.__code__ = types.CodeType(
+                1, 0, 1, 1, 67, b"d\x01\x00S",
+                (attr.__doc__, None), (), ("self",),
+                code.co_filename, item, code.co_firstlineno, b"",
+                )
+            setattr(cls, item, attribute(attr))
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
