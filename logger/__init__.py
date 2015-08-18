@@ -244,7 +244,7 @@ class BaseLogger(metaclass=MetaLogger):
             if datetime.utcnow().hour > datetime.now().hour:
                 offset = "-"
             offset += str(time.timezone // 36).zfill(4)
-        return tmf.format(tzname=tz, tzoffset=offset).strip().upper() + " "
+        return tmf.format(tzname=tz, tzoffset=offset).strip().upper()
 
     def _split_lines(self, out):
         """Split long lines at clever points."""
@@ -289,7 +289,7 @@ class BaseLogger(metaclass=MetaLogger):
             out = output.splitlines()
             ts = self._get_timestamp(use_utc, ts_format)
             for i, line in enumerate(out):
-                out[i] = ts + line
+                out[i] = " ".join((ts, line))
             output = "\n".join(out)
 
         if self.bypassed.get("splitter", pick(split, self.split)):
@@ -453,7 +453,7 @@ class TypeLogger(BaseLogger):
                 atypes = "type.%s - " % type if log == logall else ""
                 with open(log, "a", encoding="utf-8", errors="replace") as f:
                     for writer in output:
-                        f.write(timestamp + atypes + writer + "\n")
+                        f.write("{0}{1}{2}\n".format(timestamp, atypes, writer))
 
     def multiple(self, *output, types=None, display=None, **rest):
         """Log one or more line to multiple files."""
