@@ -214,19 +214,27 @@ class BypassersMeta(type):
 
         cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
 
-        def attr(): pass
-
-        code = attr.__code__
-
         for item in cls.__names__:
-            attr.__name__ = item
-            attr.__doc__ = "Return a view object over the %s of self." % item
-            attr.__code__ = types.CodeType(
-                1, 0, 1, 1, 67, b"d\x01\x00S",
-                (attr.__doc__, None), (), ("self",),
-                code.co_filename, item, code.co_firstlineno, b"",
+            doc = "Return a view object over the %s of self." % item
+            code = types.CodeType(
+                1, # Positional argument count
+                0, # Keyword-only argument count
+                1, # Local variables
+                1, # Stack size
+                67, # Flags (64, NOFREE; 2, NEWLOCALS; 1, OPTIMIZED)
+                b"d\x01\x00S", # Code string (load constant at index 1 and return it
+                (doc, None), # Constants (doc string and return value)
+                (), # Names
+                ("self",), # Variable names
+                "<unknown>", # Filename
+                item, # Function name
+                1, # First line number
+                b"", # Mapping of lines to indents
                 )
-            setattr(cls, item, attribute(attr))
+
+            function = types.FunctionType(code, {}, item)
+            function.__doc__ = doc
+            setattr(cls, item, attribute(function))
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
