@@ -79,12 +79,14 @@ class Viewer:
     def __iter__(self):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
-        if self.name == "keys":
-            yield from mapping
-        elif self.name == "values":
+        if self.value == "keys":
+            if mapping:
+                yield from mapping
+        elif self.value == "values":
             for key in mapping:
-                yield from mapping[key]
-        elif self.name == "items":
+                if mapping[key]:
+                    yield from mapping[key]
+        elif self.value == "items":
             for key in mapping:
                 for values in mapping[key]:
                     yield (key, *values)
