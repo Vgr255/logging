@@ -215,7 +215,7 @@ class BypassersMeta(type):
                 1, # Local variables
                 1, # Stack size
                 67, # Flags (64, NOFREE; 2, NEWLOCALS; 1, OPTIMIZED)
-                b"d\x01\x00S", # Code string (load constant at index 1 and return it
+                b"d\x01\x00S", # Code string (load constant at index 1 and return it)
                 (doc, None), # Constants (doc string and return value)
                 (), # Names
                 ("self",), # Variable names
