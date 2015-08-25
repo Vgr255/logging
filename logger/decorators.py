@@ -343,10 +343,11 @@ class attribute:
 
     """
 
-    def __init__(self, func):
+    def __init__(self, func, doc=None):
         self.__func__ = func
         self.__name__ = func.__name__
-        self.__doc__ = func.__doc__
+        self.__doc__ = doc or func.__doc__
+        self.__objclass__ = None
 
     def __get__(self, instance, owner):
         self.__objclass__ = owner
@@ -356,7 +357,7 @@ class attribute:
 
     def __repr__(self):
         return (self.__doc__ or "<attribute %r of %r objects>" %
-               (self.__name__, self.__objclass__.__name__))
+               (self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
 
 class Singleton(type):
     """Create a unique name (similar to None).
