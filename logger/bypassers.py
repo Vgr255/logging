@@ -346,15 +346,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __eq__(self, other):
         """Return True if self and other are equivalent, False otherwise."""
-        if hasattr(other, "__mapping__"):
-            return self.__mapping__ == other.__mapping__
-        if hasattr(other, "items"):
-            if set(self) == set(other):
-                for item in self.items():
-                    if item != other[item[0]]:
-                        return False
-                return True
-        return False
+        return self.__mapping__ == getattr(other, "__mapping__", None)
 
     def __ne__(self, other):
         """Return False if self and other are equivalent, True otherwise."""
