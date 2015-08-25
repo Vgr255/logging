@@ -99,33 +99,23 @@ class Viewer:
                         concat.append(all_values[i])
                     yield tuple(concat)
 
-class MetaViewer(type):
-    """Metaclass for view objects."""
+class CreateViewer:
+    """Create a view object."""
 
-    def __new__(meta, name, sub, index, instance):
+    def __init__(self, name, sub, index, instance):
         """Create a new view object."""
-        bases = ()
-        namespace = {}
+        self.name = name
+        self.value = sub
+        self.position = index
+        self.instance = instance
 
-        cls = super().__new__(meta, name + sub, bases, namespace)
-        cls.value = sub
-        cls.position = index
-        cls.self = instance
-
-        setattr(instance, sub.lower(), cls)
-
-        return cls
-
-    def __init__(cls, *args, **kwargs):
-        """Catch superfluous arguments."""
-
-    def __repr__(cls):
+    def __repr__(self):
         """Return the representation of self."""
-        return "<%r view object>" % cls.__name__
+        return "<%r view object>" % self.name
 
-    def __call__(cls):
+    def __call__(self):
         """Return an iterator over the items in the mapping."""
-        return Viewer(cls.__name__, cls.value, cls.position, cls.self)
+        return Viewer(self.name, self.value, self.position, self.instance)
 
 def create_viewers(name, items, instance):
     """Create the view objects for class with name 'name'."""
@@ -133,7 +123,7 @@ def create_viewers(name, items, instance):
     for sub, pos, _ in items:
         sub = sub.capitalize()
         doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
-        MetaViewer(name, sub, pos, instance)
+        setattr(instance, sub.lower(), CreateViewer(name, sub, pos, instance))
 
 Bypassers = None # temporary value until it is created
 
