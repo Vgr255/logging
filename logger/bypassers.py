@@ -73,7 +73,8 @@ class Viewer:
         self.instance = instance
 
     def __repr__(self):
-        return "<%r iterator>" % self.name
+        """Return a view of the items."""
+        return "%s(%s)" % (self.name, list(self))
 
     def __iter__(self):
         """Return a modular iterator over the items in the instance."""
