@@ -6,7 +6,7 @@ import collections
 import types
 import enum
 
-from .decorators import *
+from .decorators import Singleton
 
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
