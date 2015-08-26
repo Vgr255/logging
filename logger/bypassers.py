@@ -199,7 +199,7 @@ class BypassersMeta(type):
                 raise ValueError("names must be lowercased")
 
         if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
-            raise ValueError("need at least 'keys', 'values' and 'items'")
+            raise ValueError("need at least 'keys', 'values', and 'items'")
 
         cls = super().__new__(meta, name, bases, original)
 
