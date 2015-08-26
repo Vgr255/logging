@@ -193,8 +193,10 @@ class BypassersMeta(type):
         for x in attr["items"]:
             if x[0] in original:
                 raise ValueError("%r: name already exists" % x[0])
-            if x[0][0] == "_":
+            if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
+            if not x[0].islower():
+                raise ValueError("names must be lowercased")
 
         if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
             raise ValueError("need at least 'keys', 'values' and 'items'")
