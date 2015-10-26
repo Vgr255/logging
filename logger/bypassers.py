@@ -30,27 +30,6 @@ def convert_to_od(mapping, order):
     """Convert mapping to an OrderedDict instance using order."""
     return collections.OrderedDict([(i, mapping[i]) for i in order])
 
-def convert_to_od_safe(mapping, order):
-    """Safely convert a mapping to an OrderedDict instance.
-
-    This will properly handle generators as mappings, but will be much
-    more memory-consuming. Only use if 'mapping' is not an actual
-    mapping.
-    """
-
-    safe_order = {e: i for i, e in enumerate(order)}
-    final_order = []
-    try:
-        parser = mapping.items
-    except AttributeError:
-        parser = lambda: mapping
-
-    for key, value in parser():
-        final_order.append((safe_order[key], key, value))
-
-    final_order.sort(key=lambda x: x[0])
-    return collections.OrderedDict([(k, v) for i, k, v in final_order])
-
 @Singleton
 class NoValue:
     """Express the lack of value, as None has a special meaning."""
