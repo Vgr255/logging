@@ -88,6 +88,8 @@ class CreateViewer:
         self.position = index
         self.instance = instance
 
+        self.__doc__ = "Return all the %s of the %s class" % (sub.lower(), name)
+
     def __repr__(self):
         """Return the representation of self."""
         return "<%r view object>" % self.name
@@ -100,9 +102,7 @@ def create_viewers(name, items, instance):
     """Create the view objects for class with name 'name'."""
 
     for sub, pos, _ in items:
-        sub = sub.capitalize()
-        doc = """Return all the %s of the %s class.""" % (sub.lower(), name)
-        setattr(instance, sub.lower(), CreateViewer(name, sub, pos, instance))
+        setattr(instance, sub.lower(), CreateViewer(name, sub.capitalize(), pos, instance))
 
 Bypassers = None # temporary value until it is created
 
