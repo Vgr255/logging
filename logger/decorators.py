@@ -209,17 +209,17 @@ class log_usage:
         )
 
         if func is None:
-            self.handler = self._default_handler().logger
-        elif isclass(func) and issubclass(func, self._default_handler):
-            self.handler = func().logger
-        elif isinstance(func, self._default_handler):
-            self.handler = func.logger
-        elif isclass(func):
-            self.handler = func()
-        elif isroutine(func):
+            func = self._default_handler
+        if isclass(func):
+            func = func()
+        if hasattr(func, "logger"):
+            func = func.logger
+
+        if isroutine(func):
             self.handler = func
         else:
             self.handler = self._default_handler().logger
+        self.func = None
 
     def __call__(self, func):
         """Call the handler."""
