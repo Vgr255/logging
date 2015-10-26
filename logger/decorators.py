@@ -374,6 +374,34 @@ class attribute:
         return (self.__doc__ or "<attribute %r of %r objects>" %
                (self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
 
+class MetaProperty:
+    """Create and return a meta-property.
+
+    A meta-property is a property that works directly on the class.
+    It is similar to using a property with a classmethod decorator,
+    except that it will always trigger.
+
+    >>> from logger.decorators import MetaProperty
+    >>> class Foo:
+    ...     @MetaProperty
+    ...     def some_attribute(cls):
+    ...         return "Bar"
+    ...
+    >>> Foo.some_attribute
+    'Bar'
+    >>> Foo().some_attribute
+    'Bar'
+
+    """
+
+    def __init__(self, func, doc=None, name=None):
+        self.__func__ = func
+        self.__doc__ = doc or func.__doc__
+        self.__name__ = name or func.__name__
+
+    def __get__(self, instance, owner):
+        return self.__func__(owner)
+
 class Singleton(type):
     """Create a unique name (similar to None).
 
