@@ -3,6 +3,14 @@
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
            "total_decorate", "attribute", "Singleton"]
 
+# Handle Python < 3.5
+try:
+    RecursionError
+except NameError:
+    import builtins
+    builtins.RecursionError = RuntimeError
+    del builtins # don't populate the namespace
+
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
 
