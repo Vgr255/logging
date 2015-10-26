@@ -358,14 +358,14 @@ class attribute:
 
     """
 
-    def __init__(self, func, doc=None):
+    def __init__(self, func, doc=None, name=None, objclass=None):
         self.__func__ = func
-        self.__name__ = func.__name__
         self.__doc__ = doc or func.__doc__
-        self.__objclass__ = None
+        self.__name__ = name or func.__name__
+        self.__objclass__ = objclass
 
     def __get__(self, instance, owner):
-        self.__objclass__ = owner
+        self.__objclass__ = self.__objclass__ or owner
         if instance is None:
             return self
         return self.__func__.__get__(instance, owner)
