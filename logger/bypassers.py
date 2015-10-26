@@ -53,7 +53,7 @@ class Viewer:
 
     def __repr__(self):
         """Return a view of the items."""
-        return "%s(%s)" % (self.name, list(self))
+        return "%s(%s)" % (self.name, [repr(x) for x in self])
 
     def __iter__(self):
         """Return a modular iterator over the items in the instance."""
