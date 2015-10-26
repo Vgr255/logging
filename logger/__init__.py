@@ -218,7 +218,7 @@ class BaseLogger(metaclass=MetaLogger):
 
     def __dir__(self):
         """Return a list of all non-private methods and attributes."""
-        items = set(dir(self.__class__) + list(self.__dict__))
+        items = set(dir(self.__class__)) | self.__dict__.keys()
         for item in set(items):
             if item[0] == "_" and not bypassers.is_dunder(item):
                 items.remove(item)
