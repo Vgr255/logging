@@ -184,9 +184,11 @@ class BypassersMeta(type):
 
         meta.classes["subclass"].append(cls)
 
-        cls.attributes = attr
+        cls.__attr__ = attr
 
-        cls.__names__ = tuple(x[0] for x in cls.attributes["items"])
+        cls.__item_length__ = len(attr["values"])
+
+        cls.__names__ = tuple(x[0] for x in attr["items"])
 
         for item in cls.__names__:
             doc = "Return a view object over the %s of self." % item
@@ -226,7 +228,7 @@ class BypassersMeta(type):
 
         self.__mapping__ = collections.OrderedDict()
 
-        create_viewers(cls.__name__, cls.__class__.attributes["items"], self)
+        create_viewers(cls.__name__, cls.__attr__["items"], self)
 
         if isinstance(self, cls):
             ret = cls.__init__(self)
