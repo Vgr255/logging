@@ -11,6 +11,19 @@ except NameError:
     builtins.RecursionError = RuntimeError
     del builtins # don't populate the namespace
 
+class instance_bypass:
+    """Context Manager to handle instance bypassing."""
+
+    def __init__(self, instance, factory=dict):
+        self.instance = instance
+        self.factory = factory
+
+    def __enter__(self):
+        self.instance.bypassed = self.factory()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        del self.instance.bypassed
+
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
 
@@ -23,11 +36,8 @@ class handle_bypass:
         if instance is None:
             return self
         if not hasattr(instance, "bypassed"):
-            instance.bypassed = {}
-            try:
-                return lambda *args, **kwargs: self.func(instance, *args, **kwargs)
-            finally:
-                del instance.bypassed
+            with instance_bypass(instance):
+                return self.func.__get__(instance, owner)
 
         return self.func.__get__(instance, owner)
 
@@ -43,15 +53,12 @@ class check_bypass:
         if instance is None:
             return self
         if not hasattr(instance, "bypassed"):
-            instance.bypassed = {}
-            name = "_check_%s_" % owner._bp_handler
-            if not hasattr(self, name):
-                raise TypeError("%r does not have a bypass handler" % owner.__name__)
+            with instance_bypass(instance):
+                name = "_check_%s_" % (owner._bp_handler,)
+                if not hasattr(self, name):
+                    raise TypeError("%r does not have a bypass handler" % owner.__name__)
 
-            try:
                 return lambda *args, **kwargs: getattr(self, name)(instance, *args, **kwargs)
-            finally:
-                del instance.bypassed
 
         return self.func.__get__(instance, owner)
 
