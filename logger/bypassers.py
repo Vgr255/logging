@@ -479,3 +479,158 @@ class Bypassers(metaclass=BypassersMeta):
         if deepcopy:
             return self.__deepcopy__({})
         return self.__copy__()
+
+
+
+class BaseBypassers(Bypassers):
+    """Base Bypassers class."""
+
+    values = ("setting", "pairs", "module", "attr")
+    items = (("keys",        (0,),           None),
+             ("pairs",       (1,),           None),
+             ("attributes",  (2, 3),         NoValue),
+             ("values",      (1, 2, 3),      None),
+             ("items",       (0, 1, 2, 3),   None),
+            )
+
+
+
+
+
+
+
+
+
+
+
+NOTES = """
+
+__mapping__     DONE    underlying OrderedDict mapping
+__item_length__ DONE    number of items in the Bypasser
+
+__iter__        DONE    iter(bypasser) -> iterator of settings
+__reversed__    DONE    reversed(bypasser) -> reversed iterator of settings
+
+__repr__        DONE    repr(bypasser) -> BypasserClass(["setting", {"types"}, (None, "pairs"), "module", "attr"], [...])
+__str__                 str(bypasser) -> [(setting="setting", types={"types"}, pairs=(...), module=..., attr=...), (...)]
+
+__eq__          DONE    bypasser == other -> True if they have the same items, False otherwise
+__ne__          DONE    bypasser != other -> not (bypasser == other)
+__lt__
+__gt__
+__le__
+__ge__
+<, >, >=, <= -> set-like comparisons
+
+__len__         DONE    len(bypasser) -> number of settings
+
+__dir__         DONE    dir(bypasser) -> methods and view objects | DEFAULT IMPLEMENTATION
+
+__getitem__
+        SINGLE          bypasser["setting"] -> return a list of everything bound to this setting
+
+        TUPLE           bypasser["setting1", "setting2", ...] -> list of everything bound to all settings
+
+                        this ignores non-existent settings (so bypasser["no-setting",] will swallow the KeyError)
+
+        SLICE           bypasser[start:step:stop] -> return a list of all settings from the internal ordering
+
+                        normal slicing rules apply
+
+        ELLIPSIS        bypasser[...] (Ellipsis) -> list everything bound (no setting)
+
+__delitem__
+        SINGLE          del bypasser["setting"] -> remove all bindings of 'setting'; raise KeyError if not present
+
+        TUPLE           del bypasser["setting1", "setting2", ...] -> remove all bindings of all settings; ignore if not present
+
+__call__        DONE    bypasser(index) -> return the setting at index
+
+__contains__    DONE    x in bypasser -> True if x is a setting, False otherwise
+
+__add__                 bypasser + other -> Add all settings from other into bypasser, order matching other's
+__radd__                other + bypasser -> Add all settings from other into bypasser, order matching bypasser's
+__iadd__                bypasser += other -> in-place __add__
+__sub__                 bypasser - other -> Remove all bypasser settings present in other
+__rsub__                other - bypasser -> Remove all 'other' items present as bypasser setting
+__isub__                bypasser -= other -> in-place __sub__
+__mul__                 bypasser * other -> Run all items pairs through the function 'other', a tuple is passed as sole argument
+__rmul__                other * bypasser -> identical behaviour
+__imul__                bypasser *= other -> in-place __mul__
+__pow__                 bypasser ** other -> Run all items pairs through the function 'other', all items are passed as single arguments
+__rpow__                other ** bypasser -> identical behaviour
+__ipow__                bypasser **= other -> in-place __pow__
+__truediv__             bypasser / other -> Return an instance with settings having less than 'other' items
+__rtruediv__            other / bypasser -> identical behaviour
+__itruediv__            bypasser /= other -> in-place __truediv__
+__floordiv__            bypasser // other -> Return an instance with settings having more than 'other' items
+__rfloordiv__           other // bypasser -> identical behaviour
+__ifloordiv__           bypasser //= other -> in-place __floordiv__
+__matmul__              bypasser @ other -> Return an instance with settings having exactly 'other' items
+__rmatmul__             other @ bypasser -> identical behaviour
+__imatmul__             bypasser @= other -> in-place __matmul__
+__mod__                 bypasser % other -> Add the iterable to a new instance; same as bypasser.copy().update(it)
+__rmod__                other % bypasser -> Identical behaviour
+__imod__                bypasser %= other -> in-place __mod__
+__rshift__              bypasser >> other -> Move all settings one position right; wrapping around
+__rrshift__             other >> bypasser -> Same as bypasser << other
+__irshift__             bypasser >>= other -> in-place __rshift__
+__lshift__              bypasser << other -> Move all settings one position left; wrapping around
+__rlshift__             other << bypasser -> Same as bypasser >> other
+__ilshift__             bypasser <<= other -> in-place __lshift__
+__and__                 bypasser & other -> all settings and their parameters that appear all the time
+__rand__                other & bypasser -> identical behaviour
+__iand__                bypasser &= other -> in-place __and__
+__xor__                 bypasser ^ other -> all settings with their parameters that appear only once
+__rxor__                other ^ bypasser -> identical behaviour
+__ixor__                bypasser ^= other -> in-place __xor__
+__or__                  bypasser | other -> all settings and everything else
+__ror__                 other | bypasser -> identical behaviour
+__ior__                 bypasser |= other -> in-place __or__
+
+__neg__                 -bypasser -> return a bypasser with all settings, but no bound
+__pos__                 +bypasser -> return a copy of the bypasser
+__invert__              ~bypasser -> return a new empty bypasser
+
+with bypasser as x:
+    Same as:
+    x = bypasser
+    try:
+        ... do whatever ...
+    except Exception:
+        pass
+
+__enter__
+__exit__
+
+bypasser.update         -> Update the mapping with the provided iterables
+bypasser.extend         -> Update with keyword arguments ???
+bypasser.index          -> Find the internal index of a setting; raise IndexError if not present
+bypasser.find           -> Get the setting at index given; return -1 if not present
+bypasser.count          -> How many times the setting is used
+bypasser.clear          -> Clears the whole bypasser
+bypasser.copy           -> Returns a copy of the bypasser
+bypasser.insert         -> Inserts data into setting ???
+bypasser.move           -> Move setting into position
+bypasser.pop            -> Remove an arbitrary setting
+bypasser.popitem        -> Remove a random setting
+bypasser.add            -> Add a new empty setting
+bypasser.remove         -> Remove setting at position x; raise KeyError or IndexError if not present; x defaults to 0
+bypasser.discard        -> Remove setting at position x; ignore if not present; x defaults to 0
+bypasser.erase          -> Remove the setting and all bindings at position x; raise KeyError or IndexError if not present; x defaults to 0
+bypasser.drop           -> Remove the setting and all bindings at position x; ignore if not present; x defaults to 0
+bypasser.get            -> Get the data bound to setting or a tuple consisting of n items
+bypasser.strip          -> Remove all settings that are not bound
+bypasser.sort           -> Sort all keys
+
+bypasser.to_enum
+bypasser.to_dict
+bypasser.to_ordered_dict
+bypasser.to_list
+
+Bypassers.from_enum
+Bypassers.from_mapping
+Bypassers.from_ordered_mapping
+Bypassers.from_iterable
+
+"""
