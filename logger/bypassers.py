@@ -55,20 +55,27 @@ class Viewer:
         """Return a view of the items."""
         return "%s(%s)" % (self.name, [repr(x) for x in self])
 
+    def __len__(self):
+        """Return the number of items self will return."""
+        return len(self.instance)
+
     def __iter__(self):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
-        if self.value == "keys":
+        if self.position == (0,): # short-circuit for common use of keys
             if mapping:
                 yield from mapping
-        elif self.value == "values":
+
+        elif self.position == tuple(range(1, len(self))): # common use of values
             for key in mapping:
                 if mapping[key]:
                     yield from mapping[key]
-        elif self.value == "items":
+
+        elif self.position == tuple(range(len(self))): # commonly items
             for key in mapping:
                 for values in mapping[key]:
                     yield (key, *values)
+
         else:
             for key in mapping:
                 for values in mapping[key]:
