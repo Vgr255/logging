@@ -706,7 +706,7 @@ class Translater(BaseLogger, allowed_base=True):
 
         if isinstance(format_mod, tuple):
             format_mod = list(format_mod)
-        else:
+        else: # TODO: support dict or drop support altogether. perhaps add our own interpolation mechanism
             format_mod = [str(format_mod)]
 
         def enum(iterable):
