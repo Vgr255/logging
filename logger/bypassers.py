@@ -70,12 +70,12 @@ class Viewer:
             if mapping:
                 yield from mapping
 
-        elif self.position == tuple(range(1, len(self))): # common use of values
+        elif self.position == tuple(range(1, len(self)+1)): # common use of values
             for key in mapping:
                 if mapping[key]:
                     yield from mapping[key]
 
-        elif self.position == tuple(range(len(self))): # commonly items
+        elif self.position == tuple(range(len(self)+1)): # commonly items
             for key in mapping:
                 for values in mapping[key]:
                     yield (key, *values)
