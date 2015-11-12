@@ -6,9 +6,13 @@ import collections
 import types
 import enum
 
-from .decorators import Singleton
+from .decorators import attribute, DescriptorProperty, Singleton
 
 __all__ = ["NoValue"] # the Bypassers get added to this later
+
+def get_id(x):
+    value = object.__repr__(x)
+    return value[value.rindex("0x"):-1]
 
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
@@ -88,28 +92,48 @@ class Viewer:
 class CreateViewer:
     """Create a view object."""
 
-    def __init__(self, name, sub, index, instance):
+    instance = None
+    owner = object
+    name = "<unknown>"
+
+    def __init__(self, sub, index):
         """Create a new view object."""
-        self.name = name
         self.value = sub
         self.position = index
-        self.instance = instance
 
-        self.__doc__ = "Return all the %s of the %s class" % (sub.lower(), name)
+    @DescriptorProperty
+    def __doc__(self, cls):
+        if self is None:
+            return "Create a view object."
+        return "Return all the %s of the %s class." % (self.value, self.name)
 
     def __repr__(self):
         """Return the representation of self."""
-        return "<%r view object>" % self.name
+        if self.instance is None:
+            return "<%r view object of %r objects>" % (self.value, self.name)
+        return "<bound view object %r of %r objects at %s>" % (self.value, self.name, get_id(self))
 
-    def __call__(self):
+    def __get__(self, instance, owner):
+        self.instance = instance
+        self.owner = owner
+        self.name = owner.__name__
+        return self
+
+    def __call__(self, *args):
         """Return an iterator over the items in the mapping."""
-        return Viewer(self.name, self.value, self.position, self.instance)
+        if args and self.instance is not None or len(args) > 1:
+            raise TypeError("%s() takes no arguments (%i given)" % (self.value, len(args) - 1))
+        if not args and self.instance is None:
+            raise TypeError("descriptor %r of %r object needs an argument" % (self.value, self.name))
+        if args:
+            instance = args[0]
+        else:
+            instance = self.instance
+        if not isinstance(instance, self.owner):
+            raise TypeError("descriptor %r requires a %r object but received a %r" %
+                            (self.value, self.name, type(instance).__name__))
 
-def create_viewers(name, items, instance):
-    """Create the view objects for class with name 'name'."""
-
-    for sub, pos, _ in items:
-        setattr(instance, sub.lower(), CreateViewer(name, sub.capitalize(), pos, instance))
+        return Viewer(self.name, self.value, self.position, instance)
 
 Bypassers = None # temporary value until it is created
 
@@ -197,27 +221,8 @@ class BypassersMeta(type):
 
         cls.__names__ = tuple(x[0] for x in attr["items"])
 
-        for item in cls.__names__:
-            doc = "Return a view object over the %s of self." % item
-            code = types.CodeType(
-                1, # Positional argument count
-                0, # Keyword-only argument count
-                1, # Local variables
-                1, # Stack size
-                67, # Flags (64, NOFREE; 2, NEWLOCALS; 1, OPTIMIZED)
-                b"d\x01\x00S", # Code string (load constant at index 1 and return it)
-                (doc, None), # Constants (doc string and return value)
-                (), # Names
-                ("self",), # Variable names
-                "<unknown>", # Filename
-                item, # Function name
-                1, # First line number
-                b"", # Mapping of lines to indents
-                )
-
-            function = types.FunctionType(code, {}, item)
-            function.__doc__ = doc
-            setattr(cls, item, attribute(function))
+        for sub, pos, _ in attr["items"]:
+            setattr(cls, sub, CreateViewer(sub, pos))
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
@@ -234,8 +239,6 @@ class BypassersMeta(type):
         self = cls.__new__(cls)
 
         self.__mapping__ = collections.OrderedDict()
-
-        create_viewers(cls.__name__, cls.__attr__["items"], self)
 
         if isinstance(self, cls):
             ret = cls.__init__(self)
