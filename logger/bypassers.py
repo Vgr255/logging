@@ -135,7 +135,7 @@ class CreateViewer:
 
         return Viewer(self.name, self.value, self.position, instance)
 
-Bypassers = None # temporary value until it is created
+Bypassers = NoValue # temporary value until it is created
 
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
@@ -176,7 +176,7 @@ class BypassersMeta(type):
             if base in meta.classes["subclass"]:
                 raise TypeError("cannot subclass %r" % base.__name__)
 
-        if Bypassers is None and name == "Bypassers":
+        if Bypassers is NoValue and name == "Bypassers":
             meta.allowed[name] = set(namespace)
             return super().__new__(meta, name, bases, namespace)
 
@@ -229,7 +229,7 @@ class BypassersMeta(type):
 
         return cls
 
-    def __call__(cls, names=None):
+    def __call__(cls, names=NoValue):
         """Create a new Bypassers instance."""
 
         if cls is Bypassers or cls in cls.__class__.classes["feature"]:
@@ -246,7 +246,7 @@ class BypassersMeta(type):
                 raise TypeError("__init__() should return None, not %r" %
                                 ret.__class__.__name__)
 
-        if names is not None:
+        if names is not NoValue:
             self.update(*names)
 
         return self
