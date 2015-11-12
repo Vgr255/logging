@@ -345,11 +345,6 @@ class Bypassers(metaclass=BypassersMeta):
         """Return False if self and other are equivalent, True otherwise."""
         return not (self == other)
 
-    def __dir__(self):
-        """Return a list of all methods and attributes."""
-        names = set(dir(self.__class__))
-        return names - {"attributes"} | self.__names__
-
     def __call__(self, index):
         """Return the setting at index given."""
         if not hasattr(index, "__index__"):
