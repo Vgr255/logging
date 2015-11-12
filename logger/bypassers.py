@@ -378,6 +378,10 @@ class Bypassers(metaclass=BypassersMeta):
                 for values in other[setting]:
                     self.update((setting, *values))
 
+            return self
+
+        return NotImplemented
+
         # XXX TODO
 
     def __reduce__(self):
@@ -406,6 +410,14 @@ class Bypassers(metaclass=BypassersMeta):
     # Thankfully, code doesn't rust, and may still be recycled
     # It is the most important method of this class, it must be done right
     # At least 15 different test cases will be needed to cover this one method
+
+    def update(self, *names):
+        """Update the bindings with the given items."""
+        items = self.__attr__["items"]
+        for i, name in enumerate(names):
+            item = (name,)
+            if hasattr(name, "items"):
+                item = name.items()
 
     def update(self, *names):
         """Update the bindings with the given items."""
