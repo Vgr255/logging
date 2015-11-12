@@ -402,6 +402,32 @@ class MetaProperty:
     def __get__(self, instance, owner):
         return self.__func__(owner)
 
+class DescriptorProperty(MetaProperty):
+    """Create and return a descriptor property.
+
+    A descriptor property calls the function with the instance as first
+    argument, or None if there is no instance, followed by the class as
+    the second argument. It mirrors non-data descriptors.
+
+    >>> from logger.decorators import DescriptorProperty
+    >>> class Bar:
+    ...     @DescriptorProperty
+    ...     def some_attribute(self, cls):
+    ...         if self is None:
+    ...             return "Not instantiated!"
+    ...         return "Baz"
+    ...
+    >>> Bar.some_attribute
+    'Not instantiated!'
+    >>> Bar().some_attribute
+    'Baz'
+
+    """
+
+    def __get__(self, instance, owner):
+        return self.__func__(instance, owner)
+
+
 class Singleton(type):
     """Create a unique name (similar to None).
 
