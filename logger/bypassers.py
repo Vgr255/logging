@@ -380,6 +380,21 @@ class Bypassers(metaclass=BypassersMeta):
 
         # XXX TODO
 
+    def __reduce__(self):
+        return self.__reduce_ex__(self, 2)
+
+    def __reduce_ex__(self, proto):
+        """Tool for advanced pickling."""
+        return self.__class__, tuple(self.items())
+
+    def __copy__(self):
+        """Return a shallow copy of self."""
+        return self.__class__(*self.items())
+
+    def __deepcopy__(self, memo):
+        """Return a deep copy of self."""
+        cls = self.__class__() # still todo
+
     # The following is the OLD CODE of the update method!
     # It does NOT work with the current implementation
     # Do NOT attempt to tackle this code while tired or otherwise less able to code
@@ -447,3 +462,8 @@ class Bypassers(metaclass=BypassersMeta):
                         elif len(new) > 1:
                             getattr(self, mapper).append(tuple(new))
 
+
+    def copy(self, deepcopy=True):
+        if deepcopy:
+            return self.__deepcopy__({})
+        return self.__copy__()
