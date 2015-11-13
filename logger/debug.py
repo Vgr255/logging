@@ -3,10 +3,29 @@
 import collections
 import inspect
 import sys
+import gc
 
 arguments = collections.namedtuple("arguments",
             "name value checker annotation")
 
+def get_function():
+    """Return the function you are currently in."""
+
+    funcs = []
+
+    frame = sys._getframe(1)
+    code = frame.f_code
+    fglobals = frame.f_globals
+
+    for func in gc.get_referrers(func_code):
+        if inspect.isfunction(func) or inspect.ismethod(func):
+            if func.__code__ is code and func.__globals__ is fglobals:
+                funcs.append(func)
+
+    assert funcs
+
+    if len(funcs) == 1:
+        return funcs[0]
 def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
                    HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
     """Parse the function and method definitions. This is recursive.
