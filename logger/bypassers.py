@@ -405,7 +405,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __deepcopy__(self, memo):
         """Return a deep copy of self."""
-        cls = self.__class__() # still todo
+        new = self.__class__() # still todo
 
     # The following is the OLD CODE of the update method!
     # It does NOT work with the current implementation
