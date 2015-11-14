@@ -92,7 +92,13 @@ class Viewer:
                     yield tuple(concat)
 
 class CreateViewer:
-    """Create a view object."""
+    """Create a view object. This is meant for internal use.
+
+    This class is used to dynamically create the view objects that are
+    bound to the various methods on Bypassers classes. This internally
+    uses the Viewer class to display the objects when called.
+
+    """
 
     instance = None
     owner = object
