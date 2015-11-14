@@ -76,4 +76,11 @@ class Test(unittest.TestCase):
         self.assertIsNone(logger.decorators.log_usage._default_handler)
         # still to-do
 
+    ### Debug functions
+
+    def test_get_function(self):
+        self.assertIs(logger.debug.get_function(), type(self).test_get_function)
+        def inner():
+            self.assertIs(logger.debug.get_function(1), type(self).test_get_function)
+        inner()
 unittest.main()
