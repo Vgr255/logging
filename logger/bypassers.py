@@ -53,7 +53,6 @@ class NoValue:
         """Return False no matter what."""
         return False
 
-@Protected
 class Viewer: # TODO: set-like methods
     """Return a view object over the items of the instance."""
 
@@ -134,7 +133,6 @@ class CreateViewer:
         self.name = owner.__name__
         return self
 
-    @Viewer.allow
     def __call__(self, *args):
         """Return an iterator over the items in the mapping."""
         if args and self.instance is not None or len(args) > 1:
