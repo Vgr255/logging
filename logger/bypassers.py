@@ -64,7 +64,7 @@ class Viewer: # TODO: set-like methods
 
     def __repr__(self):
         """Return a view of the items."""
-        return "%s(%s)" % (self.value, [repr(x) for x in self])
+        return "%s([%s])" % (self.value, ", ".join(repr(x) for x in self))
 
     def __len__(self):
         """Return the number of items self will return."""
@@ -460,11 +460,9 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __repr__(self):
         """Accurate representation of self."""
-        display = []
-        for key in self.__mapping__:
-            for values in self.__mapping__[key]:
-                display.append((key, *values))
-        return "%s(%s)" % (self.__class__.__name__, display)
+        mapping = self.__mapping__
+        return "%s([%s])" % (self.__class__.__name__,
+               ", ".join((k, *v) for k in mapping for v in mapping[k]))
 
     def __eq__(self, other):
         """Return True if self and other are equivalent, False otherwise."""
