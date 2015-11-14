@@ -484,6 +484,7 @@ class Bypassers(metaclass=BypassersMeta):
 
 
     def copy(self, deepcopy=True):
+        """Return a deep or shallow copy of self, defaulting to deep."""
         if deepcopy:
             return self.__deepcopy__({})
         return self.__copy__()
