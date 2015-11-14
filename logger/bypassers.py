@@ -6,7 +6,14 @@ import collections
 import types
 import enum
 
-from .decorators import attribute, DescriptorProperty, Singleton, Protected
+from .decorators import (
+
+    attribute,
+    DescriptorProperty,
+    Singleton,
+    Protected,
+
+)
 
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
