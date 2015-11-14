@@ -125,6 +125,87 @@ class Viewer: # TODO: set-like methods
         """Return a reverse iterator over the items in the instance."""
         return self.__iter__(factory=reversed)
 
+    def __eq__(self, other):
+        """Return True if self == other, False otherwise."""
+        try:
+            it = iter(other)
+        except TypeError:
+            return False
+
+        for item in self:
+            try:
+                if item != next(it):
+                    return False
+            except StopIteration:
+                return False
+
+        try:
+            next(it)
+        except StopIteration:
+            return True
+
+        return False
+
+    def __ne__(self, other):
+        """Return True if self != other, False otherwise."""
+        try:
+            it = iter(other)
+        except TypeError:
+            return True
+
+        for item in self:
+            try:
+                if item == next(it):
+                    return False
+            except StopIteration:
+                return True
+
+        try:
+            next(it)
+        except StopIteration:
+            return False
+
+        return True
+
+    def __lt__(self, other):
+        """Return True if self < other, False otherwise."""
+        if self == other:
+            return False
+
+        for item in self:
+            try:
+                if item not in other:
+                    return False
+            except TypeError:
+                return NotImplemented
+
+        return True
+
+    def __le__(self, other):
+        """Return True if self <= other, False otherwise."""
+        if self == other:
+            return True
+
+        return self.__lt__(other)
+
+    def __gt__(self, other):
+        """Return True if self > other, False otherwise."""
+        if self == other:
+            return False
+
+        value = self.__le__(other)
+        if value is NotImplemented:
+            return NotImplemented
+
+        return not value
+
+    def __ge__(self, other):
+        """Return True if self >= other, False otherwise."""
+        if self == other:
+            return True
+
+        return self.__gt__(other)
+
 class CreateViewer:
     """Create a view object. This is meant for internal use.
 
