@@ -83,4 +83,5 @@ class Test(unittest.TestCase):
         def inner():
             self.assertIs(logger.debug.get_function(1), type(self).test_get_function)
         inner()
+
 unittest.main()

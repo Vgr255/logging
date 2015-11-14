@@ -429,7 +429,6 @@ class DescriptorProperty(MetaProperty):
     def __get__(self, instance, owner):
         return self.__func__(instance, owner)
 
-
 class Singleton(type):
     """Create a unique name (similar to None).
 
