@@ -70,6 +70,14 @@ class Viewer: # TODO: set-like methods
         """Return the number of items self will return."""
         return len(self.instance)
 
+    def __contains__(self, item):
+        """Return True if item is in self, False otherwise."""
+        for value in self:
+            if value == item:
+                return True
+
+        return False
+
     def __iter__(self, factory=iter):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
