@@ -347,6 +347,9 @@ class BypassersMeta(type):
 
         cls.__names__ = tuple(x[0] for x in attr["items"])
 
+        cls.__self__ = None
+        cls.__objclass__ = object
+
         for sub, pos, _ in attr["items"]:
             setattr(cls, sub, CreateViewer(sub, pos))
 
@@ -420,6 +423,20 @@ class Bypassers(metaclass=BypassersMeta):
         self.__mapping__ = collections.OrderedDict()
 
         self.update(*names)
+
+    def __get__(self, instance, owner):
+        """Bind the instance to self."""
+        self.__self__ = instance
+        self.__objclass__ = owner
+        return self
+
+    def __set__(self, instance, value):
+        """Add a new value to the bypasser."""
+        raise NotImplementedError # TODO
+
+    def __delete__(self, instance):
+        """Delete the bypasser from the instance."""
+        raise AttributeError("cannot delete a bypasser")
 
     def __iter__(self):
         """Iterate over the items of self."""
