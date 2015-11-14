@@ -104,9 +104,9 @@ class CreateViewer:
         self.position = index
 
     @DescriptorProperty
-    def __doc__(self, cls):
+    def __doc__(self, cls, doc=__doc__):
         if self is None:
-            return "Create a view object."
+            return doc
         return "Return all the %s of the %s class." % (self.value, self.name)
 
     def __repr__(self):
