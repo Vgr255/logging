@@ -429,7 +429,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def update(self, *names):
         """Update the bindings with the given items."""
-        items = self.__class__.attributes["items"]
+        #items = self.__class__.attributes["items"]
         for name in names:
             item = (name,)
             if hasattr(name, "items"):
