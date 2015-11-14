@@ -47,7 +47,7 @@ class NoValue:
         return False
 
 @Protected
-class Viewer:
+class Viewer: # TODO: set-like methods
     """Return a view object over the items of the instance."""
 
     def __init__(self, name, value, position, instance):
@@ -217,6 +217,7 @@ class BypassersMeta(type):
             if not x[0].islower():
                 raise ValueError("names must be lowercased")
 
+        # TODO: Remove this restriction
         if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
             raise ValueError("need at least 'keys', 'values', and 'items'")
 
