@@ -70,32 +70,36 @@ class Viewer: # TODO: set-like methods
         """Return the number of items self will return."""
         return len(self.instance)
 
-    def __iter__(self):
+    def __iter__(self, factory=iter):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
         item_length = self.instance.__item_length__
         if self.position == (0,): # short-circuit for common use of keys
             if mapping:
-                yield from mapping
+                yield from factory(mapping)
 
         elif self.position == tuple(range(1, item_length+1)): # common use of values
-            for key in mapping:
+            for key in factory(mapping):
                 if mapping[key]:
-                    yield from mapping[key]
+                    yield from factory(mapping[key])
 
         elif self.position == tuple(range(item_length+1)): # commonly items
-            for key in mapping:
-                for values in mapping[key]:
+            for key in factory(mapping):
+                for values in factory(mapping[key]):
                     yield (key, *values)
 
         else:
-            for key in mapping:
-                for values in mapping[key]:
+            for key in factory(mapping):
+                for values in factory(mapping[key]):
                     all_values = (key, *values)
                     concat = []
                     for i in self.position:
                         concat.append(all_values[i])
                     yield tuple(concat)
+
+    def __reversed__(self):
+        """Return a reverse iterator over the items in the instance."""
+        return self.__iter__(factory=reversed)
 
 class CreateViewer:
     """Create a view object. This is meant for internal use.
