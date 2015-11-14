@@ -133,6 +133,12 @@ class CreateViewer:
         self.name = owner.__name__
         return self
 
+    def __set__(self, instance, value):
+        raise AttributeError("cannot overwrite view object")
+
+    def __delete__(self, instance):
+        raise AttributeError("cannot delete view object")
+
     def __call__(self, *args):
         """Return an iterator over the items in the mapping."""
         if args and self.instance is not None or len(args) > 1:
