@@ -58,7 +58,7 @@ class Viewer:
 
     def __repr__(self):
         """Return a view of the items."""
-        return "%s(%s)" % (self.name, [repr(x) for x in self])
+        return "%s(%s)" % (self.value, [repr(x) for x in self])
 
     def __len__(self):
         """Return the number of items self will return."""
@@ -67,16 +67,17 @@ class Viewer:
     def __iter__(self):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
+        item_length = self.instance.__item_length__
         if self.position == (0,): # short-circuit for common use of keys
             if mapping:
                 yield from mapping
 
-        elif self.position == tuple(range(1, len(self)+1)): # common use of values
+        elif self.position == tuple(range(1, item_length+1)): # common use of values
             for key in mapping:
                 if mapping[key]:
                     yield from mapping[key]
 
-        elif self.position == tuple(range(len(self)+1)): # commonly items
+        elif self.position == tuple(range(item_length+1)): # commonly items
             for key in mapping:
                 for values in mapping[key]:
                     yield (key, *values)
@@ -231,7 +232,7 @@ class BypassersMeta(type):
 
         return cls
 
-    def __call__(cls, names=NoValue):
+    def __call__(cls, *names):
         """Create a new Bypassers instance."""
 
         if cls is Bypassers or cls in cls.__class__.classes["feature"]:
@@ -248,8 +249,7 @@ class BypassersMeta(type):
                 raise TypeError("__init__() should return None, not %r" %
                                 ret.__class__.__name__)
 
-        if names is not NoValue:
-            self.update(*names)
+        self.update(*names)
 
         return self
 
