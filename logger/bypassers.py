@@ -334,8 +334,6 @@ class BypassersMeta(type):
                 raise ValueError("%r: name already exists" % x[0])
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
-            if not x[0].islower():
-                raise ValueError("names must be lowercased")
 
         cls = super().__new__(meta, name, bases, original)
 
