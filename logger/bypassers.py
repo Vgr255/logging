@@ -359,27 +359,6 @@ class BypassersMeta(type):
 
         return cls
 
-    def __call__(cls, *names):
-        """Create a new Bypassers instance."""
-
-        if cls is Bypassers or cls in cls.__class__.classes["feature"]:
-            raise TypeError("the %s class cannot be called directly" %
-                            cls.__name__)
-
-        self = cls.__new__(cls)
-
-        self.__mapping__ = collections.OrderedDict()
-
-        if isinstance(self, cls):
-            ret = cls.__init__(self)
-            if ret is not None:
-                raise TypeError("__init__() should return None, not %r" %
-                                ret.__class__.__name__)
-
-        self.update(*names)
-
-        return self
-
     def __repr__(cls):
         """Return a string of itself."""
         return "<bypasser %r>" % cls.__name__
@@ -427,20 +406,24 @@ class Bypassers(metaclass=BypassersMeta):
     or without iterables, and with or without keyword arguments. If
     passing keyword arguments, this can only affect one setting.
 
-    If overriding methods, please note that `__init__` does not
-    actually get any of the passed in arguments; instead, they are
-    passed to the `update` (for iterables) and `extend` (for keyword
-    arguments) methods, after `__init__` is called. Both the `__new__`
-    and `__init__` method will be called without any argument, except
-    the class for `__new__` and the instance for `__init__`. Following
-    normal Python rules, `__init__` will only be called if `__new__`
-    returns an instance of the passed-in class.
-
     """
 
     @attribute
     def __mapping__(self):
         """Underlying OrderedDict mapping."""
+
+    def __new__(cls, *names):
+        """Create a new bypasser instance."""
+        if cls is Bypassers or cls in type(cls).classes["feature"]:
+            raise TypeError("cannot instantiate the %r class" % cls.__name__)
+
+        return super().__new__(cls)
+
+    def __init__(self, *names):
+        """Initialize the instance."""
+        self.__mapping__ = collections.OrderedDict()
+
+        self.update(*names)
 
     def __iter__(self):
         """Iterate over the items of self."""
