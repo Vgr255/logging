@@ -337,10 +337,6 @@ class BypassersMeta(type):
             if not x[0].islower():
                 raise ValueError("names must be lowercased")
 
-        # TODO: Remove this restriction
-        if not {"keys", "values", "items"} < set(x[0] for x in attr["items"]):
-            raise ValueError("need at least 'keys', 'values', and 'items'")
-
         cls = super().__new__(meta, name, bases, original)
 
         meta.classes["subclass"].append(cls)
@@ -526,8 +522,9 @@ class Bypassers(metaclass=BypassersMeta):
         items = self.__attr__["items"]
         for i, name in enumerate(names):
             item = (name,)
-            if hasattr(name, "items"):
-                item = name.items()
+            if hasattr(name, "__mapping__"):
+                item = Viewer(self.__class__.__name__, "<update>",
+                              tuple(range(self.__item_length__+1)), self)
 
     def update(self, *names):
         """Update the bindings with the given items."""
