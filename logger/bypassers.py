@@ -489,7 +489,9 @@ class Bypassers(metaclass=BypassersMeta):
             return self.__deepcopy__({})
         return self.__copy__()
 
-
+    def clear(self):
+        """Remove all items from the Bypasser."""
+        self.__mapping__.clear()
 
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
