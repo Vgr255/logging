@@ -632,6 +632,18 @@ NOTES = """
 
 __mapping__     DONE    underlying OrderedDict mapping
 __item_length__ DONE    number of items in the Bypasser
+__attr__        DONE    class-level attributes
+__names__       DONE    view object names
+
+__self__        DONE    instance the bypasser is bound to
+__objclass__    DONE    class the bypasser is bound to
+
+__new__         DONE    create a new instance and prevent illegal instantiation
+__init__        DONE    initialize the instance
+
+__get__         DONE    get the instance and class
+__set__                 set a new value to the bypasser
+__delete__      DONE    delete the bypasser
 
 __iter__        DONE    iter(bypasser) -> iterator of settings
 __reversed__    DONE    reversed(bypasser) -> reversed iterator of settings
