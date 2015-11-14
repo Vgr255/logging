@@ -6,7 +6,7 @@ import collections
 import types
 import enum
 
-from .decorators import attribute, DescriptorProperty, Singleton
+from .decorators import attribute, DescriptorProperty, Singleton, Protected
 
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
@@ -46,6 +46,7 @@ class NoValue:
         """Return False no matter what."""
         return False
 
+@Protected
 class Viewer:
     """Return a view object over the items of the instance."""
 
@@ -119,6 +120,7 @@ class CreateViewer:
         self.name = owner.__name__
         return self
 
+    @Viewer.allow
     def __call__(self, *args):
         """Return an iterator over the items in the mapping."""
         if args and self.instance is not None or len(args) > 1:
