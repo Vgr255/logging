@@ -377,7 +377,7 @@ class attribute:
         return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
                 self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
 
-class MetaProperty:
+class MetaProperty(attribute):
     """Create and return a meta-property.
 
     A meta-property is a property that works directly on the class.
@@ -397,15 +397,11 @@ class MetaProperty:
 
     """
 
-    def __init__(self, func, doc=None, name=None):
-        self.__func__ = func
-        self.__doc__ = doc or func.__doc__
-        self.__name__ = name or func.__name__
-
     def __get__(self, instance, owner):
+        self.__objclass__ = self.__objclass__ or owner
         return self.__func__(owner)
 
-class DescriptorProperty(MetaProperty):
+class DescriptorProperty(attribute):
     """Create and return a descriptor property.
 
     A descriptor property calls the function with the instance as first
@@ -428,6 +424,7 @@ class DescriptorProperty(MetaProperty):
     """
 
     def __get__(self, instance, owner):
+        self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance, owner)
 
 class Singleton(type):
