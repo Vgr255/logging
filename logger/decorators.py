@@ -373,9 +373,9 @@ class attribute:
             return self
         return self.__func__.__get__(instance, owner)
 
-    def __repr__(self):
-        return (self.__doc__ or "<attribute %r of %r objects>" %
-               (self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
+    def __repr__(self, text="attribute"):
+        return (self.__doc__ or "<%s %r of %r objects>" % (text, self.__name__,
+                getattr(self.__objclass__, "__name__", "<unknown>")))
 
 class MetaProperty:
     """Create and return a meta-property.
@@ -500,6 +500,36 @@ class Singleton(type):
 
     def __init__(*args, **kwargs):
         """Catch keyword arguments."""
+
+class readonly(attribute):
+    """Make an instance attribute read-only."""
+
+    done = False
+
+    def __get__(self, instance, owner):
+        self.__objclass__ = self.__objclass__ or owner
+        if instance is None:
+            return self
+        try:
+            get = self.__func__.__get__
+        except AttributeError:
+            return self.__func__
+
+        return get(instance, owner)
+
+    def __set__(self, instance, value):
+        if self.done:
+            raise AttributeError("readonly attribute")
+
+        instance.__dict__[self.__name__] = value
+        self.__func__ = value
+        self.done = True
+
+    def __delete__(self, instance):
+        raise AttributeError("readonly attribute")
+
+    def __repr__(self, text="readonly attribute"):
+        return super().__repr__(text=text)
 
 class Protected:
     """Prevent a callable from being called by unauthorized means."""
