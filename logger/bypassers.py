@@ -9,7 +9,7 @@ import enum
 
 from .decorators import (
 
-    attribute,
+    readonly,
     DescriptorProperty,
     Singleton,
     Protected,
@@ -406,7 +406,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
-    @attribute
+    @readonly
     def __mapping__(self):
         """Underlying OrderedDict mapping."""
 
