@@ -429,6 +429,46 @@ class DescriptorProperty(attribute):
         self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance, owner)
 
+class readonly(attribute):
+    """Make an instance attribute read-only."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.funcs = []
+
+    def __get__(self, instance, owner):
+        self.__objclass__ = self.__objclass__ or owner
+        if instance is None:
+            return self
+
+        for inst, val in self.funcs:
+            if inst() is instance:
+                break
+        else:
+            raise AttributeError("cannot read attribute")
+
+        try:
+            get = val.__get__
+        except AttributeError:
+            return val
+
+        return get(instance, owner)
+
+    def __set__(self, instance, value):
+        for inst, val in self.funcs:
+            if inst() is instance:
+                raise AttributeError("readonly attribute")
+
+        self.funcs.append((weakref.ref(instance, self.cleanup), value))
+
+    def __delete__(self, instance):
+        raise AttributeError("readonly attribute")
+
+    def cleanup(self):
+        for inst, val in self.funcs.copy():
+            if inst() is None:
+                self.funcs.remove((inst, val))
+
 class Singleton(type):
     """Create a unique name (similar to None).
 
@@ -499,46 +539,6 @@ class Singleton(type):
 
     def __init__(*args, **kwargs):
         """Catch keyword arguments."""
-
-class readonly(attribute):
-    """Make an instance attribute read-only."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.funcs = []
-
-    def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
-        if instance is None:
-            return self
-
-        for inst, val in self.funcs:
-            if inst() is instance:
-                break
-        else:
-            raise AttributeError("cannot read attribute")
-
-        try:
-            get = val.__get__
-        except AttributeError:
-            return val
-
-        return get(instance, owner)
-
-    def __set__(self, instance, value):
-        for inst, val in self.funcs:
-            if inst() is instance:
-                raise AttributeError("readonly attribute")
-
-        self.funcs.append((weakref.ref(instance, self.cleanup), value))
-
-    def __delete__(self, instance):
-        raise AttributeError("readonly attribute")
-
-    def cleanup(self):
-        for inst, val in self.funcs.copy():
-            if inst() is None:
-                self.funcs.remove((inst, val))
 
 class Protected:
     """Prevent a callable from being called by unauthorized means."""
