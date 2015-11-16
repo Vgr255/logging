@@ -403,7 +403,13 @@ class MetaProperty(attribute):
         self.__objclass__ = self.__objclass__ or owner
         return self.__func__(owner)
 
-class DescriptorProperty(attribute):
+    def __set__(self, instance, value):
+        raise AttributeError("readonly attribute")
+
+    def __delete__(self, instance):
+        raise AttributeError("readonly attribute")
+
+class DescriptorProperty(MetaProperty):
     """Create and return a descriptor property.
 
     A descriptor property calls the function with the instance as first
@@ -429,7 +435,7 @@ class DescriptorProperty(attribute):
         self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance, owner)
 
-class readonly(attribute):
+class readonly(MetaProperty):
     """Make an instance attribute read-only."""
 
     def __init__(self, *args, **kwargs):
@@ -460,9 +466,6 @@ class readonly(attribute):
                 raise AttributeError("readonly attribute")
 
         self.funcs.append((weakref.ref(instance, self.cleanup), value))
-
-    def __delete__(self, instance):
-        raise AttributeError("readonly attribute")
 
     def cleanup(self):
         for inst, val in self.funcs.copy():
