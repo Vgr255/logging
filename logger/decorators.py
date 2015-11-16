@@ -4,6 +4,8 @@
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
            "total_decorate", "attribute", "Singleton"]
 
+import weakref
+
 from logger import debug
 
 # Handle Python < 3.5
@@ -501,30 +503,42 @@ class Singleton(type):
 class readonly(attribute):
     """Make an instance attribute read-only."""
 
-    done = False
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.funcs = []
 
     def __get__(self, instance, owner):
         self.__objclass__ = self.__objclass__ or owner
         if instance is None:
             return self
+
+        for inst, val in self.funcs:
+            if inst() is instance:
+                break
+        else:
+            raise AttributeError("cannot read attribute")
+
         try:
-            get = self.__func__.__get__
+            get = val.__get__
         except AttributeError:
-            return self.__func__
+            return val
 
         return get(instance, owner)
 
     def __set__(self, instance, value):
-        if self.done:
-            raise AttributeError("readonly attribute")
+        for inst, val in self.funcs:
+            if inst() is instance:
+                raise AttributeError("readonly attribute")
 
-        instance.__dict__[self.__name__] = value
-        self.__func__ = value
-        self.done = True
+        self.funcs.append((weakref.ref(instance, self.cleanup), value))
 
     def __delete__(self, instance):
         raise AttributeError("readonly attribute")
 
+    def cleanup(self):
+        for inst, val in self.funcs.copy():
+            if inst() is None:
+                self.funcs.remove((inst, val))
 
 class Protected:
     """Prevent a callable from being called by unauthorized means."""
