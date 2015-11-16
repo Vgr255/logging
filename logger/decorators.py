@@ -373,9 +373,9 @@ class attribute:
             return self
         return self.__func__.__get__(instance, owner)
 
-    def __repr__(self, text="attribute"):
-        return (self.__doc__ or "<%s %r of %r objects>" % (text, self.__name__,
-                getattr(self.__objclass__, "__name__", "<unknown>")))
+    def __repr__(self):
+        return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
+                self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
 
 class MetaProperty:
     """Create and return a meta-property.
@@ -528,8 +528,6 @@ class readonly(attribute):
     def __delete__(self, instance):
         raise AttributeError("readonly attribute")
 
-    def __repr__(self, text="readonly attribute"):
-        return super().__repr__(text=text)
 
 class Protected:
     """Prevent a callable from being called by unauthorized means."""
