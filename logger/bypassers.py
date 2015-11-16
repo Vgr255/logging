@@ -9,10 +9,9 @@ import enum
 
 from .decorators import (
 
-    readonly,
     DescriptorProperty,
     Singleton,
-    Protected,
+    readonly,
 
 )
 
@@ -341,13 +340,8 @@ class BypassersMeta(type):
         meta.classes["subclass"].append(cls)
 
         cls.__attr__ = attr
-
         cls.__item_length__ = len(attr["values"])
-
         cls.__names__ = tuple(x[0] for x in attr["items"])
-
-        cls.__self__ = None
-        cls.__objclass__ = object
 
         for sub, pos, _ in attr["items"]:
             setattr(cls, sub, CreateViewer(sub, pos))
@@ -405,6 +399,9 @@ class Bypassers(metaclass=BypassersMeta):
     passing keyword arguments, this can only affect one setting.
 
     """
+
+    __self__ = None
+    __objclass__ = object
 
     @readonly
     def __mapping__(self):
