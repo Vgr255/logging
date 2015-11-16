@@ -467,9 +467,9 @@ class readonly(MetaProperty):
 
         self.funcs.append((weakref.ref(instance, self.cleanup), value))
 
-    def cleanup(self):
+    def cleanup(self, ref=None):
         for inst, val in self.funcs.copy():
-            if inst() is None:
+            if inst is ref or inst() is None:
                 self.funcs.remove((inst, val))
 
 class Singleton(type):
