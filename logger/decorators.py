@@ -520,9 +520,6 @@ class Singleton(type):
 
                 raise TypeError("Cannot create metaclass")
 
-        singleton.__qualname__ = singleton.__name__ = value.__name__
-        singleton.__module__ = value.__module__
-
         names = dict(value.__dict__)
 
         if "__repr__" not in names:
