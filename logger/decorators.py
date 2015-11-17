@@ -539,39 +539,3 @@ class Singleton(type):
 
     def __init__(*args, **kwargs):
         """Catch keyword arguments."""
-
-class Protected:
-    """Prevent a callable from being called by unauthorized means."""
-
-    instance = None
-    owner = object
-
-    def __init__(self, func):
-        self.func = func
-        self.allowed = []
-
-    def __get__(self, instance, owner):
-        self.instance = instance
-        self.owner = owner
-        return self
-
-    def __call__(self, *args, **kwargs):
-        func = debug.get_function(1)
-        if func is None:
-            raise TypeError("cannot call {0!r}".format(self.func.__name__))
-
-        err_msg = "{0!r} cannot call {1!r}"
-        if func not in self.allowed:
-            raise TypeError(err_msg.format(func.__name__, self.func.__name__))
-
-        try:
-            get = self.func.__get__
-        except AttributeError:
-            return self.func(*args, **kwargs)
-
-        return get(self.instance, self.owner)(*args, **kwargs)
-
-    def allow(self, func):
-        if func not in self.allowed:
-            self.allowed.append(func)
-        return func
