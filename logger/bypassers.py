@@ -535,9 +535,9 @@ class Bypassers(metaclass=BypassersMeta):
         items = self.__attr__["items"]
         for i, name in enumerate(names):
             item = (name,)
-            if hasattr(name, "__mapping__"):
-                item = Viewer(self.__class__.__name__, "<update>",
-                              tuple(range(self.__item_length__+1)), self)
+            if hasattr(name, "__mapping__") and hasattr(name, "__item_length__"):
+                item = Viewer(name.__class__.__name__, "<update>",
+                              tuple(range(name.__item_length__+1)), name)
 
     def update(self, *names):
         """Update the bindings with the given items."""
