@@ -463,7 +463,7 @@ class readonly(MetaProperty):
     def __set__(self, instance, value):
         for inst, val in self.funcs:
             if inst() is instance:
-                raise AttributeError("readonly attribute")
+                super().__set__(instance, value) # to AttributeError
 
         self.funcs.append((weakref.ref(instance, self.cleanup), value))
 
