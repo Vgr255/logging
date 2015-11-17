@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
         self.assertFalse(logger.bypassers.is_dunder("__spam___"))
         self.assertFalse(logger.bypassers.is_dunder("___foo__"))
         self.assertFalse(logger.bypassers.is_dunder("_"))
+        self.assertFalse(logger.bypassers.is_dunder(""))
 
     ### Decorators
 
@@ -78,6 +79,115 @@ class Test(unittest.TestCase):
     def test_log_usage(self):
         self.assertIsNone(logger.decorators.log_usage._default_handler)
         # still to-do
+
+    def test_attribute(self):
+        obj = _Object()
+        class C:
+            @logger.decorators.attribute
+            def attr(self):
+                return obj
+
+        self.assertIsInstance(C.attr, logger.decorators.attribute)
+        c = C()
+        self.assertIs(c.attr(), obj)
+        c.attr = "attribute"
+        self.assertIsNot(c.attr, obj)
+        self.assertEqual(c.attr, "attribute")
+
+        self.assertEqual(repr(C.attr), "<attribute 'attr' of 'C' objects>")
+        C.attr.__doc__ = "docstring"
+        self.assertEqual(repr(C.attr), "docstring")
+        self.assertEqual(C.attr.__name__, "attr")
+
+        class D:
+            @logger.decorators.attribute
+            def attr(self):
+                """Some attribute."""
+                return obj
+
+        self.assertEqual(repr(D.attr), "Some attribute.")
+        d = D()
+        self.assertNotEqual(repr(d.attr), "Some attribute.")
+
+    def test_meta_property(self):
+        obj = _Object()
+        class C:
+            @logger.decorators.MetaProperty
+            def attr(cls):
+                self.assertIs(cls, C)
+                return obj
+
+        c = C()
+        self.assertIs(C.attr, obj)
+        self.assertIs(c.attr, obj)
+
+        with self.assertRaises(AttributeError):
+            c.attr = "attribute"
+
+        with self.assertRaises(AttributeError):
+            del c.attr
+
+    def test_desc_property(self):
+        obj = _Object()
+        class C:
+            @logger.decorators.DescriptorProperty
+            def attr(inst, cls):
+                self.assertIsNone(inst)
+                self.assertIs(cls, C)
+                return obj
+
+        self.assertIs(C.attr, obj)
+
+        class D:
+            @logger.decorators.DescriptorProperty
+            def attr(inst, cls):
+                self.assertIs(inst, d)
+                self.assertIs(cls, D)
+                return obj
+
+        d = D()
+        self.assertIs(d.attr, obj)
+
+        with self.assertRaises(AttributeError):
+            d.attr = "attribute"
+
+        with self.assertRaises(AttributeError):
+            del d.attr
+
+    def test_readonly_attribute(self):
+        obj = _Object()
+        class C:
+            def __init__(s):
+                s.hello = obj
+            @logger.decorators.readonly
+            def hello(s):
+                pass
+
+        c = C()
+
+        with self.assertRaises(AttributeError):
+            c.hello = "hello"
+
+        with self.assertRaises(AttributeError):
+            del c.hello
+
+        self.assertIs(obj, c.hello)
+        c.__dict__["hello"] = None
+        self.assertIs(obj, c.hello)
+        del c.__dict__["hello"]
+        self.assertIs(obj, c.hello)
+
+    def test_singleton(self):
+        class C: pass
+
+        D = logger.decorators.Singleton(C)
+        self.assertIsNot(C, D)
+        self.assertIsNot(type(C), type(D))
+        self.assertIs(type(type(type(D))), logger.decorators.Singleton)
+        self.assertIs(D, type(D)())
+
+        with self.assertRaises(TypeError):
+            class E(type(D)): pass
 
     ### Debug functions
 
