@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# encoding: utf-8
 
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
            "total_decorate", "attribute", "MetaProperty",
