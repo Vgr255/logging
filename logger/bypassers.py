@@ -138,8 +138,8 @@ class Viewer: # TODO: set-like methods
 
         for item in self:
             try:
-                if item == next(it):
-                    return False
+                if item != next(it):
+                    return True
             except StopIteration:
                 return True
 
