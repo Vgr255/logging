@@ -77,22 +77,6 @@ class Viewer: # TODO: set-like methods
 
         return False
 
-    def __reduce__(self):
-        """Return state information for pickling."""
-        return type(self), (self.name, self.value, self.position, self.instance)
-
-    def __reduce_ex__(self, proto):
-        """Return advanced state information for pickling."""
-        return type(self), (self.name, self.value, self.position, self.instance)
-
-    def __copy__(self):
-        """Return a shallow copy."""
-        return type(self)(self.name, self.value, self.position, self.instance.__copy__())
-
-    def __deepcopy__(self, memo):
-        """Return a deep copy."""
-        return type(self)(self.name, self.value, self.position, self.instance.__deepcopy__(memo))
-
     def __iter__(self, factory=iter):
         """Return a modular iterator over the items in the instance."""
         mapping = self.instance.__mapping__
