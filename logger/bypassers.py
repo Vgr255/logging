@@ -16,10 +16,6 @@ from .decorators import (
 
 __all__ = ["NoValue"] # the Bypassers get added to this later
 
-def get_id(x):
-    value = object.__repr__(x)
-    return value[value.rindex("0x"):-1]
-
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
     return name[:2] == name[-2:] == "__" and "_" not in (name[2:3], name[-3:-2])
@@ -204,31 +200,27 @@ class CreateViewer:
 
     """
 
-    instance = None
-    owner = object
     name = "<unknown>"
 
     def __init__(self, sub, index):
         """Create a new view object."""
-        self.value = sub
+        self.__name__ = sub
         self.position = index
 
     @DescriptorProperty
     def __doc__(self, cls, doc=__doc__):
         if self is None:
             return doc
-        return "Return all the %s of the %s class." % (self.value, self.name)
+        return "Return all the %s of the %s class." % (self.__name__, self.name)
 
     def __repr__(self):
         """Return the representation of self."""
-        if self.instance is None:
-            return "<%r view object of %r objects>" % (self.value, self.name)
-        return "<bound view object %r of %r objects at %s>" % (self.value, self.name, get_id(self))
+        return "<%r view object of %r objects>" % (self.__name__, self.name)
 
     def __get__(self, instance, owner):
-        self.instance = instance
-        self.owner = owner
         self.name = owner.__name__
+        if instance is not None:
+            return types.MethodType(self, instance)
         return self
 
     def __set__(self, instance, value):
@@ -237,21 +229,9 @@ class CreateViewer:
     def __delete__(self, instance):
         raise AttributeError("cannot delete view object")
 
-    def __call__(self, *args):
+    def __call__(self, instance):
         """Return an iterator over the items in the mapping."""
-        if args and self.instance is not None or len(args) > 1:
-            raise TypeError("%s() takes no arguments (%i given)" % (self.value, len(args) - 1))
-        if not args and self.instance is None:
-            raise TypeError("descriptor %r of %r object needs an argument" % (self.value, self.name))
-        if args:
-            instance = args[0]
-        else:
-            instance = self.instance
-        if not isinstance(instance, self.owner):
-            raise TypeError("descriptor %r requires a %r object but received a %r" %
-                            (self.value, self.name, type(instance).__name__))
-
-        return Viewer(self.name, self.value, self.position, instance)
+        return Viewer(self.name, self.__name__, self.position, instance)
 
 Bypassers = NoValue # temporary value until it is created
 
