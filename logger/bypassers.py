@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Q: Are you just defining a bunch of methods for the sake of it?
+# A: Yes
+
 """Implementation of the Bypassers handlers."""
 
 import collections
