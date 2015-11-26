@@ -176,6 +176,9 @@ class Test(unittest.TestCase):
         del c.__dict__["hello"]
         self.assertIs(obj, c.hello)
 
+        # Fixed issue where multiple instances wouldn't work
+        C()
+
     def test_singleton(self):
         class C: pass
 
