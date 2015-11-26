@@ -656,6 +656,8 @@ __reversed__    DONE    reversed(bypasser) -> reversed iterator of settings
 __repr__        DONE    repr(bypasser) -> BypasserClass(["setting", {"types"}, (None, "pairs"), "module", "attr"], [...])
 __str__                 str(bypasser) -> [(setting="setting", types={"types"}, pairs=(...), module=..., attr=...), (...)]
 
+__format__              format(bypasser, format_spec) -> various representations based on format_spec (same as repr() if empty)
+
 __eq__          DONE    bypasser == other -> True if they have the same items, False otherwise
 __ne__          DONE    bypasser != other -> not (bypasser == other)
 __lt__
@@ -667,6 +669,9 @@ __ge__
 __len__         DONE    len(bypasser) -> number of settings
 
 __dir__         DONE    dir(bypasser) -> methods and view objects | DEFAULT IMPLEMENTATION
+
+__setattr__     DONE    prevent creating new instance variables
+__delattr__     DONE    prevent deleting anything from the instance
 
 __getitem__
         SINGLE          bypasser["setting"] -> return a list of everything bound to this setting
@@ -681,14 +686,29 @@ __getitem__
 
         ELLIPSIS        bypasser[...] (Ellipsis) -> list everything bound (no setting)
 
+__setitem__
+        SINGLE          bypasser["setting"] = x -> rename the setting to x
+
+        TUPLE           bypasser["setting1", "setting2", ...] = x -> merge all items from all settings into this one, renaming it to x
+
+        SLICE           bypasser[start:stop:end] = x -> merge all items from the locations into x
+
+        ELLIPSIS        bypasser[...] = x -> merge every setting into setting x
+
 __delitem__
         SINGLE          del bypasser["setting"] -> remove all bindings of 'setting'; raise KeyError if not present
 
         TUPLE           del bypasser["setting1", "setting2", ...] -> remove all bindings of all settings; ignore if not present
 
+        SLICE           del bypasser[start:stop:index] -> delete settings and bindings at relevant indexes
+
+        ELLIPSIS        del bypasser[...] (Ellipsis) -> delete everything
+
 __call__        DONE    bypasser(index) -> return the setting at index
 
 __contains__    DONE    x in bypasser -> True if x is a setting, False otherwise
+
+Implementation detail: For every magic binary operation, their reversed equivalent and the in-place ones, only the in-place one should have the logic; the others should call it
 
 __add__                 bypasser + other -> Add all settings from other into bypasser, order matching other's
 __radd__                other + bypasser -> Add all settings from other into bypasser, order matching bypasser's
