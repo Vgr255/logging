@@ -456,6 +456,32 @@ class Bypassers(metaclass=BypassersMeta):
                     return setting
         raise IndexError("bypasser index out of range")
 
+    def __reduce__(self):
+        """Return information for pickling."""
+        return self.__reduce_ex__(self, 2)
+
+    def __reduce_ex__(self, proto):
+        """Tool for advanced pickling."""
+        return self.__class__, tuple(self.items())
+
+    def __copy__(self):
+        """Return a shallow copy of self."""
+        return self.__class__(*self.items())
+
+    def __deepcopy__(self, memo):
+        """Return a deep copy of self."""
+        new = self.__class__() # still todo
+
+    def __setattr__(self, item, value):
+        """Prevent creation of invalid variables."""
+        if item not in dir(self):
+            raise AttributeError("cannot create instance variable %r" % item)
+        super().__setattr__(item, value)
+
+    def __delattr__(self, item):
+        """Disallow deleting instance variables."""
+        raise AttributeError("cannot delete instance variable %r" % item)
+
     def __add__(self, other):
         """Return a new instance with settings from other."""
         return self.__iadd__(other, copy=True)
