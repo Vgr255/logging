@@ -641,12 +641,13 @@ __names__       DONE    view object names
 
 __self__        DONE    instance the bypasser is bound to
 __objclass__    DONE    class the bypasser is bound to
+__max_items__   DONE    maximum number of items
 
 __new__         DONE    create a new instance and prevent illegal instantiation
 __init__        DONE    initialize the instance
 
 __get__         DONE    get the instance and class
-__set__                 set a new value to the bypasser
+__set__         DONE    set a new value to the bypasser
 __delete__      DONE    delete the bypasser
 
 __iter__        DONE    iter(bypasser) -> iterator of settings
