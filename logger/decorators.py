@@ -6,8 +6,6 @@ __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
 
 import weakref
 
-from logger import debug
-
 # Handle Python < 3.5
 try:
     RecursionError
