@@ -505,22 +505,22 @@ class Bypassers(metaclass=BypassersMeta):
 
         return NotImplemented
 
-        # XXX TODO
+    def __sub__(self, other):
+        """Return a new instance with all items but those in other."""
+        return self.__isub__(other, copy=True)
 
-    def __reduce__(self):
-        return self.__reduce_ex__(self, 2)
+    def __rsub__(self, other):
+        """Return a new instance with all items but those in other."""
+        return self.__isub__(other, copy=True)
 
-    def __reduce_ex__(self, proto):
-        """Tool for advanced pickling."""
-        return self.__class__, tuple(self.items())
-
-    def __copy__(self):
-        """Return a shallow copy of self."""
-        return self.__class__(*self.items())
-
-    def __deepcopy__(self, memo):
-        """Return a deep copy of self."""
-        new = self.__class__() # still todo
+    def __isub__(self, other, copy=False):
+        """Remove all items present in other from self."""
+        if hasattr(other, "__mapping__"):
+            if copy:
+                self = self.copy(deepcopy=True)
+            for setting in other:
+                if setting in self:
+                    if False: pass # temporary so the code runs
 
     # The following is the OLD CODE of the update method!
     # It does NOT work with the current implementation
