@@ -542,6 +542,8 @@ class Bypassers(metaclass=BypassersMeta):
             if hasattr(name, "__mapping__") and hasattr(name, "__item_length__"):
                 item = Viewer(name.__class__.__name__, "<update>",
                               tuple(range(name.__item_length__+1)), name)
+            elif hasattr(name, "__mapping__") or hasattr(name, "__item_length__"):
+                raise TypeError("what the func") # uh...
 
     def update(self, *names):
         """Update the bindings with the given items."""
