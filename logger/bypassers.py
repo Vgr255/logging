@@ -367,6 +367,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     __self__ = None
     __objclass__ = object
+    __max_items__ = None
 
     @readonly
     def __mapping__(self):
@@ -393,10 +394,19 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __set__(self, instance, value):
         """Add a new value to the bypasser."""
-        raise NotImplementedError # TODO
+        if self.__self__ is not instance:
+            self.__self__ = instance
+            self.__objclass__ = type(instance)
+        try:
+            self.__max_items__ = int(value)
+        except TypeError:
+            raise AttributeError("cannot change value of bypasser") from None
 
     def __delete__(self, instance):
         """Delete the bypasser from the instance."""
+        if self.__self__ is not instance:
+            self.__self__ = instance
+            self.__objclass__ = type(instance)
         raise AttributeError("cannot delete a bypasser")
 
     def __iter__(self):
