@@ -59,7 +59,7 @@ class Viewer: # TODO: set-like methods
 
     def __repr__(self):
         """Return a view of the items."""
-        return "%s([%s])" % (self.value, ", ".join(repr(x) for x in self))
+        return "%s%s([%s])" % (self.name, self.value.title(), ", ".join(repr(x) for x in self))
 
     def __contains__(self, item):
         """Return True if item is in self, False otherwise."""
