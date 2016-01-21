@@ -199,11 +199,10 @@ class CreateViewer:
 
     """
 
-    name = "<unknown>"
-
-    def __init__(self, sub, index):
+    def __init__(self, sub, index, name):
         """Create a new view object."""
         self.__name__ = sub
+        self.name = name
         self.position = index
 
     @DescriptorProperty
@@ -312,7 +311,7 @@ class BypassersMeta(type):
         cls.__names__ = tuple(x[0] for x in attr["items"])
 
         for sub, pos, _ in attr["items"]:
-            setattr(cls, sub, CreateViewer(sub, pos))
+            setattr(cls, sub, CreateViewer(sub, pos, name))
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
