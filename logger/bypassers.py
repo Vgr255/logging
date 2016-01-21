@@ -231,8 +231,6 @@ class CreateViewer:
         """Return an iterator over the items in the mapping."""
         return Viewer(self.name, self.__name__, self.position, instance)
 
-Bypassers = NoValue # temporary value until it is created
-
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
 
@@ -272,7 +270,7 @@ class BypassersMeta(type):
             if base in meta.classes["subclass"]:
                 raise TypeError("cannot subclass %r" % base.__name__)
 
-        if Bypassers is NoValue and name == "Bypassers":
+        if name == "Bypassers" and namespace["__module__"] == __name__:
             meta.allowed[name] = set(namespace)
             return super().__new__(meta, name, bases, namespace)
 
