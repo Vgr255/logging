@@ -365,10 +365,6 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
-    __self__ = None
-    __objclass__ = object
-    __max_items__ = None
-
     @readonly
     def __mapping__(self):
         """Underlying OrderedDict mapping."""
@@ -388,25 +384,14 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __get__(self, instance, owner):
         """Bind the instance to self."""
-        self.__self__ = instance
-        self.__objclass__ = owner
         return self
 
     def __set__(self, instance, value):
-        """Add a new value to the bypasser."""
-        if self.__self__ is not instance:
-            self.__self__ = instance
-            self.__objclass__ = type(instance)
-        try:
-            self.__max_items__ = int(value)
-        except TypeError:
-            raise AttributeError("cannot change value of bypasser") from None
+        """Prevent changing the value of the bypasser."""
+        raise AttributeError("cannot change value of bypasser")
 
     def __delete__(self, instance):
-        """Delete the bypasser from the instance."""
-        if self.__self__ is not instance:
-            self.__self__ = instance
-            self.__objclass__ = type(instance)
+        """Prevent deleting the bypasser from an instance."""
         raise AttributeError("cannot delete a bypasser")
 
     def __iter__(self):
@@ -635,10 +620,6 @@ __mapping__     DONE    underlying OrderedDict mapping
 __item_length__ DONE    number of items in the Bypasser
 __attr__        DONE    class-level attributes
 __names__       DONE    view object names
-
-__self__        DONE    instance the bypasser is bound to
-__objclass__    DONE    class the bypasser is bound to
-__max_items__   DONE    maximum number of items
 
 __new__         DONE    create a new instance and prevent illegal instantiation
 __init__        DONE    initialize the instance
