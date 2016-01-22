@@ -37,7 +37,7 @@ class MetaLogger(type):
         if allowed_base:
             meta.allowed_bases.append(cls)
         if len(bases) > 1 and bases[0] not in meta.allowed_bases:
-            raise TypeError("improper base class: %r" % bases[0].__name__)
+            raise TypeError("improper base class: {!r}".format(bases[0].__name__))
         if name.startswith("Translated"):
             name = name[10:]
         if name.endswith("Logger"):
@@ -49,7 +49,7 @@ class MetaLogger(type):
 
     def __repr__(cls):
         """Return a string of itself."""
-        return "<logger %r>" % cls.__name__
+        return "<logger {!r}>".format(cls.__name__)
 
 class BaseLogger(metaclass=MetaLogger):
     """Base Logger class for your everyday needs.
@@ -99,11 +99,11 @@ class BaseLogger(metaclass=MetaLogger):
                     as certain versions of Windows, fail to interpret
                     %z properly). The timezone name will be the
                     three-letters abbreviation of the timezone,
-                    uppercased.. The time zone offset is a string with
+                    uppercased. The time zone offset is a string with
                     + or - following by 4 digits, like +0000 or -0500,
                     the digits being HHMM.
 
-        Default:    "[%Y-%m-%-d] (%H:%M:%S {tzoffset})"
+        Default:    "[%Y-%m-%d] (%H:%M:%S {tzoffset})"
 
     print_ts:
                     Boolean value to determine whether the timestamps
@@ -450,7 +450,7 @@ class TypeLogger(BaseLogger):
             for log in getter:
                 if (log == logall and type not in alines) or log is None:
                     continue
-                atypes = "type.%s - " % type if log == logall else ""
+                atypes = "type.{0} - ".format(type) if log == logall else ""
                 with open(log, "a", encoding="utf-8", errors="replace") as f:
                     for writer in output:
                         f.write("{0}{1}{2}\n".format(timestamp, atypes, writer))
@@ -850,7 +850,7 @@ class LevelLogger(BaseLogger):
             for log in getter:
                 if (log == logall and type not in alines) or log is None:
                     continue
-                atypes = "type.%s - " % type if log == logall else ""
+                atypes = "type.{0} - ".format(type) if log == logall else ""
                 with open(log, "a", encoding="utf-8", errors="replace") as f:
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
@@ -872,8 +872,9 @@ class LoggingLevels(types.SimpleNamespace):
     def __init__(self, *args, **kwargs):
         """Accept a dict as an optional positional argument."""
         if len(args) > 1:
-            raise TypeError("%s() takes at most 1 positional arguments but %i were given" %
-                           (self.__class__.__name__, len(args)))
+            raise TypeError(("{0}() takes at most 1 positional arguments but "
+                             "{1} were given").format(type(self).__name__,
+                                                      len(args)))
 
         if args:
             self.__dict__.update(args[0])
@@ -914,9 +915,9 @@ class LoggingLevels(types.SimpleNamespace):
             else:
                 identifiers.append("{0}={1!r}".format(key, self[key]))
 
-        identifiers[0] = "{%s}" % ", ".join(non_identifier)
+        identifiers[0] = "{{{0}}}".format(", ".join(non_identifier))
 
-        return "%s(%s)" % (self.__class__.__name__, ", ".join(identifiers))
+        return "{0}({1})".format(type(self).__name__, ", ".join(identifiers))
 
 class NamesLogger(LevelLogger):
     """Implement named levels logging.

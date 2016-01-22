@@ -11,7 +11,6 @@ import enum
 
 from .decorators import (
 
-    DescriptorProperty,
     Singleton,
     readonly,
 
@@ -62,7 +61,8 @@ class Viewer: # TODO: set-like methods
 
     def __repr__(self):
         """Return a view of the items."""
-        return "%s%s([%s])" % (self.name, self.value.title(), ", ".join(repr(x) for x in self))
+        return "{0}{1}([{2}])".format(self.name, self.value.title(),
+                                      ", ".join(repr(x) for x in self))
 
     def __contains__(self, item):
         """Return True if item is in self, False otherwise."""
@@ -201,19 +201,15 @@ class CreateViewer:
 
     def __init__(self, sub, index, name):
         """Create a new view object."""
-        self.__name__ = sub
-        self.name = name
         self.position = index
-
-    @DescriptorProperty
-    def __doc__(self, cls, doc=__doc__):
-        if self is None:
-            return doc
-        return "Return all the %s of the %s class." % (self.__name__, self.name)
+        self.name = name
+        self.__name__ = sub
+        self.__doc__ = "Return all the {0} of the {1} class.".format(sub, name)
 
     def __repr__(self):
         """Return the representation of self."""
-        return "<%r view object of %r objects>" % (self.__name__, self.name)
+        return "<{!r} view object of {!r} objects>".format(self.__name__,
+                                                           self.name)
 
     def __get__(self, instance, owner):
         self.name = owner.__name__
@@ -268,7 +264,7 @@ class BypassersMeta(type):
         """Create a new Bypassers class."""
         for base in bases:
             if base in meta.classes["subclass"]:
-                raise TypeError("cannot subclass %r" % base.__name__)
+                raise TypeError("cannot subclass {!r}".format(base.__name__))
 
         if name == "Bypassers" and namespace["__module__"] == __name__:
             meta.allowed[name] = set(namespace)
@@ -292,11 +288,11 @@ class BypassersMeta(type):
 
         for value in ("values", "items"):
             if value not in attr:
-                raise TypeError("missing required %r parameter" % value)
+                raise TypeError("missing required {!r} parameter".format(value))
 
         for x in attr["items"]:
             if x[0] in original:
-                raise ValueError("%r: name already exists" % x[0])
+                raise ValueError("{!r}: name already exists".format(x[0]))
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
 
@@ -318,7 +314,7 @@ class BypassersMeta(type):
 
     def __repr__(cls):
         """Return a string of itself."""
-        return "<bypasser %r>" % cls.__name__
+        return "<bypasser {!r}>".format(cls.__name__)
 
 class Bypassers(metaclass=BypassersMeta):
     """Base class to subclass to create Bypassers class.
@@ -372,7 +368,8 @@ class Bypassers(metaclass=BypassersMeta):
     def __new__(cls, *names):
         """Create a new bypasser instance."""
         if cls is Bypassers or cls in type(cls).classes["feature"]:
-            raise TypeError("cannot instantiate the %r class" % cls.__name__)
+            raise TypeError("cannot instantiate the {!r} class".format(
+                                                                cls.__name__))
 
         return super().__new__(cls)
 
@@ -413,7 +410,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __repr__(self):
         """Accurate representation of self."""
         mapping = self.__mapping__
-        return "%s([%s])" % (self.__class__.__name__,
+        return "{0}([{1}])".format(self.__class__.__name__,
                ", ".join((k, *v) for k in mapping for v in mapping[k]))
 
     def __eq__(self, other):
@@ -427,8 +424,8 @@ class Bypassers(metaclass=BypassersMeta):
     def __call__(self, index):
         """Return the setting at index given."""
         if not hasattr(index, "__index__"):
-            raise TypeError("bypasser indexes must be integers, not %s" %
-                            index.__class__.__name__)
+            raise TypeError("bypasser indexes must be integers, "
+                            "not {0}".format(index.__class__.__name__))
 
         if index < 0:
             index += len(self)
@@ -457,12 +454,14 @@ class Bypassers(metaclass=BypassersMeta):
     def __setattr__(self, item, value):
         """Prevent creation of invalid variables."""
         if item not in dir(self):
-            raise AttributeError("cannot create instance variable %r" % item)
+            raise AttributeError("cannot create instance variable "
+                                 "{!r}".format(item))
         super().__setattr__(item, value)
 
     def __delattr__(self, item):
         """Disallow deleting instance variables."""
-        raise AttributeError("cannot delete instance variable %r" % item)
+        raise AttributeError("cannot delete instance variable "
+                             "{!r}".format(item))
 
     def __add__(self, other):
         """Return a new instance with settings from other."""
