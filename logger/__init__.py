@@ -579,7 +579,7 @@ class Translater(BaseLogger, allowed_base=True):
                     given to the translater for replacing. If a line
                     doesn't match, it will not be translated.
 
-        Default:    "[A-Z0-9_]*" - UPPERCASE_UNDERSCORED_NAMES
+        Default:    "^[A-Z0-9_]+$" - UPPERCASE_UNDERSCORED_NAMES
 
     Note on ignoring translation for certain lines: To prevent certain
     lines from being translated, use the "translate" setting for the
@@ -681,7 +681,7 @@ class Translater(BaseLogger, allowed_base=True):
         self.modules = modules
 
         self.first = pick(first, "language")
-        self.pattern = pick(pattern, "[A-Z0-9_]*")
+        self.pattern = re.compile(pick(pattern, "^[A-Z0-9_]+$"))
 
         self.bypassers.add("check", "translate")
         self.bypassers.update(("translate",) +
@@ -718,7 +718,7 @@ class Translater(BaseLogger, allowed_base=True):
 
         for iterable in (format, format_dict, format_mod, output):
             for i, line in enum(iterable):
-                if re.fullmatch(self.pattern, line) is None:
+                if self.pattern.search(line) is None:
                     continue
                 original = line
                 module = None
