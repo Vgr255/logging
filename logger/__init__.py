@@ -216,14 +216,6 @@ class BaseLogger(metaclass=MetaLogger):
         # and an offset from UTC in the form +0000 or -0500
         self.ts_format = pick(ts_format, "[%Y-%m-%d] (%H:%M:%S {tzoffset})")
 
-    def __dir__(self):
-        """Return a list of all non-private methods and attributes."""
-        items = set(dir(self.__class__)) | self.__dict__.keys()
-        for item in set(items):
-            if item[0] == "_" and not bypassers.is_dunder(item):
-                items.remove(item)
-        return items
-
     @handle_bypass
     def _get_timestamp(self, use_utc=None, ts_format=None):
         """Return a timestamp with timezone + offset from UTC."""
