@@ -17,7 +17,7 @@ import time
 import sys
 import re
 
-from . import bypassers
+from . import bypassers as bp_module
 from .bypassers import NoValue
 
 from .decorators import *
@@ -205,8 +205,8 @@ class BaseLogger(metaclass=MetaLogger):
         self.print_ts = pick(print_ts, False)
         self.split = pick(split, True)
 
-        func = getattr(globals()["bypassers"], self._bp_handler.capitalize() +
-                                               "Bypassers")
+        func = getattr(bp_module, self._bp_handler.capitalize() +
+                                  "Bypassers")
 
         self.bypassers = func(*pick(bypassers, ()))
         self.bypassers.add("timestamp", "splitter", "display", "write")
