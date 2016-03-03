@@ -572,17 +572,42 @@ class Bypassers(metaclass=BypassersMeta):
 
     def update(self, *names):
         """Update the bindings with the given items."""
-        items = self.__attr__["items"]
         mapping = self.__mapping__
+        length = self.__item_length__
         for name in names:
-            assert isinstance(name, (list, tuple)), "only list and tuple supported for now"
-            if len(name) == self.__item_length__:
-                setting = name[0]
-                if setting not in self:
-                    mapping[setting] = []
-                mapping[setting].append(tuple(name[1:]))
+            try:
+                it = iter(name)
+            except TypeError:
+                raise TypeError("non-iterable data passed to update()") from None
+
+            try:
+                setting = next(it)
+            except StopIteration:
+                raise ValueError("empty iterable passed to update()") from None
+
+            if not isinstance(setting, (str, bytes)):
+                raise TypeError("setting should be str or bytes")
+
+            data = []
+
+            for i in range(1, length):
+                try:
+                    data.append(next(it))
+                except StopIteration:
+                    raise ValueError("not enough items in iterable (expected "
+                                     "{0}, got {1})".format(length, i)) from None
+
+            try:
+                next(it)
+            except StopIteration:
+                pass
             else:
-                raise ValueError("wrong length")
+                raise ValueError("too many items in iterable (expected"
+                                 "{0})".format(length))
+
+            if setting not in self:
+                mapping[setting] = []
+            mapping[setting].append(tuple(data))
 
     def copy(self, *, deepcopy=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
