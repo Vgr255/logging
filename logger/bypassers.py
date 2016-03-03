@@ -588,8 +588,8 @@ class Bypassers(metaclass=BypassersMeta):
             else:
                 raise ValueError("wrong length")
 
-    def copy(self, deepcopy=True):
-        """Return a deep or shallow copy of self, defaulting to deep."""
+    def copy(self, *, deepcopy=False):
+        """Return a deep or shallow copy of self, defaulting to shallow."""
         if deepcopy:
             return self.__deepcopy__({})
         return self.__copy__()
