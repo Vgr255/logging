@@ -208,7 +208,7 @@ class BaseLogger(metaclass=MetaLogger):
         func = getattr(bp_module, self._bp_handler.capitalize() +
                                   "Bypassers")
 
-        self.bypassers = func(*pick(bypassers, ()))
+        self.bypassers = func.from_iterable(bypassers)
         self.bypassers.add("timestamp", "splitter", "display", "write")
 
         # this can have {tzname} and {tzoffset} for formatting
