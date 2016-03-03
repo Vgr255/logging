@@ -521,17 +521,6 @@ class Bypassers(metaclass=BypassersMeta):
 
     def update(self, *names):
         """Update the bindings with the given items."""
-        items = self.__attr__["items"]
-        for i, name in enumerate(names):
-            item = (name,)
-            if hasattr(name, "__mapping__") and hasattr(name, "__item_length__"):
-                item = Viewer(name.__class__.__name__, "<update>",
-                              tuple(range(name.__item_length__+1)), name)
-            elif hasattr(name, "__mapping__") or hasattr(name, "__item_length__"):
-                raise TypeError("what the func") # uh...
-
-    def update(self, *names):
-        """Update the bindings with the given items."""
         #items = self.__class__.attributes["items"]
         for name in names:
             item = (name,)
@@ -585,6 +574,19 @@ class Bypassers(metaclass=BypassersMeta):
                         elif len(new) > 1:
                             getattr(self, mapper).append(tuple(new))
 
+    def update(self, *names):
+        """Update the bindings with the given items."""
+        items = self.__attr__["items"]
+        mapping = self.__mapping__
+        for name in names:
+            assert isinstance(name, (list, tuple)), "only list and tuple supported for now"
+            if len(name) == self.__item_length__:
+                setting = name[0]
+                if setting not in self:
+                    mapping[setting] = []
+                mapping[setting].append(tuple(name[1:]))
+            else:
+                raise ValueError("wrong length")
 
     def copy(self, deepcopy=True):
         """Return a deep or shallow copy of self, defaulting to deep."""
