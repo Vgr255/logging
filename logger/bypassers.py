@@ -425,7 +425,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return False if self and other are equivalent, True otherwise."""
         return not (self == other)
 
-    def __call__(self, index):
+    def __call__(self, index): # todo: merge into getitem
         """Return the setting at index given."""
         if not hasattr(index, "__index__"):
             raise TypeError("bypasser indexes must be integers, "
@@ -693,7 +693,7 @@ __delitem__
 
         ELLIPSIS        del bypasser[...] (Ellipsis) -> delete everything
 
-__call__        DONE    bypasser(index) -> return the setting at index
+__call__                <undefined>
 
 __contains__    DONE    x in bypasser -> True if x is a setting, False otherwise
 
