@@ -373,11 +373,12 @@ class Bypassers(metaclass=BypassersMeta):
 
         return super().__new__(cls)
 
-    def __init__(self, *names):
+    def __init__(self, names=None):
         """Initialize the instance."""
         self.__mapping__ = collections.OrderedDict()
 
-        self.update(*names)
+        if names is not None:
+            self.update(*names)
 
     def __get__(self, instance, owner):
         """Bind the instance to self."""
