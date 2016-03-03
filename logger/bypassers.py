@@ -665,7 +665,7 @@ __getitem__
 
                         this ignores non-existent settings (so bypasser["no-setting",] will swallow the KeyError)
 
-        SLICE           bypasser[start:step:stop] -> return a list of all settings from the internal ordering
+        SLICE           bypasser[start:stop:step] -> return a list of all settings from the internal ordering
 
                         normal slicing rules apply
 
@@ -678,7 +678,7 @@ __setitem__
 
         TUPLE           bypasser["setting1", "setting2", ...] = x -> merge all items from all settings into this one, renaming it to x
 
-        SLICE           bypasser[start:stop:end] = x -> merge all items from the locations into x
+        SLICE           bypasser[start:stop:step] = x -> merge all items from the locations into x
 
         ELLIPSIS        bypasser[...] = x -> merge every setting into setting x
 
@@ -689,7 +689,7 @@ __delitem__
 
         TUPLE           del bypasser["setting1", "setting2", ...] -> remove all bindings of all settings; ignore if not present
 
-        SLICE           del bypasser[start:stop:index] -> delete settings and bindings at relevant indexes
+        SLICE           del bypasser[start:stop:step] -> delete settings and bindings at relevant indexes
 
         ELLIPSIS        del bypasser[...] (Ellipsis) -> delete everything
 
