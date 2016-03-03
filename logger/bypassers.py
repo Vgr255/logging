@@ -407,10 +407,6 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if item is in self, False otherwise."""
         return item in self.__mapping__
 
-    def __hash__(self):
-        """Return a constant hash of self."""
-        return id(self)
-
     def __repr__(self):
         """Accurate representation of self."""
         mapping = self.__mapping__
