@@ -657,7 +657,9 @@ __setattr__     DONE    prevent creating new instance variables
 __delattr__     DONE    prevent deleting anything from the instance
 
 __getitem__
-        SINGLE          bypasser["setting"] -> return a list of everything bound to this setting
+        SINGLE STR      bypasser["setting"] -> return a list of everything bound to this setting
+
+        SINGLE INT      bypasser[42] -> return the setting at index, raise IndexError if not present
 
         TUPLE           bypasser["setting1", "setting2", ...] -> list of everything bound to all settings
 
@@ -670,7 +672,9 @@ __getitem__
         ELLIPSIS        bypasser[...] (Ellipsis) -> list everything bound (no setting)
 
 __setitem__
-        SINGLE          bypasser["setting"] = x -> rename the setting to x
+        SINGLE STR      bypasser["setting"] = x -> rename the setting to x
+
+        SINGLE INT      bypasser[42] = x -> change the internal index of the setting, moving all others up/down according, raise IndexError if not present
 
         TUPLE           bypasser["setting1", "setting2", ...] = x -> merge all items from all settings into this one, renaming it to x
 
@@ -679,7 +683,9 @@ __setitem__
         ELLIPSIS        bypasser[...] = x -> merge every setting into setting x
 
 __delitem__
-        SINGLE          del bypasser["setting"] -> remove all bindings of 'setting'; raise KeyError if not present
+        SINGLE STR      del bypasser["setting"] -> remove all bindings of 'setting'; raise KeyError if not present
+
+        SINGLE INT      del bypasser[42] -> remove the setting at index, moving accordingly; raise IndexError if not present
 
         TUPLE           del bypasser["setting1", "setting2", ...] -> remove all bindings of all settings; ignore if not present
 
