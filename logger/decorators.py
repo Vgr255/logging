@@ -443,7 +443,7 @@ class readonly(MetaProperty):
     def __get__(self, instance, owner):
         self.__objclass__ = self.__objclass__ or owner
         if instance is None:
-            return self
+            return self.__func__
 
         for inst, val in self.funcs:
             if inst() is instance:
