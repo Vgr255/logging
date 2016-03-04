@@ -580,39 +580,100 @@ class Bypassers(metaclass=BypassersMeta):
         # if there are too many items, it won't spend extra time/memory building a useless list
         # and if it's infinite, it will simply error out instead of hanging forever
         for name in names:
-            try:
-                it = iter(name)
-            except TypeError:
-                raise TypeError("non-iterable data passed to update()") from None
+            if isinstance(name, Bypassers):
+                if name.__item_length__ == length:
+                    for key in name:
+                        if key not in mapping:
+                            mapping[key] = []
+                        for values in name.__mapping__[key]:
+                            mapping[key].append(values)
+                else:
+                    raise ValueError("Bypassers instance with unmatching length")
 
-            try:
-                setting = next(it)
-            except StopIteration:
-                raise ValueError("empty iterable passed to update()") from None
+            elif isinstance(name, dict):
+                for key in name:
+                    if not isinstance(key, (str, bytes)):
+                        raise TypeError("setting should be str or bytes")
 
-            if not isinstance(setting, (str, bytes)):
-                raise TypeError("setting should be str or bytes")
+                    data = []
 
-            data = []
+                    try:
+                        it = iter(name[key])
+                    except StopIteration:
+                        raise TypeError("non-iterable value in dict")
 
-            for i in range(1, length):
-                try:
-                    data.append(next(it))
-                except StopIteration:
-                    raise ValueError("not enough items in iterable (expected "
-                                     "{0}, got {1})".format(length, i)) from None
+                    for i in range(1, length):
+                        try:
+                            data.append(next(it))
+                        except StopIteration:
+                            raise ValueError("not enough items in dict value "
+                                             "(expected {0}, got {1})".format(length, i)) from None
 
-            try:
-                next(it)
-            except StopIteration:
-                pass
+                    try:
+                        next(it)
+                    except StopIteration:
+                        pass
+                    else:
+                        raise ValueError("too many items in dict value "
+                                         "(expected {0})".format(length))
+
+                    if key not in mapping:
+                        mapping[key] = []
+                    mapping[key].append(tuple(data))
+
+            elif isinstance(name, (tuple, list)): # fast past
+                if len(name) == length:
+                    setting = name[0]
+                    if not isinstance(setting, (str, bytes)):
+                        raise TypeError("setting should be str or bytes")
+
+                    if setting not in mapping:
+                        mapping[setting] = []
+                    mapping[setting].append(tuple(name[1:]))
+
+                elif len(name) > length:
+                    raise ValueError("too many items in list or tuple (expected "
+                                     "{0}, got {1})".format(length, len(name)))
+
+                else:
+                    raise ValueError("not enough items in list or tuple (expected "
+                                     "{0}, got {1})".format(length, len(name)))
+
             else:
-                raise ValueError("too many items in iterable (expected"
-                                 "{0})".format(length))
+                try:
+                    it = iter(name)
+                except TypeError:
+                    raise TypeError("non-iterable data passed to update()") from None
 
-            if setting not in self:
-                mapping[setting] = []
-            mapping[setting].append(tuple(data))
+                try:
+                    setting = next(it)
+                except StopIteration:
+                    raise ValueError("empty iterable passed to update()") from None
+
+                if not isinstance(setting, (str, bytes)):
+                    raise TypeError("setting should be str or bytes")
+
+                data = []
+
+                for i in range(1, length):
+                    try:
+                        data.append(next(it))
+                    except StopIteration:
+                        raise ValueError("not enough items in iterable (expected "
+                                         "{0}, got {1})".format(length, i)) from None
+
+                try:
+                    next(it)
+                except StopIteration:
+                    pass
+                else:
+                    raise ValueError("too many items in iterable (expected"
+                                     "{0})".format(length))
+
+                if setting not in mapping:
+                    mapping[setting] = []
+                mapping[setting].append(tuple(data))
+
 
     def copy(self, *, deepcopy=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
