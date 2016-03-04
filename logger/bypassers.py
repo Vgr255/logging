@@ -575,6 +575,10 @@ class Bypassers(metaclass=BypassersMeta):
         """Update the bindings with the given items."""
         mapping = self.__mapping__
         length = self.__item_length__
+        # don't attempt to throw everything in a list right away
+        # this helps have finer-grained error messages
+        # if there are too many items, it won't spend extra time/memory building a useless list
+        # and if it's infinite, it will simply error out instead of hanging forever
         for name in names:
             try:
                 it = iter(name)
