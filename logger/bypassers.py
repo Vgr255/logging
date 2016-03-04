@@ -675,9 +675,9 @@ class Bypassers(metaclass=BypassersMeta):
                 mapping[setting].append(tuple(data))
 
 
-    def copy(self, *, deepcopy=False):
+    def copy(self, *, deep=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
-        if deepcopy:
+        if deep:
             return self.__deepcopy__({})
         return self.__copy__()
 
