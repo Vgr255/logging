@@ -619,6 +619,9 @@ class Bypassers(metaclass=BypassersMeta):
                     elif isinstance(name[key], dict): # not only because it's too complicated, but because it doesn't make sense
                         raise TypeError("cannot parse nested dicts")
 
+                    elif isinstance(name[key], Bypassers):
+                        raise TypeError("cannot parse nested Bypassers instance")
+
                     elif isinstance(name[key], (str, bytes, bytearray, memoryview)):
                         raise TypeError("cannot use unicode or bytes-like object as iterable")
 
