@@ -701,6 +701,25 @@ class Bypassers(metaclass=BypassersMeta):
                     mapping[setting] = []
                 mapping[setting].append(tuple(data))
 
+    def add(self, *names):
+        """Add unbound settings."""
+        mapping = self.__mapping__
+        values = self.__attr__["values"][1:] # don't count setting
+        for name in names:
+            if isinstance(name, (str, bytes)):
+                data = []
+                for name, default in values:
+                    if default is None:
+                        data.append(None)
+                    else:
+                        data.append(default())
+
+                if name not in mapping:
+                    mapping[name] = []
+                mapping[name].append(tuple(data))
+
+            else:
+                raise TypeError("setting must be str or bytes")
 
     def copy(self, *, deep=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
@@ -715,13 +734,18 @@ class Bypassers(metaclass=BypassersMeta):
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
-    values = ("setting", "pairs", "module", "attr")
-    items = (("keys",        (0,),           None),
-             ("pairs",       (1,),           None),
-             ("attributes",  (2, 3),         NoValue),
-             ("values",      (1, 2, 3),      None),
-             ("items",       (0, 1, 2, 3),   None),
-            )
+    values = (("setting",    NoValue),
+              ("pairs",      set),
+              ("module",     None),
+              ("attr",       str),
+             )
+
+    items =  (("keys",        (0,),           None),
+              ("pairs",       (1,),           None),
+              ("attributes",  (2, 3),         NoValue),
+              ("values",      (1, 2, 3),      None),
+              ("items",       (0, 1, 2, 3),   None),
+             )
 
 
 
