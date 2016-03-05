@@ -499,7 +499,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Add all settings from other into self."""
         if hasattr(other, "__mapping__"):
             if copy:
-                self = self.copy(deepcopy=True)
+                self = self.copy(deep=True)
             for setting in other:
                 if setting in self:
                     self.__mapping__.move_to_end(setting, last=(not reversed))
@@ -522,7 +522,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove all items present in other from self."""
         if hasattr(other, "__mapping__"):
             if copy:
-                self = self.copy(deepcopy=True)
+                self = self.copy(deep=True)
             for setting in other:
                 if setting in self:
                     if False: pass # temporary so the code runs
