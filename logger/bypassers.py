@@ -795,11 +795,11 @@ __setattr__     DONE    prevent creating new instance variables
 __delattr__     DONE    prevent deleting anything from the instance
 
 __getitem__
-        SINGLE STR      bypasser["setting"] -> return a list of everything bound to this setting
+        SINGLE STR DONE bypasser["setting"] -> return a list of everything bound to this setting
 
-        SINGLE INT      bypasser[42] -> return the setting at index, raise IndexError if not present
+        SINGLE INT DONE bypasser[42] -> return the setting at index, raise IndexError if not present
 
-        TUPLE           bypasser["setting1", "setting2", ...] -> list of everything bound to all settings
+        TUPLE   DONE    bypasser["setting1", "setting2", ...] -> list of everything bound to all settings
 
                         this ignores non-existent settings (so bypasser["no-setting",] will swallow the KeyError)
 
@@ -807,7 +807,7 @@ __getitem__
 
                         normal slicing rules apply
 
-        ELLIPSIS        bypasser[...] (Ellipsis) -> list everything bound (no setting)
+        ELLIPSIS DONE   bypasser[...] (Ellipsis) -> list everything bound (no setting)
 
 __setitem__
         SINGLE STR      bypasser["setting"] = x -> rename the setting to x
@@ -892,7 +892,7 @@ with bypasser as x:
 __enter__
 __exit__
 
-bypasser.update         -> Update the mapping with the provided iterables
+bypasser.update DONE    -> Update the mapping with the provided iterables
 bypasser.extend         -> Update with keyword arguments ???
 bypasser.index          -> Find the internal index of a setting; raise IndexError if not present
 bypasser.find           -> Get the setting at index given; return -1 if not present
@@ -903,7 +903,7 @@ bypasser.insert         -> Inserts data into setting ???
 bypasser.move           -> Move setting into position
 bypasser.pop            -> Remove an arbitrary setting
 bypasser.popitem        -> Remove a random setting
-bypasser.add            -> Add a new empty setting
+bypasser.add    DONE    -> Add a new empty setting
 bypasser.remove         -> Remove setting at position x; raise KeyError or IndexError if not present; x defaults to 0
 bypasser.discard        -> Remove setting at position x; ignore if not present; x defaults to 0
 bypasser.erase          -> Remove the setting and all bindings at position x; raise KeyError or IndexError if not present; x defaults to 0
