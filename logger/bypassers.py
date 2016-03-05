@@ -573,12 +573,12 @@ class Bypassers(metaclass=BypassersMeta):
 
     def update(self, *names):
         """Update the bindings with the given items."""
-        mapping = self.__mapping__
-        length = self.__item_length__
         # don't attempt to throw everything in a list right away
         # this helps have finer-grained error messages
         # if there are too many items, it won't spend extra time/memory building a useless list
         # and if it's infinite, it will simply error out instead of hanging forever
+        mapping = self.__mapping__
+        length = self.__item_length__
         for name in names:
             if isinstance(name, Bypassers):
                 if name.__item_length__ == length:
@@ -595,33 +595,61 @@ class Bypassers(metaclass=BypassersMeta):
                     if not isinstance(key, (str, bytes)):
                         raise TypeError("setting should be str or bytes")
 
-                    data = []
+                    if isinstance(name[key], (list, tuple)):
+                        if len(name[key]) == length:
+                            setting = name[0]
+                            if not isinstance(setting, (str, bytes)):
+                                raise TypeError("setting should be str or bytes")
 
-                    try:
-                        it = iter(name[key])
-                    except StopIteration:
-                        raise TypeError("non-iterable value in dict")
+                            if setting not in mapping:
+                                mapping[setting] = []
+                            mapping[setting].append(tuple(name[key][1:]))
 
-                    for i in range(1, length):
-                        try:
-                            data.append(next(it))
-                        except StopIteration:
-                            raise ValueError("not enough items in dict value "
-                                             "(expected {0}, got {1})".format(length, i)) from None
+                        elif len(name[key]) > length:
+                            raise ValueError("too many items in nested list or tuple "
+                                             "(expected {0}, got {1})".format(length, len(name[key])))
 
-                    try:
-                        next(it)
-                    except StopIteration:
-                        pass
+                        else:
+                            raise ValueError("not enough items in nested list or tuple "
+                                             "(expected {0}, got {1})".format(length, len(name[key])))
+
+                    elif isinstance(name[key], (set, frozenset)):
+                        raise TypeError("no order defined for sets and frozen sets")
+
+                    elif isinstance(name[key], dict): # not only because it's too complicated, but because it doesn't make sense
+                        raise TypeError("cannot parse nested dicts")
+
+                    elif isinstance(name[key], (str, bytes, bytearray, memoryview)):
+                        raise TypeError("cannot use unicode or bytes-like object as iterable")
+
                     else:
-                        raise ValueError("too many items in dict value "
-                                         "(expected {0})".format(length))
+                        try:
+                            it = iter(name[key])
+                        except StopIteration:
+                            raise TypeError("non-iterable value in dict")
 
-                    if key not in mapping:
-                        mapping[key] = []
-                    mapping[key].append(tuple(data))
+                        data = []
 
-            elif isinstance(name, (tuple, list)): # fast past
+                        for i in range(1, length):
+                            try:
+                                data.append(next(it))
+                            except StopIteration:
+                                raise ValueError("not enough items in dict value "
+                                                 "(expected {0}, got {1})".format(length, i)) from None
+
+                        try:
+                            next(it)
+                        except StopIteration:
+                            pass
+                        else:
+                            raise ValueError("too many items in dict value "
+                                             "(expected {0})".format(length))
+
+                        if key not in mapping:
+                            mapping[key] = []
+                        mapping[key].append(tuple(data))
+
+            elif isinstance(name, (tuple, list)): # fast path
                 if len(name) == length:
                     setting = name[0]
                     if not isinstance(setting, (str, bytes)):
@@ -639,7 +667,13 @@ class Bypassers(metaclass=BypassersMeta):
                     raise ValueError("not enough items in list or tuple (expected "
                                      "{0}, got {1})".format(length, len(name)))
 
-            else:
+            elif isinstance(name, (set, frozenset)): # disallow non-order-aware collections
+                raise TypeError("no order defined for sets and frozen sets")
+
+            elif isinstance(name, (str, bytes, bytearray, memoryview)): # not really collections, although iterable
+                raise TypeError("cannot use unicode or bytes-like object as iterable")
+
+            else: # slow path for user-defined classes
                 try:
                     it = iter(name)
                 except TypeError:
