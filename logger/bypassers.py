@@ -408,6 +408,43 @@ class Bypassers(metaclass=BypassersMeta):
         """Return True if item is in self, False otherwise."""
         return item in self.__mapping__
 
+    def __getitem__(self, item):
+        """Return the items based on the input."""
+        mapping = self.__mapping__
+        if isinstance(item, (str, bytes)):
+            if item in mapping:
+                return list(mapping[item])
+            raise KeyError(item)
+
+        elif hasattr(item, "__index__"):
+            if item < 0:
+                item += len(mapping)
+            if 0 <= item < len(mapping):
+                for i, setting in enumerate(mapping):
+                    if i == item:
+                        return setting
+
+            raise IndexError("bypasser index out of bounds")
+
+        elif isinstance(item, tuple):
+            data = []
+            for setting in item:
+                if setting in mapping:
+                    data.extend(mapping[setting])
+            return data
+
+        elif isinstance(item, slice):
+            raise ValueError("slice support not yet implemented")
+
+        elif item is Ellipsis:
+            data = []
+            for setting in mapping:
+                data.extend(mapping[setting])
+
+            return data
+
+        raise TypeError("{!r} is not a supported input".format(type(item).__name__))
+
     def __repr__(self):
         """Accurate representation of self."""
         mapping = self.__mapping__
@@ -421,20 +458,6 @@ class Bypassers(metaclass=BypassersMeta):
     def __ne__(self, other):
         """Return False if self and other are equivalent, True otherwise."""
         return not (self == other)
-
-    def __call__(self, index): # todo: merge into getitem
-        """Return the setting at index given."""
-        if not hasattr(index, "__index__"):
-            raise TypeError("bypasser indexes must be integers, "
-                            "not {0}".format(index.__class__.__name__))
-
-        if index < 0:
-            index += len(self)
-        if 0 <= index < len(self):
-            for i, setting in enumerate(self):
-                if i == index:
-                    return setting
-        raise IndexError("bypasser index out of range")
 
     def __reduce__(self):
         """Return information for pickling."""
