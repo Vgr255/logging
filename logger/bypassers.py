@@ -572,7 +572,41 @@ class Bypassers(metaclass=BypassersMeta):
                             getattr(self, mapper).append(tuple(new))
 
     def update(self, *names):
-        """Update the bindings with the given items."""
+        """Update the bindings with the given items.
+
+        The parameters can be any number of another Bypassers instance,
+        but that instance must have the same item length, or else a
+        ValueError will be raised.
+
+        The most common way to update the Bypassers is to call it with
+        a list or tuple of the proper size.
+
+        Using a set or frozenset instance is explicitly disallowed, as
+        parsing it would become ambigous regarding the order. Using
+        unicode (str) or a bytes-like object (bytes, bytearray and
+        memoryview) make no sense, and are more likely to be a mistake,
+        as the 'add' method requires only single arguments, not
+        iterables.
+
+        Any other form of iterable, including generators and user-defined
+        collections, are allowed. This method is guarded against infinite
+        iterators such as 'itertools.count()' and will simply error out in
+        such cases.
+
+        A regular dict may also be used, even though the keys' order is not
+        consistent, as sometimes ordering doesn't matter as much. An instance
+        of 'collections.OrderedDict' can also be used in this fashion. The
+        restrictions on the values are the same as for the rest, where lists
+        and tuples are most common, and set, frozenset, str, bytes, bytearray
+        and memoryview instances are disallowed. Moreover, dict and Bypassers
+        instances are disallowed as well, as it makes no sense to use those as
+        iterables for values.
+
+        This method is the building ground for most other methods, which
+        rely on it.
+
+        """
+
         # don't attempt to throw everything in a list right away
         # this helps have finer-grained error messages
         # if there are too many items, it won't spend extra time/memory building a useless list
