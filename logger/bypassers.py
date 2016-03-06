@@ -527,6 +527,75 @@ class Bypassers(metaclass=BypassersMeta):
                 if setting in self:
                     if False: pass # temporary so the code runs
 
+    def _update_from_list_or_tuple(self, list_or_tuple):
+        """Update bypasser with list or tuple."""
+        assert isinstance(list_or_tuple, (list, tuple))
+        length = len(list_or_tuple)
+        item_length = self.__item_length__
+        mapping = self.__mapping__
+        if length == item_length:
+            setting = list_or_tuple[0]
+            if not isinstance(setting, (str, bytes)):
+                raise TypeError("setting must be str or bytes")
+
+            if setting not in mapping:
+                mapping[setting] = []
+            mapping[setting].append(tuple(list_or_tuple[1:]))
+
+        elif length > item_length:
+            raise ValueError("too many items in list or tuple (expected "
+                             "{0}, got {1})".format(item_length, length))
+
+        else:
+            raise ValueError("not enough items in list or tuple (expected "
+                             "{0}, got {1})".format(item_length, length))
+
+    def _update_from_iterable(self, iterable):
+        """Update from any sort of iterable."""
+        mapping = self.__mapping__
+
+        try:
+            it = iter(iterable)
+        except TypeError:
+            raise TypeError("non-iterable data passed to update()") from None
+
+        try:
+            setting = next(it)
+        except StopIteration:
+            raise ValueError("empty iterable passed to update()") from None
+
+        if not isinstance(setting, (str, bytes)):
+            raise TypeError("setting must be str or bytes")
+
+        data = []
+
+        for i in range(1, self.__item_length__):
+            try:
+                data.append(next(it))
+            except StopIteration:
+                raise ValueError("not enough items in iterable (expected "
+                      "{0}, got {1})".format(self.__item_length__, i)) from None
+
+        try:
+            next(it)
+        except StopIteration:
+            pass
+        else:
+            raise ValueError("too many items in iterable (expected "
+                             "{0})".format(self.__item_length__))
+
+        if setting not in mapping:
+            mapping[setting] = []
+        mapping[setting].append(tuple(data))
+
+    def _prevent_wrong_input(self, data):
+        """Raise according errors for bad input."""
+        if isinstance(name, (set, frozenset)):
+            raise TypeError("no order defined for sets and frozen sets")
+
+        elif isinstance(name, (str, bytes, bytearray, memoryview)):
+            raise TypeError("cannot use str or bytes-like object as iterable")
+
     def update(self, *names):
         """Update the bindings with the given items.
 
@@ -568,10 +637,11 @@ class Bypassers(metaclass=BypassersMeta):
         # if there are too many items, it won't spend extra time/memory building a useless list
         # and if it's infinite, it will simply error out instead of hanging forever
         mapping = self.__mapping__
-        length = self.__item_length__
         for name in names:
+            self._prevent_wrong_input(name)
+
             if isinstance(name, Bypassers):
-                if name.__item_length__ == length:
+                if name.__item_length__ == self.__item_length__:
                     for key in name:
                         if key not in mapping:
                             mapping[key] = []
@@ -583,123 +653,29 @@ class Bypassers(metaclass=BypassersMeta):
             elif isinstance(name, dict):
                 for key in name:
                     if not isinstance(key, (str, bytes)):
-                        raise TypeError("setting should be str or bytes")
+                        raise TypeError("setting must be str or bytes")
 
-                    if isinstance(name[key], (list, tuple)):
-                        if len(name[key]) == length:
-                            setting = name[0]
-                            if not isinstance(setting, (str, bytes)):
-                                raise TypeError("setting should be str or bytes")
+                    value = name[key]
 
-                            if setting not in mapping:
-                                mapping[setting] = []
-                            mapping[setting].append(tuple(name[key][1:]))
+                    self._prevent_wrong_input(value)
 
-                        elif len(name[key]) > length:
-                            raise ValueError("too many items in nested list or tuple "
-                                             "(expected {0}, got {1})".format(length, len(name[key])))
+                    if isinstance(value, (list, tuple)):
+                        self._update_from_list_or_tuple(value)
 
-                        else:
-                            raise ValueError("not enough items in nested list or tuple "
-                                             "(expected {0}, got {1})".format(length, len(name[key])))
-
-                    elif isinstance(name[key], (set, frozenset)):
-                        raise TypeError("no order defined for sets and frozen sets")
-
-                    elif isinstance(name[key], dict): # not only because it's too complicated, but because it doesn't make sense
+                    elif isinstance(value, dict): # not only because it's too complicated, but because it doesn't make sense
                         raise TypeError("cannot parse nested dicts")
 
-                    elif isinstance(name[key], Bypassers):
+                    elif isinstance(value, Bypassers):
                         raise TypeError("cannot parse nested Bypassers instance")
 
-                    elif isinstance(name[key], (str, bytes, bytearray, memoryview)):
-                        raise TypeError("cannot use unicode or bytes-like object as iterable")
-
                     else:
-                        try:
-                            it = iter(name[key])
-                        except StopIteration:
-                            raise TypeError("non-iterable value in dict")
-
-                        data = []
-
-                        for i in range(1, length):
-                            try:
-                                data.append(next(it))
-                            except StopIteration:
-                                raise ValueError("not enough items in dict value "
-                                                 "(expected {0}, got {1})".format(length, i)) from None
-
-                        try:
-                            next(it)
-                        except StopIteration:
-                            pass
-                        else:
-                            raise ValueError("too many items in dict value "
-                                             "(expected {0})".format(length))
-
-                        if key not in mapping:
-                            mapping[key] = []
-                        mapping[key].append(tuple(data))
+                        self._update_from_iterable(value)
 
             elif isinstance(name, (tuple, list)): # fast path
-                if len(name) == length:
-                    setting = name[0]
-                    if not isinstance(setting, (str, bytes)):
-                        raise TypeError("setting should be str or bytes")
-
-                    if setting not in mapping:
-                        mapping[setting] = []
-                    mapping[setting].append(tuple(name[1:]))
-
-                elif len(name) > length:
-                    raise ValueError("too many items in list or tuple (expected "
-                                     "{0}, got {1})".format(length, len(name)))
-
-                else:
-                    raise ValueError("not enough items in list or tuple (expected "
-                                     "{0}, got {1})".format(length, len(name)))
-
-            elif isinstance(name, (set, frozenset)): # disallow non-order-aware collections
-                raise TypeError("no order defined for sets and frozen sets")
-
-            elif isinstance(name, (str, bytes, bytearray, memoryview)): # not really collections, although iterable
-                raise TypeError("cannot use unicode or bytes-like object as iterable")
+                self._update_from_list_or_tuple(name)
 
             else: # slow path for user-defined classes
-                try:
-                    it = iter(name)
-                except TypeError:
-                    raise TypeError("non-iterable data passed to update()") from None
-
-                try:
-                    setting = next(it)
-                except StopIteration:
-                    raise ValueError("empty iterable passed to update()") from None
-
-                if not isinstance(setting, (str, bytes)):
-                    raise TypeError("setting should be str or bytes")
-
-                data = []
-
-                for i in range(1, length):
-                    try:
-                        data.append(next(it))
-                    except StopIteration:
-                        raise ValueError("not enough items in iterable (expected "
-                                         "{0}, got {1})".format(length, i)) from None
-
-                try:
-                    next(it)
-                except StopIteration:
-                    pass
-                else:
-                    raise ValueError("too many items in iterable (expected"
-                                     "{0})".format(length))
-
-                if setting not in mapping:
-                    mapping[setting] = []
-                mapping[setting].append(tuple(data))
+                self._update_from_iterable(name)
 
     def add(self, *names):
         """Add unbound settings."""
