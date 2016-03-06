@@ -436,7 +436,12 @@ class Bypassers(metaclass=BypassersMeta):
             return data
 
         elif isinstance(item, slice):
-            raise ValueError("slice support not yet implemented")
+            data = []
+            positions = range(*item.indices(len(mapping)))
+            for i, setting in enumerate(mapping):
+                if i in positions:
+                    data.append(setting)
+            return data
 
         elif item is Ellipsis:
             data = []
@@ -785,7 +790,9 @@ __getitem__
 
                         this ignores non-existent settings (so bypasser["no-setting",] will swallow the KeyError)
 
-        SLICE           bypasser[start:stop:step] -> return a list of all settings from the internal ordering
+        SLICE   DONE    bypasser[start:stop:step] -> return a list of all settings from the internal ordering
+
+                        this returns the *settings*, like regular ints
 
                         normal slicing rules apply
 
