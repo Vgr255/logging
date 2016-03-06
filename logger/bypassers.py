@@ -429,8 +429,10 @@ class Bypassers(metaclass=BypassersMeta):
         elif isinstance(item, tuple):
             data = []
             for setting in item:
-                if setting in mapping:
+                if isinstance(setting, (str, bytes)) and setting in mapping:
                     data.extend(mapping[setting])
+                elif hasattr(setting, "__index__"):
+                    data.extend(self[setting])
             return data
 
         elif isinstance(item, slice):
@@ -775,7 +777,11 @@ __getitem__
 
         SINGLE INT DONE bypasser[42] -> return the setting at index, raise IndexError if not present
 
+                        this returns the *setting* at the position; to get the value, use bypasser[42,]
+
         TUPLE   DONE    bypasser["setting1", "setting2", ...] -> list of everything bound to all settings
+
+                        ints may also be used, but then the *list* will be returned with the rest, not the setting
 
                         this ignores non-existent settings (so bypasser["no-setting",] will swallow the KeyError)
 
