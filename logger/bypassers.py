@@ -365,7 +365,7 @@ class Bypassers(metaclass=BypassersMeta):
     def __mapping__(self):
         """Underlying OrderedDict mapping."""
 
-    def __new__(cls, *names):
+    def __new__(cls, names=None):
         """Create a new bypasser instance."""
         if cls is Bypassers or cls in type(cls).classes["feature"]:
             raise TypeError("cannot instantiate the {!r} class".format(
@@ -378,7 +378,7 @@ class Bypassers(metaclass=BypassersMeta):
         self.__mapping__ = collections.OrderedDict()
 
         if names is not None:
-            self.update(*names)
+            self.update(names)
 
     def __get__(self, instance, owner):
         """Bind the instance to self."""
@@ -535,7 +535,7 @@ class Bypassers(metaclass=BypassersMeta):
                     if False: pass # temporary so the code runs
 
     def _update_from_list_or_tuple(self, list_or_tuple):
-        """Update bypasser with list or tuple."""
+        """Update the bypasser with list or tuple."""
         assert isinstance(list_or_tuple, (list, tuple))
         length = len(list_or_tuple)
         item_length = self.__item_length__
@@ -557,8 +557,30 @@ class Bypassers(metaclass=BypassersMeta):
             raise ValueError("not enough items in list or tuple (expected "
                              "{0}, got {1})".format(item_length, length))
 
+    def _update_from_mapping(self, mapping):
+        """Update the bypasser with a mapping."""
+        for key in mapping:
+            if not isinstance(key, (str, bytes)):
+                raise TypeError("setting must be str or bytes")
+
+            value = mapping[key]
+
+            self._prevent_wrong_input(value)
+
+            if isinstance(value, (list, tuple)):
+                self._update_from_list_or_tuple(value)
+
+            elif isinstance(value, dict): # not only because it's too complicated, but because it doesn't make sense
+                raise TypeError("cannot parse nested dicts")
+
+            elif isinstance(value, Bypassers):
+                raise TypeError("cannot parse nested Bypassers instance")
+
+            else:
+                self._update_from_iterable(value)
+
     def _update_from_iterable(self, iterable):
-        """Update from any sort of iterable."""
+        """Update the bypasser with any sort of iterable."""
         mapping = self.__mapping__
 
         try:
@@ -595,15 +617,16 @@ class Bypassers(metaclass=BypassersMeta):
             mapping[setting] = []
         mapping[setting].append(tuple(data))
 
-    def _prevent_wrong_input(self, data):
+    @staticmethod
+    def _prevent_wrong_input(data):
         """Raise according errors for bad input."""
-        if isinstance(name, (set, frozenset)):
+        if isinstance(data, (set, frozenset)):
             raise TypeError("no order defined for sets and frozen sets")
 
-        elif isinstance(name, (str, bytes, bytearray, memoryview)):
+        elif isinstance(data, (str, bytes, bytearray, memoryview)):
             raise TypeError("cannot use str or bytes-like object as iterable")
 
-    def update(self, *names):
+    def update(self, iterable_of_iterables):
         """Update the bindings with the given items.
 
         The parameters can be any number of another Bypassers instance,
@@ -644,7 +667,7 @@ class Bypassers(metaclass=BypassersMeta):
         # if there are too many items, it won't spend extra time/memory building a useless list
         # and if it's infinite, it will simply error out instead of hanging forever
         mapping = self.__mapping__
-        for name in names:
+        for name in iterable_of_iterables:
             self._prevent_wrong_input(name)
 
             if isinstance(name, Bypassers):
@@ -658,25 +681,7 @@ class Bypassers(metaclass=BypassersMeta):
                     raise ValueError("Bypassers instance with unmatching length")
 
             elif isinstance(name, dict):
-                for key in name:
-                    if not isinstance(key, (str, bytes)):
-                        raise TypeError("setting must be str or bytes")
-
-                    value = name[key]
-
-                    self._prevent_wrong_input(value)
-
-                    if isinstance(value, (list, tuple)):
-                        self._update_from_list_or_tuple(value)
-
-                    elif isinstance(value, dict): # not only because it's too complicated, but because it doesn't make sense
-                        raise TypeError("cannot parse nested dicts")
-
-                    elif isinstance(value, Bypassers):
-                        raise TypeError("cannot parse nested Bypassers instance")
-
-                    else:
-                        self._update_from_iterable(value)
+                self._update_from_mapping(name)
 
             elif isinstance(name, (tuple, list)): # fast path
                 self._update_from_list_or_tuple(name)
@@ -713,6 +718,25 @@ class Bypassers(metaclass=BypassersMeta):
     def clear(self):
         """Remove all items from the Bypasser."""
         self.__mapping__.clear()
+
+    @classmethod
+    def from_iterable(cls, iterable):
+        """Create a new instance from an iterable."""
+        cls._prevent_wrong_input(iterable)
+        self = cls()
+        if isinstance(iterable, (list, tuple)):
+            self._update_from_list_or_tuple(iterable)
+        else:
+            self._update_from_iterable(iterable)
+        return self
+
+    @classmethod
+    def from_mapping(cls, mapping):
+        """Create a new instance from a mapping."""
+        cls._prevent_wrong_input(mapping)
+        self = cls()
+        self._update_from_mapping(mapping)
+        return self
 
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
@@ -908,7 +932,6 @@ bypasser.to_list
 
 Bypassers.from_enum
 Bypassers.from_mapping
-Bypassers.from_ordered_mapping
 Bypassers.from_iterable
 
 """
