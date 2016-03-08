@@ -413,9 +413,7 @@ class Bypassers(metaclass=BypassersMeta):
         """Return the items based on the input."""
         mapping = self.__mapping__
         if isinstance(item, (str, bytes)):
-            if item in mapping:
-                return list(mapping[item])
-            raise KeyError(item)
+            return list(mapping[item])
 
         elif hasattr(item, "__index__"):
             if item < 0:
