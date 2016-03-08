@@ -305,7 +305,7 @@ class BypassersMeta(type):
         cls.__item_length__ = len(attr["values"])
         cls.__names__ = tuple(x[0] for x in attr["items"])
 
-        for sub, pos, _ in attr["items"]:
+        for sub, pos in attr["items"]:
             setattr(cls, sub, CreateViewer(sub, pos, name))
 
         if cls.__module__ == __name__:
