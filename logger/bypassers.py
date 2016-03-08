@@ -774,11 +774,11 @@ class Bypassers(metaclass=BypassersMeta):
         return self
 
     @classmethod
-    def from_mapping(cls, mapping):
+    def from_mapping(cls, mapping, *, single=False):
         """Create a new instance from a mapping."""
         cls._prevent_wrong_input(mapping)
         self = cls()
-        self._update_from_mapping(mapping)
+        self._update_from_mapping(mapping, single=single)
         return self
 
 class BaseBypassers(Bypassers):
