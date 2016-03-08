@@ -731,6 +731,12 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove all items from the Bypasser."""
         self.__mapping__.clear()
 
+    def to_dict(self, *, ordered=True):
+        """Return a dict (or OrderedDict) of self."""
+        if ordered:
+            return self.__mapping__.copy()
+        return dict(self.__mapping__)
+
     @classmethod
     def from_iterable(cls, iterable):
         """Create a new instance from an iterable."""
