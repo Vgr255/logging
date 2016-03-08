@@ -565,27 +565,31 @@ class Bypassers(metaclass=BypassersMeta):
             raise ValueError("not enough items in list or tuple (expected "
                              "{0}, got {1})".format(item_length, length))
 
-    def _update_from_mapping(self, mapping):
+    def _update_from_mapping(self, mapping, *, single=False):
         """Update the bypasser with a mapping."""
         for key in mapping:
             if not isinstance(key, (str, bytes)):
                 raise TypeError("setting must be str or bytes")
 
-            value = mapping[key]
-
-            self._prevent_wrong_input(value)
-
-            if isinstance(value, (list, tuple)):
-                self._update_from_list_or_tuple(value)
-
-            elif isinstance(value, dict): # not only because it's too complicated, but because it doesn't make sense
-                raise TypeError("cannot parse nested dicts")
-
-            elif isinstance(value, Bypassers):
-                raise TypeError("cannot parse nested Bypassers instance")
+            if single:
+                self._prevent_wrong_input(mapping[key])
+                iterable = [mapping[key]]
 
             else:
-                self._update_from_iterable(value)
+                iterable = list(mapping[key])
+
+            for value in iterable:
+                if isinstance(value, (list, tuple)):
+                    self._update_from_list_or_tuple(value)
+
+                elif isinstance(value, dict): # not only because it's too complicated, but because it doesn't make sense
+                    raise TypeError("cannot parse nested dicts")
+
+                elif isinstance(value, Bypassers):
+                    raise TypeError("cannot parse nested Bypassers instance")
+
+                else:
+                    self._update_from_iterable(value)
 
     def _update_from_iterable(self, iterable):
         """Update the bypasser with any sort of iterable."""
