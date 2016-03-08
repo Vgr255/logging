@@ -708,7 +708,7 @@ class Bypassers(metaclass=BypassersMeta):
         for name in names:
             if isinstance(name, (str, bytes)):
                 data = []
-                for name, default in values:
+                for value, default in values:
                     if default is None:
                         data.append(None)
                     else:
