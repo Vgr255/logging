@@ -486,7 +486,7 @@ class Bypassers(metaclass=BypassersMeta):
         new = self.__new__(type(self))
         new_mapping = collections.OrderedDict()
         for key, values in self.__mapping__.items():
-            new_mapping[key] = copy.deepcopy(values)
+            new_mapping[key] = copy.deepcopy(values, memo)
         new.__mapping__ = new_mapping
         return new
 
