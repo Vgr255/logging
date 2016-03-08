@@ -790,11 +790,11 @@ class BaseBypassers(Bypassers):
               ("attr",       str),
              )
 
-    items =  (("keys",        (0,),           None),
-              ("pairs",       (1,),           None),
-              ("attributes",  (2, 3),         NoValue),
-              ("values",      (1, 2, 3),      None),
-              ("items",       (0, 1, 2, 3),   None),
+    items =  (("keys",        (0,)        ),
+              ("pairs",       (1,)        ),
+              ("attributes",  (2, 3)      ),
+              ("values",      (1, 2, 3)   ),
+              ("items",       (0, 1, 2, 3)),
              )
 
 
