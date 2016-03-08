@@ -8,6 +8,7 @@
 import collections
 import types
 import enum
+import copy
 
 from .decorators import (
 
@@ -476,11 +477,18 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __copy__(self):
         """Return a shallow copy of self."""
-        return self.__class__(*self.items())
+        new = self.__new__(type(self))
+        new.__mapping__ = self.__mapping__.copy()
+        return new
 
     def __deepcopy__(self, memo):
         """Return a deep copy of self."""
-        new = self.__class__() # still todo
+        new = self.__new__(type(self))
+        new_mapping = collections.OrderedDict()
+        for key, values in self.__mapping__.items():
+            new_mapping[key] = copy.deepcopy(values)
+        new.__mapping__ = new_mapping
+        return new
 
     def __setattr__(self, item, value):
         """Prevent creation of invalid variables."""
