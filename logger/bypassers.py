@@ -509,11 +509,10 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __deepcopy__(self, memo):
         """Return a deep copy of self."""
-        new = self.__new__(type(self))
-        new_mapping = collections.OrderedDict()
+        new = type(self)()
+        new_mapping = new.__mapping__
         for key, values in self.__mapping__.items():
             new_mapping[key] = copy.deepcopy(values, memo)
-        new.__mapping__ = new_mapping
         return new
 
     def __setattr__(self, item, value):
