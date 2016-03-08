@@ -428,12 +428,36 @@ class Bypassers(metaclass=BypassersMeta):
             raise IndexError("bypasser index out of bounds")
 
         elif isinstance(item, tuple):
+            done = set()
             data = []
             for setting in item:
                 if isinstance(setting, (str, bytes)) and setting in mapping:
-                    data.extend(mapping[setting])
+                    if setting not in done:
+                        data.extend(mapping[setting])
+                        done.add(setting)
+
                 elif hasattr(setting, "__index__"):
-                    data.extend(self[setting])
+                    if setting < 0:
+                        setting += len(mapping)
+                    if 0 <= setting < len(mapping):
+                        for i, value in enumerate(mapping):
+                            if i == setting and key not in done:
+                                data.extend(mapping[key])
+                                done.add(key)
+
+                elif isinstance(setting, slice):
+                    positions = range(*setting.indices(len(mapping)))
+                    for i, key in enumerate(mapping):
+                        if i in positions and key not in done:
+                            data.extend(mapping[key])
+                            done.add(key)
+
+                elif setting is Ellipsis:
+                    for key in mapping:
+                        if key not in done:
+                            data.extend(mapping[key])
+                            done.add(key)
+
             return data
 
         elif isinstance(item, slice):
@@ -442,6 +466,8 @@ class Bypassers(metaclass=BypassersMeta):
             for i, setting in enumerate(mapping):
                 if i in positions:
                     data.append(setting)
+            if positions.step < 0:
+                data.reverse()
             return data
 
         elif item is Ellipsis:
