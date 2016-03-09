@@ -438,7 +438,7 @@ class Bypassers(metaclass=BypassersMeta):
                     if setting < 0:
                         setting += len(mapping)
                     if 0 <= setting < len(mapping):
-                        for i, value in enumerate(mapping):
+                        for i, key in enumerate(mapping):
                             if i == setting and key not in done:
                                 data.extend(mapping[key])
                                 done.add(key)
