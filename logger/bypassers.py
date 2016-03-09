@@ -444,11 +444,10 @@ class Bypassers(metaclass=BypassersMeta):
                                 done.add(key)
 
                 elif isinstance(setting, slice):
-                    positions = range(*setting.indices(len(mapping)))
-                    for i, key in enumerate(mapping):
-                        if i in positions and key not in done:
-                            data.extend(mapping[key])
-                            done.add(key)
+                    for position in range(*setting.indices(len(mapping))):
+                        if self[position] not in done:
+                            data.extend(mapping[self[position]])
+                            done.add(self[position])
 
                 elif setting is Ellipsis:
                     for key in mapping:
@@ -460,12 +459,8 @@ class Bypassers(metaclass=BypassersMeta):
 
         elif isinstance(item, slice):
             data = []
-            positions = range(*item.indices(len(mapping)))
-            for i, setting in enumerate(mapping):
-                if i in positions:
-                    data.append(setting)
-            if positions.step < 0:
-                data.reverse()
+            for position in range(*item.indices(len(mapping))):
+                data.append(self[position])
             return data
 
         elif item is Ellipsis:
