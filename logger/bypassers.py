@@ -472,6 +472,59 @@ class Bypassers(metaclass=BypassersMeta):
 
         raise TypeError("{!r} is not a supported input".format(type(item).__name__))
 
+    def __delitem__(self, item):
+        """Delete some parts of the bypasser."""
+        mapping = self.__mapping__
+        if isinstance(item, (str, bytes)):
+            del mapping[item]
+
+        elif hasattr(item, "__index__"):
+            if item < 0:
+                item += len(mapping)
+            if 0 <= item < len(mapping):
+                for i, setting in enumerate(mapping):
+                    if i == item:
+                        del mapping[setting]
+                        break
+
+            else:
+                raise IndexError("bypasser index out of bounds")
+
+        elif isinstance(item, tuple):
+            if Ellipsis in item:
+                mapping.clear()
+            else:
+                to_remove = set()
+                for setting in item:
+                    if isinstance(setting, (str, bytes)) and setting in mapping:
+                        to_remove.add(setting)
+
+                    elif hasattr(setting, "__index__"):
+                        try:
+                            to_remove.add(self[setting])
+                        except IndexError:
+                            pass
+
+                    elif isinstance(setting, slice):
+                        for position in range(*setting.indices(len(mapping))):
+                            try:
+                                to_remove.add(self[position])
+                            except IndexError:
+                                pass
+
+                for setting in to_remove:
+                    del mapping[setting]
+
+        elif isinstance(item, slice):
+            to_remove = set()
+            for position in range(*item.indices(len(mapping))):
+                to_remove.add(self[position])
+            for setting in to_remove:
+                del mapping[setting]
+
+        elif item is Ellipsis:
+            mapping.clear()
+
     def __repr__(self):
         """Accurate representation of self."""
         mapping = self.__mapping__
