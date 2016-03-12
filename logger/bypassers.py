@@ -831,9 +831,9 @@ class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
     values = (("setting",    NoValue),
-              ("pairs",      set),
-              ("module",     None),
-              ("attr",       str),
+              ("pairs",      set    ),
+              ("module",     None   ),
+              ("attr",       str    ),
              )
 
     items =  (("keys",        (0,)        ),
