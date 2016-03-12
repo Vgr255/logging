@@ -808,6 +808,14 @@ class Bypassers(metaclass=BypassersMeta):
             return self.__mapping__.copy()
         return dict(self.__mapping__)
 
+    def to_list(self):
+        """Return a list of the items in self."""
+        new = []
+        for key in mapping:
+            for values in mapping[key]:
+                new.append((key, *values))
+        return new
+
     @classmethod
     def from_iterable(cls, iterable):
         """Create a new instance from an iterable."""
