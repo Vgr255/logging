@@ -1008,24 +1008,20 @@ bypasser.index          -> Find the internal index of a setting; raise IndexErro
 bypasser.find           -> Get the setting at index given; return -1 if not present
 bypasser.count          -> How many times the setting is used
 bypasser.clear          -> Clears the whole bypasser
-bypasser.copy           -> Returns a copy of the bypasser
+bypasser.copy   DONE    -> Returns a copy of the bypasser
 bypasser.insert         -> Inserts data into setting ???
 bypasser.move           -> Move setting into position
 bypasser.pop            -> Remove an arbitrary setting
 bypasser.popitem        -> Remove a random setting
 bypasser.add    DONE    -> Add a new empty setting
-bypasser.remove         -> Remove setting at position x; raise KeyError or IndexError if not present; x defaults to 0
-bypasser.discard        -> Remove setting at position x; ignore if not present; x defaults to 0
-bypasser.erase          -> Remove the setting and all bindings at position x; raise KeyError or IndexError if not present; x defaults to 0
 bypasser.drop           -> Remove the setting and all bindings at position x; ignore if not present; x defaults to 0
 bypasser.get            -> Get the data bound to setting or a tuple consisting of n items
 bypasser.strip          -> Remove all settings that are not bound
 bypasser.sort           -> Sort all keys
 
 bypasser.to_enum
-bypasser.to_dict
-bypasser.to_ordered_dict
-bypasser.to_list
+bypasser.to_dict DONE (+ ordered keyword for an OrderedDict)
+bypasser.to_list DONE
 
 Bypassers.from_enum
 Bypassers.from_mapping
