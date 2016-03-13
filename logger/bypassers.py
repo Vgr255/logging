@@ -821,7 +821,9 @@ class Bypassers(metaclass=BypassersMeta):
         """Create a new instance from an iterable."""
         cls._prevent_wrong_input(iterable)
         self = cls()
-        if isinstance(iterable, (list, tuple)):
+        if iterable is None:
+            pass # allow None to be a simple class creation
+        elif isinstance(iterable, (list, tuple)):
             self._update_from_list_or_tuple(iterable)
         else:
             self._update_from_iterable(iterable)
@@ -832,7 +834,8 @@ class Bypassers(metaclass=BypassersMeta):
         """Create a new instance from a mapping."""
         cls._prevent_wrong_input(mapping)
         self = cls()
-        self._update_from_mapping(mapping, single=single)
+        if mapping is not None:
+            self._update_from_mapping(mapping, single=single)
         return self
 
 class BaseBypassers(Bypassers):
