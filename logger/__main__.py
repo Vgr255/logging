@@ -185,7 +185,7 @@ class Test(unittest.TestCase):
         D = logger.decorators.Singleton(C)
         self.assertIsNot(C, D)
         self.assertIsNot(type(C), type(D))
-        self.assertIs(type(type(type(D))), logger.decorators.Singleton)
+        self.assertIsInstance(D, logger.decorators.Singleton)
         self.assertIs(D, type(D)())
 
         with self.assertRaises(TypeError):

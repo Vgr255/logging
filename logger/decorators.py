@@ -470,7 +470,13 @@ class readonly(MetaProperty):
             if inst is ref or inst() is None:
                 self.funcs.remove((inst, val))
 
-class Singleton(type):
+class _MetaSingleton(type):
+    """Metaclass to allow instance checking."""
+
+    def __instancecheck__(cls, inst):
+        return type(type(type(inst))) is cls
+
+class Singleton(type, metaclass=_MetaSingleton):
     """Create a unique name (similar to None).
 
     This creates a singleton from a class definition. The class will be
