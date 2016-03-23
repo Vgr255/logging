@@ -458,15 +458,17 @@ class Bypassers(metaclass=BypassersMeta):
             return data
 
         elif isinstance(item, slice):
-            data = []
+            new = type(self)()
+            new_mapping = new.__mapping__
             for position in range(*item.indices(len(mapping))):
-                data.append(self[position])
-            return data
+                new_mapping[self[position]] = mapping[self[position]]
+            return new
 
         elif item is Ellipsis:
             data = []
             for setting in mapping:
-                data.extend(mapping[setting])
+                for values in mapping[setting]:
+                    data.append((setting, *values))
 
             return data
 
