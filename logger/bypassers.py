@@ -638,20 +638,13 @@ class Bypassers(metaclass=BypassersMeta):
             raise ValueError("not enough items in list or tuple (expected "
                              "{0}, got {1})".format(item_length, length))
 
-    def _update_from_mapping(self, mapping, *, single=False):
+    def _update_from_mapping(self, mapping):
         """Update the bypasser with a mapping."""
         for key in mapping:
             if not isinstance(key, (str, bytes)):
                 raise TypeError("setting must be str or bytes")
 
-            if single:
-                self._prevent_wrong_input(mapping[key])
-                iterable = [mapping[key]]
-
-            else:
-                iterable = list(mapping[key])
-
-            for value in iterable:
+            for value in mapping[key]:
                 if isinstance(value, (list, tuple)):
                     self._update_from_list_or_tuple(value)
 
@@ -832,12 +825,12 @@ class Bypassers(metaclass=BypassersMeta):
         return self
 
     @classmethod
-    def from_mapping(cls, mapping, *, single=False):
+    def from_mapping(cls, mapping):
         """Create a new instance from a mapping."""
         cls._prevent_wrong_input(mapping)
         self = cls()
         if mapping is not None:
-            self._update_from_mapping(mapping, single=single)
+            self._update_from_mapping(mapping)
         return self
 
 class BaseBypassers(Bypassers):
