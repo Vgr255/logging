@@ -25,32 +25,7 @@ def pick(arg, default):
     """Handler for default versus given argument."""
     return default if arg is None else arg
 
-class MetaLogger(type):
-    """Metaclass to handle the various loggers."""
-
-    allowed_bases = []
-
-    def __new__(meta, name, bases, namespace, allowed_base=False):
-        """Create a new logger class."""
-        cls = super().__new__(meta, name, bases, namespace)
-        if allowed_base:
-            meta.allowed_bases.append(cls)
-        if len(bases) > 1 and bases[0] not in meta.allowed_bases:
-            raise TypeError("improper base class: {!r}".format(bases[0].__name__))
-        if name.startswith("Translated"):
-            name = name[10:]
-        if name.endswith("Logger"):
-            cls._bp_handler = name[:-6].lower()
-        return cls
-
-    def __init__(*args, **kwargs):
-        """Catch any keyword arguments."""
-
-    def __repr__(cls):
-        """Return a string of itself."""
-        return "<logger {!r}>".format(cls.__name__)
-
-class BaseLogger(metaclass=MetaLogger):
+class BaseLogger:
     """Base Logger class for your everyday needs.
 
     This can be inherited to create custom classes.
@@ -474,7 +449,7 @@ class TypeLogger(BaseLogger):
         """Explicit way to only print to screen."""
         self.logger(*output, type=type, display=display, write=write, **rest)
 
-class Translater(BaseLogger, allowed_base=True):
+class Translater(BaseLogger):
     """Logging class to use to translate lines.
 
     This is inherited from the BaseLogger class.
