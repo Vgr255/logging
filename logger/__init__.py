@@ -165,12 +165,14 @@ class BaseLogger:
 
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
                        print_ts=None, split=None, bypassers=None,
-                       display=None, write=None, **kwargs):
+                       display=None, write=None, encoding=None,
+                       **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
 
         self.separator = pick(sep, " ")
+        self.encoding = pick(encoding, "utf-8")
 
         self.display = pick(display, True)
         self.write = pick(write, True)
@@ -244,10 +246,11 @@ class BaseLogger:
 
     @handle_bypass
     def _print(self, *output, sep=None, use_utc=None, ts_format=None,
-                              print_ts=None, split=None):
+                              print_ts=None, encoding=None, split=None):
         """Print to screen and remove all invalid characters."""
 
         sep = pick(sep, self.separator)
+        encoding = pick(encoding, self.encoding)
 
         output = self._get_output(output, sep)
 
@@ -262,7 +265,7 @@ class BaseLogger:
             output = self._split_lines(output)
 
         with open(sys.stdout.fileno(), "w", errors="replace",
-                  encoding="utf-8", closefd=False) as file:
+                  encoding=encoding, closefd=False) as file:
 
             file.write(output + "\n")
 
@@ -285,9 +288,10 @@ class BaseLogger:
     @check_bypass
     def logger(self, *output, sep=None, file=None, split=None,
                use_utc=None, ts_format=None, print_ts=None,
-               display=None, write=None):
+               display=None, write=None, encoding=None):
         """Base method to make sure it always exists."""
         output = self._get_output(output, pick(sep, self.separator))
+        encoding = pick(encoding, self.encoding)
         display = pick(display, self.display)
         write = pick(write, self.write)
 
@@ -296,7 +300,7 @@ class BaseLogger:
                                 print_ts=print_ts, split=split)
 
         if write and file is not None:
-            with open(file, "a", encoding="utf-8", errors="replace") as f:
+            with open(file, "a", encoding=encoding", errors="replace") as f:
                 f.write(output + "\n")
 
     def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
@@ -391,10 +395,11 @@ class TypeLogger(BaseLogger):
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, split=None, use_utc=None, ts_format=None,
-               print_ts=None, **kwargs):
+               print_ts=None, encoding=None, **kwargs):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
+        encoding = pick(encoding, self.encoding)
         split = self.bypassed.get("splitter", pick(split, self.split))
         display = self.bypassed.get("display", pick(display, self.display))
         write = self.bypassed.get("write", pick(write, self.write))
@@ -417,7 +422,7 @@ class TypeLogger(BaseLogger):
                 if (log == logall and type not in alines) or log is None:
                     continue
                 atypes = "type.{0} - ".format(type) if log == logall else ""
-                with open(log, "a", encoding="utf-8", errors="replace") as f:
+                with open(log, "a", encoding=encoding, errors="replace") as f:
                     for writer in output:
                         f.write("{0}{1}{2}\n".format(timestamp, atypes, writer))
 
@@ -791,10 +796,11 @@ class LevelLogger(BaseLogger):
     @check_bypass
     def logger(self, *output, file=None, level=None, display=None, write=None,
                sep=None, split=None, use_utc=None, ts_format=None,
-               print_ts=None, **kwargs):
+               print_ts=None, encoding=None, **kwargs):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
+        encoding = pick(encoding, self.encoding)
         split = self.bypassed.get("splitter", pick(split, self.split))
         display = self.bypassed.get("display", pick(display, self.display))
         write = self.bypassed.get("write", pick(write, self.write))
@@ -817,7 +823,7 @@ class LevelLogger(BaseLogger):
                 if (log == logall and type not in alines) or log is None:
                     continue
                 atypes = "type.{0} - ".format(type) if log == logall else ""
-                with open(log, "a", encoding="utf-8", errors="replace") as f:
+                with open(log, "a", encoding=encoding, errors="replace") as f:
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
 
