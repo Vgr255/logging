@@ -8,7 +8,7 @@ __status__ = "Mass Refactor"
 __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
-           "log_usage", "log_use", "total_decorate", "chk_def"]
+          ]
 
 from datetime import datetime
 import shutil
@@ -18,9 +18,8 @@ import sys
 import re
 
 from . import bypassers as bp_module
-from .bypassers import NoValue
 
-from .decorators import *
+from .decorators import handle_bypass, check_bypass
 
 def pick(arg, default):
     """Handler for default versus given argument."""
