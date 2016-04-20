@@ -300,7 +300,7 @@ class BaseLogger:
                                 print_ts=print_ts, split=split)
 
         if write and file is not None:
-            with open(file, "a", encoding=encoding", errors="replace") as f:
+            with open(file, "a", encoding=encoding, errors="replace") as f:
                 f.write(output + "\n")
 
     def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
