@@ -10,9 +10,7 @@ import logger.decorators
 
 class _Object: pass
 
-class Test(unittest.TestCase):
-
-    ### Helper functions
+class TestHelperFunctions(unittest.TestCase):
 
     def test_pick(self):
         self.assertEqual(logger.pick(None, "foo"), "foo")
@@ -32,7 +30,6 @@ class Test(unittest.TestCase):
         self.assertFalse(logger.bypassers.is_dunder("_"))
         self.assertFalse(logger.bypassers.is_dunder(""))
 
-    ### Decorators
     def test_is_singleton(self): # depends on on TestDecorators.test_singleton
         import enum
         import types
@@ -54,6 +51,8 @@ class Test(unittest.TestCase):
         self.assertTrue(logger.bypassers.is_singleton(fractions.Fraction(3)))
         self.assertTrue(logger.bypassers.is_singleton(decimal.Deciaml("45")))
         self.assertTrue(logger.bypassers.is_singleton(("foo", "bar"))
+
+class TestDecorators(unittest.TestCase):
 
     def test_instance_bypass(self):
         value = _Object()
@@ -212,7 +211,7 @@ class Test(unittest.TestCase):
         with self.assertRaises(TypeError):
             class E(type(D)): pass
 
-    ### Debug functions
+class TestDebugFunctions(unittest.TestCase):
 
     def test_get_function(self):
         self.assertIs(logger.debug.get_function(), type(self).test_get_function)
@@ -220,8 +219,9 @@ class Test(unittest.TestCase):
             self.assertIs(logger.debug.get_function(1), type(self).test_get_function)
         inner()
 
-    ### Bypassers handlers
+class TestBypassersHandlers(unittest.TestCase):
 
-    #todo
+    def test_runtime_creation(self):
+        pass
 
 unittest.main()
