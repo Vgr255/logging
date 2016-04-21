@@ -372,11 +372,11 @@ class BypassersMeta(type):
             cls = super().__new__(meta, name, bases, original)
             return cls
 
-        for value in ("values", "items"):
+        for value in ("__values__", "__items__"):
             if value not in attr:
                 raise TypeError("missing required {!r} parameter".format(value))
 
-        for x in attr["items"]:
+        for x in attr["__items__"]:
             if x[0] in original:
                 raise ValueError("{!r}: name already exists".format(x[0]))
             if x[0].startswith("_"):
@@ -386,11 +386,13 @@ class BypassersMeta(type):
 
         meta.final.add(cls)
 
+        cls.__item_length__ = len(attr["__values__"])
+        cls.__values__ = attr.pop("__values__")
+        cls.__names__ = tuple(x[0] for x in attr["__items__"])
+        cls.__items__ = attr.pop("__items__")
         cls.__attr__ = attr
-        cls.__item_length__ = len(attr["values"])
-        cls.__names__ = tuple(x[0] for x in attr["items"])
 
-        for sub, pos in attr["items"]:
+        for sub, pos in cls.__items__:
             setattr(cls, sub, CreateViewer(sub, pos, name))
 
         if cls.__module__ == __name__:
@@ -855,7 +857,7 @@ class Bypassers(metaclass=BypassersMeta):
     def add(self, *names):
         """Add unbound settings."""
         mapping = self.__mapping__
-        values = self.__attr__["values"][1:] # don't count setting
+        values = self.__values__[1:] # don't count setting
         for name in names:
             if isinstance(name, (str, bytes)):
                 data = []
@@ -921,19 +923,18 @@ class Bypassers(metaclass=BypassersMeta):
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
-    values = (("setting",    NoValue),
-              ("pairs",      set    ),
-              ("module",     None   ),
-              ("attr",       str    ),
-             )
+    __values__ = (("setting",    NoValue),
+                  ("pairs",      set    ),
+                  ("module",     None   ),
+                  ("attr",       str    ),
+                 )
 
-    items =  (("keys",        (0,)        ),
-              ("pairs",       (1,)        ),
-              ("attributes",  (2, 3)      ),
-              ("values",      (1, 2, 3)   ),
-              ("items",       (0, 1, 2, 3)),
-             )
-
+    __items__ =  (("keys",        (0,)        ),
+                  ("pairs",       (1,)        ),
+                  ("attributes",  (2, 3)      ),
+                  ("values",      (1, 2, 3)   ),
+                  ("items",       (0, 1, 2, 3)),
+                 )
 
 
 
