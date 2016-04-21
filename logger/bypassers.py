@@ -10,18 +10,104 @@ import types
 import enum
 import copy
 
-from .decorators import (
-
-    Singleton,
-    readonly,
-
-)
+from .decorators import Singleton, readonly
 
 __all__ = [] # the Bypassers get added to this later
+
+disallowed_builtins = (copyright, credits, exit, help, license, quit)
+
+types.WrapperDescriptorType = type(object.__repr__)
+types.MethodDescriptorType = type(object.__dir__)
 
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""
     return name[:2] == name[-2:] == "__" and "_" not in (name[2:3], name[-3:-2])
+
+def is_singleton(obj, *, strict=False):
+    """Return True if obj is a singleton, False otherwise.
+
+    Singletons are defined as being immutable, as well as their contents, if
+    applicable. They are also hashable.
+
+    This function can take a keyword-only `strict` parameter, defaulting to
+    True, which has the following effect:
+
+    If strict is set to False, singletons may be immutable instances of
+    a class, of which there can be an arbitrary number of possible instances.
+
+    If strict is set to True, singletons may only be true singletons, and
+    attempts to create a different instance of the same class will always
+    yield the same item. Alternatively, the impossibility to create new
+    instances of the same class (even if there are multiple instances of the
+    class alive) counts as being a true singleton.
+    """
+
+    import builtins
+    if obj in builtins.__dict__.values() and obj not in disallowed_builtins:
+        return True # built-in singletons
+
+    if type(type(type(obj))) is Singleton: # implementation detail: 3 layers
+        return True
+
+    if (obj is types.BuiltinFunctionType    or
+        obj is types.BuiltinMethodType      or
+        obj is types.GetSetDescriptorType   or
+        obj is types.MemberDescriptorType   or
+        obj is types.WrapperDescriptorType  or
+        obj is types.MethodDescriptorType   or
+        obj is types.MappingProxyType       or
+        obj is types.GeneratorType          or
+        obj is types.CoroutineType          or
+        obj is types.ModuleType             or
+        obj is types.FunctionType           or
+        obj is types.LambdaType             or
+        obj is types.MethodType             or
+        obj is types.TracebackType          or
+        obj is types.FrameType              or
+        obj is types.CodeType):
+            return True # check for the actual types
+
+    if isinstance(obj, types.BuiltinFunctionType):
+        return True
+
+    if isinstance(obj, types.BuiltinMethodType): # usually same as above
+        return True
+
+    if isinstance(obj, types.GetSetDescriptorType):
+        return True
+
+    if isinstance(obj, types.MemberDescriptorType):
+        return True
+
+    if not strict:
+        # not real singletons, but immutable data structures
+        if isinstance(obj, enum.EnumMeta):
+            return True
+
+        if type(obj) is tuple: # check if all items are immutable
+            return all(is_singleton(x, strict=strict) for x in obj)
+
+        if type(obj) is types.MappingProxyType:
+            return all(is_singleton(x, strict=strict) for x in obj.values())
+
+        if type(obj) in (str, bytes, int, float, complex):
+            return True # prevent mutable subclasses
+
+        if type(obj) in (range, slice):
+            if type(obj.start) is type(obj.stop) is type(obj.step) is int:
+                return True # fast path for the common cases
+            return all(is_singleton(x, strict=strict) for x in
+                       (obj.start, obj.stop, obj.step))
+
+        import fractions
+        if isinstance(obj, fractions.Fraction):
+            return True
+
+        import decimal
+        if isinstance(obj, decimal.Decimal):
+            return True
+
+    return False
 
 def sorter(x):
     # this is very ugly and I am not pleased with it, so if anyone can
