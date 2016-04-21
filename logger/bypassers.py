@@ -616,14 +616,6 @@ class Bypassers(metaclass=BypassersMeta):
         """Return False if self and other are equivalent, True otherwise."""
         return not (self == other)
 
-    def __reduce__(self):
-        """Return information for pickling."""
-        return self.__reduce_ex__(self, 2)
-
-    def __reduce_ex__(self, proto):
-        """Tool for advanced pickling."""
-        return self.__class__, tuple(self.items())
-
     def __copy__(self):
         """Return a shallow copy of self."""
         new = self.__new__(type(self))
