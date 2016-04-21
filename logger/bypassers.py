@@ -662,46 +662,6 @@ class Bypassers(metaclass=BypassersMeta):
         raise AttributeError("cannot delete instance variable "
                              "{!r}".format(item))
 
-    def __add__(self, other):
-        """Return a new instance with settings from other."""
-        return self.__iadd__(other, copy=True)
-
-    def __radd__(self, other):
-        """Return a new instance with settings from other (reversed)."""
-        return self.__iadd__(other, reversed=True, copy=True)
-
-    def __iadd__(self, other, reversed=False, copy=False):
-        """Add all settings from other into self."""
-        if hasattr(other, "__mapping__"):
-            if copy:
-                self = self.copy(deep=True)
-            for setting in other:
-                if setting in self:
-                    self.__mapping__.move_to_end(setting, last=(not reversed))
-                for values in other[setting]:
-                    self.update((setting, *values))
-
-            return self
-
-        return NotImplemented
-
-    def __sub__(self, other):
-        """Return a new instance with all items but those in other."""
-        return self.__isub__(other, copy=True)
-
-    def __rsub__(self, other):
-        """Return a new instance with all items but those in other."""
-        return self.__isub__(other, copy=True)
-
-    def __isub__(self, other, copy=False):
-        """Remove all items present in other from self."""
-        if hasattr(other, "__mapping__"):
-            if copy:
-                self = self.copy(deep=True)
-            for setting in other:
-                if setting in self:
-                    if False: pass # temporary so the code runs
-
     def _update_from_list_or_tuple(self, list_or_tuple):
         """Update the bypasser with list or tuple."""
         assert isinstance(list_or_tuple, (list, tuple))
@@ -936,14 +896,48 @@ class BaseBypassers(Bypassers):
                   ("items",       (0, 1, 2, 3)),
                  )
 
+class NumberMethods:
+    """Dummy class for number methods."""
 
+    def __add__(self, other):
+        """Return a new instance with settings from other."""
+        return self.__iadd__(other, copy=True)
 
+    def __radd__(self, other):
+        """Return a new instance with settings from other (reversed)."""
+        return self.__iadd__(other, reversed=True, copy=True)
 
+    def __iadd__(self, other, reversed=False, copy=False):
+        """Add all settings from other into self."""
+        if hasattr(other, "__mapping__"):
+            if copy:
+                self = self.copy(deep=True)
+            for setting in other:
+                if setting in self:
+                    self.__mapping__.move_to_end(setting, last=(not reversed))
+                for values in other[setting]:
+                    self.update((setting, *values))
 
+            return self
 
+        return NotImplemented
 
+    def __sub__(self, other):
+        """Return a new instance with all items but those in other."""
+        return self.__isub__(other, copy=True)
 
+    def __rsub__(self, other):
+        """Return a new instance with all items but those in other."""
+        return self.__isub__(other, copy=True)
 
+    def __isub__(self, other, copy=False):
+        """Remove all items present in other from self."""
+        if hasattr(other, "__mapping__"):
+            if copy:
+                self = self.copy(deep=True)
+            for setting in other:
+                if setting in self:
+                    if False: pass # temporary so the code runs
 
 NOTES = """
 
