@@ -345,12 +345,12 @@ class BypassersMeta(type):
     """
 
     allowed = {}
-    classes = dict(subclass=[], feature=[])
+    final = set()
 
     def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
         for base in bases:
-            if base in meta.classes["subclass"]:
+            if base in meta.final:
                 raise TypeError("cannot subclass {!r}".format(base.__name__))
 
         if name == "Bypassers" and namespace["__module__"] == __name__:
@@ -370,7 +370,6 @@ class BypassersMeta(type):
         if not attr:
             meta.allowed[name] = set(original)
             cls = super().__new__(meta, name, bases, original)
-            meta.classes["feature"].append(cls)
             return cls
 
         for value in ("values", "items"):
@@ -385,7 +384,7 @@ class BypassersMeta(type):
 
         cls = super().__new__(meta, name, bases, original)
 
-        meta.classes["subclass"].append(cls)
+        meta.final.add(cls)
 
         cls.__attr__ = attr
         cls.__item_length__ = len(attr["values"])
@@ -454,7 +453,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __new__(cls, names=None):
         """Create a new bypasser instance."""
-        if cls is Bypassers or cls in type(cls).classes["feature"]:
+        if cls not in type(cls).final:
             raise TypeError("cannot instantiate the {!r} class".format(
                                                                 cls.__name__))
 
