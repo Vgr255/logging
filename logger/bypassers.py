@@ -638,18 +638,6 @@ class Bypassers(metaclass=BypassersMeta):
             new_mapping[key] = copy.deepcopy(values, memo)
         return new
 
-    def __setattr__(self, item, value):
-        """Prevent creation of invalid variables."""
-        if item not in dir(self):
-            raise AttributeError("cannot create instance variable "
-                                 "{!r}".format(item))
-        super().__setattr__(item, value)
-
-    def __delattr__(self, item):
-        """Disallow deleting instance variables."""
-        raise AttributeError("cannot delete instance variable "
-                             "{!r}".format(item))
-
     def _update_from_list_or_tuple(self, list_or_tuple):
         """Update the bypasser with list or tuple."""
         assert isinstance(list_or_tuple, (list, tuple))
