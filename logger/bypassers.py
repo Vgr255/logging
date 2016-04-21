@@ -14,7 +14,7 @@ from .decorators import Singleton, readonly
 
 __all__ = [] # the Bypassers get added to this later
 
-disallowed_builtins = (copyright, credits, exit, help, license, quit)
+_disallowed_builtins = (copyright, credits, exit, help, license, quit)
 
 types.WrapperDescriptorType = type(object.__repr__)
 types.MethodDescriptorType = type(object.__dir__)
@@ -43,7 +43,7 @@ def is_singleton(obj, *, strict=False):
     """
 
     import builtins
-    if obj in builtins.__dict__.values() and obj not in disallowed_builtins:
+    if obj in builtins.__dict__.values() and obj not in _disallowed_builtins:
         return True # built-in singletons
 
     if type(type(type(obj))) is Singleton: # implementation detail: 3 layers
