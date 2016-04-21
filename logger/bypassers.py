@@ -468,18 +468,6 @@ class Bypassers(metaclass=BypassersMeta):
         if names is not None:
             self.update(names)
 
-    def __get__(self, instance, owner):
-        """Bind the instance to self."""
-        return self
-
-    def __set__(self, instance, value):
-        """Prevent changing the value of the bypasser."""
-        raise AttributeError("cannot change value of bypasser")
-
-    def __delete__(self, instance):
-        """Prevent deleting the bypasser from an instance."""
-        raise AttributeError("cannot delete a bypasser")
-
     def __iter__(self):
         """Iterate over the items of self."""
         yield from self.__mapping__
@@ -948,10 +936,6 @@ __names__       DONE    view object names
 
 __new__         DONE    create a new instance and prevent illegal instantiation
 __init__        DONE    initialize the instance
-
-__get__         DONE    get the instance and class
-__set__         DONE    set a new value to the bypasser
-__delete__      DONE    delete the bypasser
 
 __iter__        DONE    iter(bypasser) -> iterator of settings
 __reversed__    DONE    reversed(bypasser) -> reversed iterator of settings
