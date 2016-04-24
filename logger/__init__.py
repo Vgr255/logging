@@ -166,13 +166,15 @@ class BaseLogger:
     def __init__(self, *, sep=None, use_utc=None, ts_format=None,
                        print_ts=None, split=None, bypassers=None,
                        display=None, write=None, encoding=None,
-                       **kwargs):
+                       errors=None, end=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
 
         self.separator = pick(sep, " ")
         self.encoding = pick(encoding, "utf-8")
+        self.errors = pick(errors, "replace")
+        self.end = pick(end, "\n")
 
         self.display = pick(display, True)
         self.write = pick(write, True)
@@ -246,11 +248,14 @@ class BaseLogger:
 
     @handle_bypass
     def _print(self, *output, sep=None, use_utc=None, ts_format=None,
-                              print_ts=None, encoding=None, split=None):
+                     print_ts=None, encoding=None, split=None,
+                     errors=None, end=None):
         """Print to screen and remove all invalid characters."""
 
         sep = pick(sep, self.separator)
         encoding = pick(encoding, self.encoding)
+        errors = pick(errors, self.errors)
+        end = pick(end, self.end)
 
         output = self._get_output(output, sep)
 
@@ -264,10 +269,10 @@ class BaseLogger:
         if self.bypassed.get("splitter", pick(split, self.split)):
             output = self._split_lines(output)
 
-        with open(sys.stdout.fileno(), "w", errors="replace",
+        with open(sys.stdout.fileno(), "w", errors=errors,
                   encoding=encoding, closefd=False) as file:
 
-            file.write(output + "\n")
+            file.write(output + end)
 
             file.flush()
 
