@@ -183,8 +183,10 @@ class BaseLogger:
         self.print_ts = pick(print_ts, False)
         self.split = pick(split, True)
 
-        func = getattr(bp_module, self._bp_handler.capitalize() +
-                                  "Bypassers")
+        try:
+            func = self._bp_handler
+        except AttributeError:
+            func = bp_module.BaseBypassers
 
         self.bypassers = func.from_iterable(bypassers)
         self.bypassers.add("timestamp", "splitter", "display", "write")
