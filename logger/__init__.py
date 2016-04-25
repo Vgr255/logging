@@ -872,10 +872,6 @@ class LoggingLevels(types.SimpleNamespace):
         """Return True if item is in self, False otherwise."""
         return value in self.__dict__
 
-    def __reversed__(self):
-        """Iterate over the items by value instead of key."""
-        return (self.__dict__[item] for item in self)
-
     def __getitem__(self, item):
         """Get an item from the underlying dict."""
         return self.__dict__[item]
