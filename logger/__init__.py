@@ -886,17 +886,7 @@ class LoggingLevels(types.SimpleNamespace):
 
     def __repr__(self):
         """Return an accurate representation of self."""
-        non_identifier = []
-        identifiers = [None]
-        for key in sorted(self.__dict__):
-            if not isinstance(key, str):
-                non_identifier.append("{0}: {1!r}".format(key, self[key]))
-            else:
-                identifiers.append("{0}={1!r}".format(key, self[key]))
-
-        identifiers[0] = "{{{0}}}".format(", ".join(non_identifier))
-
-        return "{0}({1})".format(type(self).__name__, ", ".join(identifiers))
+        return "{0}({1})".format(type(self).__name__, repr(self.__dict__))
 
 class NamesLogger(LevelLogger):
     """Implement named levels logging.
