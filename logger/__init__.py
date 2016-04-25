@@ -848,12 +848,16 @@ class TranslatedLevelLogger(Translater, LevelLogger):
 class LoggingLevels(types.SimpleNamespace):
     """Namespace for storing logging levels."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(*args, **kwargs):
         """Accept a dict as an optional positional argument."""
-        if len(args) > 1:
+        if not args:
+            raise TypeError("{0} takes at least 1 positional arguments (0 were given
+        if len(args) > 2:
             raise TypeError(("{0}() takes at most 1 positional arguments but "
                              "{1} were given").format(type(self).__name__,
                                                       len(args)))
+
+        self, *args = args
 
         if args:
             self.__dict__.update(args[0])
