@@ -288,11 +288,11 @@ class BypassersMeta(type):
     In the class body, you need to set a few variables that will
     determine how the mapping will behave. These are as follow:
 
-    'values':
+    '__values__':
                     Iterable of the names of each parameter in the
                     mapping.
 
-    'items':
+    '__items__':
                     Iterable of 3-tuples which will be checked against
                     when performing various checks. See below.
 
