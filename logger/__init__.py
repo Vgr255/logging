@@ -845,54 +845,11 @@ class LevelLogger(BaseLogger):
 class TranslatedLevelLogger(Translater, LevelLogger):
     """Implement a way to have levelled logging with translating."""
 
-class LoggingLevels(types.SimpleNamespace):
-    """Namespace for storing logging levels."""
-
-    def __init__(*args, **kwargs):
-        """Accept a dict as an optional positional argument."""
-        if not args:
-            raise TypeError("{0} takes at least 1 positional arguments (0 were given
-        if len(args) > 2:
-            raise TypeError(("{0}() takes at most 1 positional arguments but "
-                             "{1} were given").format(type(self).__name__,
-                                                      len(args)))
-
-        self, *args = args
-
-        if args:
-            self.__dict__.update(args[0])
-
-        super().__init__(**kwargs)
-
-    def __iter__(self):
-        """Return an iterator over the items of self."""
-        yield from self.__dict__
-
-    def __contains__(self, item):
-        """Return True if item is in self, False otherwise."""
-        return value in self.__dict__
-
-    def __getitem__(self, item):
-        """Get an item from the underlying dict."""
-        return self.__dict__[item]
-
-    def __setitem__(self, item, value):
-        """Set an item to the underlying dict."""
-        self.__dict__[item] = value
-
-    def __delitem__(self, item):
-        """Delete an item from the underlying dict."""
-        del self.__dict__[item]
-
-    def __repr__(self):
-        """Return an accurate representation of self."""
-        return "{0}({1})".format(type(self).__name__, repr(self.__dict__))
-
 class NamesLogger(LevelLogger):
     """Implement named levels logging.
 
     "levels":
-                    Mapping of {name:level} pairs, which are used to
+                    Mapping of {name: level} pairs, which are used to
                     implement named logging. This supports mutation of
                     the mapping to update the internal mapping.
 
@@ -900,11 +857,7 @@ class NamesLogger(LevelLogger):
 
     To add, change or remove a level after instantiation, either the
     original mapping can be altered, or direct change can be made via
-    `self.levels.level_to_change = new_value` or similar.
-
-    Passing the level value can be done either through a direct lookup
-    with the `levels` argument, a number, a name matching a level, or
-    None.
+    `logger.levels[level_to_change] = new_value` or similar.
 
     Bypassers arguments:
 
@@ -922,20 +875,17 @@ class NamesLogger(LevelLogger):
         super().__init__(**kwargs)
 
         self.default = pick(default, "normal")
-        self.levels = LoggingLevels(**pick(levels, {}))
+        self.levels = pick(levels, {})
 
         if self.default not in self.levels:
-            setattr(self.levels, self.default, 0)
+            self.levels[self.default] = 0
 
     def logger(self, *output, level=None, **kwargs):
         """Log a line matching a named level."""
 
-        try: # string - direct value lookup (eg "info" is levels.info)
-            level = getattr(self.levels, level)
-        except TypeError: # got an int, direct value lookup, or None
-            pass
-        except AttributeError: # unknown value; fall back to normal
-            level = getattr(self.levels, self.default)
+        level = self.levels.get(level)
+        if level is None:
+            level = self.default
 
         super().logger(*output, level=level, **kwargs)
 
