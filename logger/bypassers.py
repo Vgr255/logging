@@ -223,6 +223,60 @@ class CreateViewer:
         """Return an iterator over the items in the mapping."""
         return Viewer(self.name, self.__name__, self.position, instance)
 
+class Subscript:
+    """Return a subscript object for the Bypassers."""
+
+    def __init__(self, instance, item):
+        self.instance = instance
+        self.item = item
+
+    def __iter__(self):
+        inst = self.instance
+        mapping = inst.__mapping__
+        item = self.item
+        if isinstance(item, (str, bytes)):
+            yield from mapping[item]
+
+        elif isinstance(item, tuple):
+            done = set()
+            for setting in item:
+                if isinstance(setting, (str, bytes)) and setting in mapping:
+                    if setting not in done:
+                        yield from mapping[setting]
+                        done.add(setting)
+
+                elif hasattr(setting, "__index__"):
+                    try:
+                        key = inst._get_setting(setting)
+                    except IndexError:
+                        continue
+
+                    if key not in done:
+                        yield from mapping[key]
+                        done.add(key)
+
+                elif isinstance(setting, slice):
+                    for position in range(*setting.indices(len(mapping))):
+                        try:
+                            key = inst._get_setting(position)
+                        except IndexError:
+                            continue
+
+                        if key not in done:
+                            yield from mapping[key]
+                            done.add(key)
+
+                elif setting is Ellipsis:
+                    for key in mapping:
+                        if key not in done:
+                            yield from mapping[key]
+                            done.add(key)
+
+        elif item is Ellipsis:
+            for setting in mapping:
+                for values in mapping[setting]:
+                    yield (setting, *values)
+
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
 
@@ -395,66 +449,24 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __getitem__(self, item):
         """Return the items based on the input."""
-        mapping = self.__mapping__
-        if isinstance(item, (str, bytes)):
-            return list(mapping[item])
-
-        elif hasattr(item, "__index__"):
-            if item < 0:
-                item += len(mapping)
-            if 0 <= item < len(mapping):
-                for i, setting in enumerate(mapping):
-                    if i == item:
-                        return setting
-
-            raise IndexError("bypasser index out of bounds")
-
-        elif isinstance(item, tuple):
-            done = set()
-            data = []
-            for setting in item:
-                if isinstance(setting, (str, bytes)) and setting in mapping:
-                    if setting not in done:
-                        data.extend(mapping[setting])
-                        done.add(setting)
-
-                elif hasattr(setting, "__index__"):
-                    if setting < 0:
-                        setting += len(mapping)
-                    if 0 <= setting < len(mapping):
-                        for i, key in enumerate(mapping):
-                            if i == setting and key not in done:
-                                data.extend(mapping[key])
-                                done.add(key)
-
-                elif isinstance(setting, slice):
-                    for position in range(*setting.indices(len(mapping))):
-                        if self[position] not in done:
-                            data.extend(mapping[self[position]])
-                            done.add(self[position])
-
-                elif setting is Ellipsis:
-                    for key in mapping:
-                        if key not in done:
-                            data.extend(mapping[key])
-                            done.add(key)
-
-            return data
+        if hasattr(item, "__index__"):
+            return self._get_setting(item)
 
         elif isinstance(item, slice):
             new = type(self)()
             new_mapping = new.__mapping__
+            mapping = self.__mapping__
             for position in range(*item.indices(len(mapping))):
-                new_mapping[self[position]] = mapping[self[position]]
+                try:
+                    key = self._get_setting(position)
+                except IndexError:
+                    continue
+                else:
+                    new_mapping[key] = mapping[key]
             return new
 
-        elif item is Ellipsis:
-            data = []
-            for setting in mapping:
-                for values in mapping[setting]:
-                    data.append((setting, *values))
-
-            return data
+        elif isinstance(item, (str, bytes, tuple)) or item is Ellipsis:
+            return Subscript(self, item)
 
         raise TypeError("{!r} is not a supported input".format(type(item).__name__))
 
@@ -487,14 +499,14 @@ class Bypassers(metaclass=BypassersMeta):
 
                     elif hasattr(setting, "__index__"):
                         try:
-                            to_remove.add(self[setting])
+                            to_remove.add(self._get_setting(setting))
                         except IndexError:
                             pass
 
                     elif isinstance(setting, slice):
                         for position in range(*setting.indices(len(mapping))):
                             try:
-                                to_remove.add(self[position])
+                                to_remove.add(self._get_setting(position))
                             except IndexError:
                                 pass
 
@@ -504,7 +516,7 @@ class Bypassers(metaclass=BypassersMeta):
         elif isinstance(item, slice):
             to_remove = set()
             for position in range(*item.indices(len(mapping))):
-                to_remove.add(self[position])
+                to_remove.add(self._get_setting(position))
             for setting in to_remove:
                 del mapping[setting]
 
@@ -538,6 +550,20 @@ class Bypassers(metaclass=BypassersMeta):
         for key, values in self.__mapping__.items():
             new_mapping[key] = copy.deepcopy(values, memo)
         return new
+
+    def _get_setting(self, index):
+        """Get the item at index given."""
+        assert hasattr(index, "__index__")
+        mapping = self.__mapping__
+        index = int(index)
+        if index < 0:
+            index += len(mapping)
+        if 0 <= index < len(mapping):
+            for i, setting in enumerate(mapping):
+                if i == index:
+                    return setting
+
+        raise IndexError("bypasser index out of bounds")
 
     def _update_from_list_or_tuple(self, list_or_tuple):
         """Update the bypasser with list or tuple."""
