@@ -656,7 +656,7 @@ class Translater(BaseLogger):
 
         if all_languages is not None:
             self.all_languages = all_languages
-            for long, short in lang.items():
+            for long, short in langs.items():
                 self.all_languages[long] = self.all_languages.get(long, short)
         else:
             self.all_languages = langs
