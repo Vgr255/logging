@@ -278,19 +278,13 @@ class BaseLogger:
 
             file.flush()
 
-    def _get_output(self, out, sep, ret_list=False):
+    def _get_output(self, output, sep):
         """Sanitize output and join iterables together."""
-        out = out or [''] # called with no argument, support it anyway
-        msg = [] if ret_list else None
-        for line in out:
-            line = str(line)
-            if msg is None:
-                msg = line
-            elif ret_list:
-                msg.append(line)
-            else:
-                msg = sep.join((msg, line))
-        return msg
+        return sep.join(str(x) for x in output)
+
+    def _get_output_list(self, output):
+        """Sanitize output and return a list of lines."""
+        return [str(x) for x in output] or ['']
 
     @check_bypass
     def logger(self, *output, sep=None, file=None, split=None,
@@ -752,7 +746,7 @@ class Translater(BaseLogger):
         format_dict = pick(format_dict, {})
         format_mod = pick(format_mod, ())
 
-        output = self._get_output(output, sep, True)
+        output = self._get_output_list(output)
 
         if ("translate" not in self.bypassed and check and
                                language != self.main):
