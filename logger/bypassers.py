@@ -76,12 +76,12 @@ class Viewer: # TODO: set-like methods
             if mapping:
                 yield from factory(mapping)
 
-        elif self.position == tuple(range(1, item_length+1)): # common use of values
+        elif self.position == tuple(range(1, item_length)): # common use of values
             for key in factory(mapping):
                 if mapping[key]:
                     yield from factory(mapping[key])
 
-        elif self.position == tuple(range(item_length+1)): # commonly items
+        elif self.position == tuple(range(item_length)): # commonly items
             for key in factory(mapping):
                 for values in factory(mapping[key]):
                     yield (key, *values)
