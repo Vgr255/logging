@@ -101,9 +101,15 @@ class Viewer: # TODO: set-like methods
 
     def __eq__(self, other):
         """Return True if self == other, False otherwise."""
+        if self is other:
+            return True
+
         try:
             it = iter(other)
         except TypeError:
+            return False
+
+        if it is other: # 'other' is an iterator: don't exhaust it
             return False
 
         for item in self:
@@ -122,9 +128,15 @@ class Viewer: # TODO: set-like methods
 
     def __ne__(self, other):
         """Return True if self != other, False otherwise."""
+        if self is other:
+            return False
+
         try:
             it = iter(other)
         except TypeError:
+            return True
+
+        if it is other:
             return True
 
         for item in self:
