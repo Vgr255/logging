@@ -734,11 +734,14 @@ class Translater(BaseLogger):
 
     @check_bypass
     def logger(self, *output, file=None, check=None, language=None,
-               format=None, format_dict=None, format_mod=None, **kwargs):
+               format=None, format_dict=None, format_mod=None, display=None,
+               **kwargs):
         """Translate a line then log it."""
 
         language = pick(language, self.current)
         check = self.bypassed.get("check", pick(check, self.check))
+
+        display = self.bypassed.get("display", pick(display, self.display))
 
         format = pick(format, ())
         format_dict = pick(format_dict, {})
@@ -754,14 +757,14 @@ class Translater(BaseLogger):
 
             trfile = self.all_languages[language] + "_" + file
 
-            super().logger(*trout, file=trfile, **kwargs)
+            super().logger(*trout, file=trfile, display=display, **kwargs)
 
-            display = False
+            display = self.bypassed.get("display", False)
 
         if check:
             self.translate(output, self.main, format, format_dict, format_mod)
 
-        super().logger(*output, file=file, **kwargs)
+        super().logger(*output, file=file, display=display, **kwargs)
 
 class TranslatedTypeLogger(Translater, TypeLogger):
     """Implement translated type-based logging."""
