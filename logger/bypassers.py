@@ -149,9 +149,6 @@ class Viewer: # TODO: set-like methods
 
     def __le__(self, other):
         """Return True if self <= other, False otherwise."""
-        if 0 not in self.position:
-            return NotImplemented
-
         if self == other:
             return True
 
@@ -167,9 +164,6 @@ class Viewer: # TODO: set-like methods
 
     def __ge__(self, other):
         """Return True if self >= other, False otherwise."""
-        if 0 not in self.position:
-            return NotImplemented
-
         if self == other:
             return True
 
