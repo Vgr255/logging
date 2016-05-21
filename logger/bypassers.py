@@ -226,6 +226,22 @@ class Subscript:
         self.instance = instance
         self.item = item
 
+    def __getitem__(self, position):
+        """Return the item at the position given."""
+        if isinstance(position, slice):
+            pass
+
+        elif not hasattr(position, "__index__"):
+            raise TypeError("position must be an integer or slice")
+
+    def __len__(self):
+        """Return the length of self."""
+        return len(self.instance)
+
+    def __repr__(self):
+        """Return a representation of self."""
+        return "<subscript {0} of {1}>".format(self.item, type(self.instance).__name__)
+
     def __iter__(self):
         """Yield all items of self in order."""
         inst = self.instance
