@@ -191,15 +191,18 @@ class CreateViewer:
                                                            self.name)
 
     def __get__(self, instance, owner):
+        """Return a bound method of self if an instance is present."""
         self.name = owner.__name__
         if instance is not None:
             return types.MethodType(self, instance)
         return self
 
     def __set__(self, instance, value):
+        """Prevent overwriting view objects."""
         raise AttributeError("cannot overwrite view object")
 
     def __delete__(self, instance):
+        """Prevent deleting view objects."""
         raise AttributeError("cannot delete view object")
 
     def __call__(self, instance):
@@ -207,13 +210,24 @@ class CreateViewer:
         return Viewer(self.name, self.__name__, self.position, instance)
 
 class Subscript:
-    """Return a subscript object for the Bypassers."""
+    """Class for subscription of Bypassers.
+
+    This class will be returned by a subscript to a Bypassers class if the
+    subscript is a 'str', 'bytes', 'tuple' or the Ellipsis ('...') singleton.
+
+    This is used to dynamically return the items, reflecting changes to the
+    original mapping. This is also used to allow modifications to the mapping
+    through subsequent indexing.
+
+    """
 
     def __init__(self, instance, item):
+        """Create a new subscript object for the Bypassers."""
         self.instance = instance
         self.item = item
 
     def __iter__(self):
+        """Yield all items of self in order."""
         inst = self.instance
         mapping = inst.__mapping__
         item = self.item
