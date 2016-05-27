@@ -149,10 +149,7 @@ class Viewer: # TODO: set-like methods
 
     def __le__(self, other):
         """Return True if self <= other, False otherwise."""
-        if self == other:
-            return True
-
-        return self.__lt__(other)
+        return self.__lt__(other) or self == other
 
     def __gt__(self, other):
         """Return True if self > other, False otherwise."""
@@ -164,10 +161,7 @@ class Viewer: # TODO: set-like methods
 
     def __ge__(self, other):
         """Return True if self >= other, False otherwise."""
-        if self == other:
-            return True
-
-        return self.__gt__(other)
+        return self.__gt__(other) or self == other
 
 class CreateViewer:
     """Create a view object. This is meant for internal use.
