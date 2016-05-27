@@ -327,12 +327,11 @@ class BypassersMeta(type):
     """
 
     allowed = {}
-    final = set()
 
     def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
         for base in bases:
-            if base in meta.final:
+            if base not in meta.allowed:
                 raise TypeError("cannot subclass {!r}".format(base.__name__))
 
         if name == "Bypassers" and namespace["__module__"] == __name__:
@@ -350,8 +349,8 @@ class BypassersMeta(type):
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
         if not attr:
-            meta.allowed[name] = set(original)
-            cls = super().__new__(meta, name, bases, original)
+            meta.allowed[name] = set(namespace)
+            cls = super().__new__(meta, name, bases, namespace)
             return cls
 
         for value in ("__values__", "__items__"):
@@ -359,20 +358,19 @@ class BypassersMeta(type):
                 raise TypeError("missing required {!r} parameter".format(value))
 
         for x in attr["__items__"]:
-            if x[0] in original:
+            if x[0] in namespace:
                 raise ValueError("{!r}: name already exists".format(x[0]))
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
 
-        cls = super().__new__(meta, name, bases, original)
+        for item in ("__item_length__", "__names__"):
+            if item in namespace:
+                raise ValueError("member {!r} is reserved for internal use")
 
-        meta.final.add(cls)
+        cls = super().__new__(meta, name, bases, namespace)
 
         cls.__item_length__ = len(attr["__values__"])
-        cls.__values__ = attr.pop("__values__")
         cls.__names__ = tuple(x[0] for x in attr["__items__"])
-        cls.__items__ = attr.pop("__items__")
-        cls.__attr__ = attr
 
         for sub, pos in cls.__items__:
             setattr(cls, sub, CreateViewer(sub, pos, name))
@@ -437,9 +435,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __new__(cls, names=None):
         """Create a new bypasser instance."""
-        if cls not in type(cls).final:
-            raise TypeError("cannot instantiate the {!r} class".format(
-                                                                cls.__name__))
+        if cls in type(cls).allowed:
+            raise TypeError("cannot instantiate the {!r} class".format(cls.__name__))
 
         return super().__new__(cls)
 
