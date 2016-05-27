@@ -70,6 +70,7 @@ class Viewer: # TODO: set-like methods
 
     def __iter__(self, factory=iter):
         """Return a modular iterator over the items in the instance."""
+        assert factory is iter or factory is reversed
         mapping = self.instance.__mapping__
         item_length = self.instance.__item_length__
         if self.position == (0,): # short-circuit for common use of keys
@@ -238,6 +239,7 @@ class Subscript:
 
     def __iter__(self, factory=iter):
         """Yield all items of self in order."""
+        assert factory is iter or factory is reversed
         inst = self.instance
         mapping = inst.__mapping__
         item = self.item
