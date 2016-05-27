@@ -236,20 +236,20 @@ class Subscript:
         """Return a representation of self."""
         return "<subscript {0} of {1}>".format(self.item, type(self.instance).__name__)
 
-    def __iter__(self):
+    def __iter__(self, factory=iter):
         """Yield all items of self in order."""
         inst = self.instance
         mapping = inst.__mapping__
         item = self.item
         if isinstance(item, (str, bytes)):
-            yield from mapping[item]
+            yield from factory(mapping[item])
 
         elif isinstance(item, tuple):
             done = set()
-            for setting in item:
+            for setting in factory(item):
                 if isinstance(setting, (str, bytes)) and setting in mapping:
                     if setting not in done:
-                        yield from mapping[setting]
+                        yield from factory(mapping[setting])
                         done.add(setting)
 
                 elif hasattr(setting, "__index__"):
@@ -259,30 +259,40 @@ class Subscript:
                         continue
 
                     if key not in done:
-                        yield from mapping[key]
+                        yield from factory(mapping[key])
                         done.add(key)
 
                 elif isinstance(setting, slice):
-                    for position in range(*setting.indices(len(mapping))):
+                    start, stop, step = setting.indices(len(mapping))
+                    if setting.step is None:
+                        step = factory is iter or -1
+                    elif factory is reversed and step > 0:
+                        raise ValueError("reversed() with non-negative step is unsupported")
+
+                    for position in range(start, stop, step):
                         try:
                             key = inst._get_setting(position)
                         except IndexError:
                             continue
 
                         if key not in done:
-                            yield from mapping[key]
+                            yield from factory(mapping[key])
                             done.add(key)
 
                 elif setting is Ellipsis:
                     for key in mapping:
                         if key not in done:
-                            yield from mapping[key]
+                            yield from factory(mapping[key])
                             done.add(key)
 
         elif item is Ellipsis:
-            for setting in mapping:
-                for values in mapping[setting]:
+            for setting in factory(mapping):
+                for values in factory(mapping[setting]):
                     yield (setting, *values)
+
+    def __reversed__(self):
+        """Yield all items in reverse order."""
+        return self.__iter__(factory=reversed)
 
 class BypassersMeta(type):
     """Metaclass to dynamically create bypassers.
