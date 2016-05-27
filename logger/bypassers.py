@@ -307,12 +307,12 @@ class BypassersMeta(type):
     In the class body, you need to set a few variables that will
     determine how the mapping will behave. These are as follow:
 
-    '__values__':
+    '__names__':
                     Iterable of the names of each parameter in the
                     mapping.
 
-    '__items__':
-                    Iterable of 3-tuples which will be checked against
+    '__views__':
+                    Iterable of 2-tuples which will be checked against
                     when performing various checks. See below.
 
     All of the aforementioned parameters are mandatory. If any of
@@ -353,26 +353,26 @@ class BypassersMeta(type):
             cls = super().__new__(meta, name, bases, namespace)
             return cls
 
-        for value in ("__values__", "__items__"):
+        for value in ("__names__", "__views__"):
             if value not in attr:
                 raise TypeError("missing required {!r} parameter".format(value))
 
-        for x in attr["__items__"]:
+        for x in attr["__views__"]:
             if x[0] in namespace:
                 raise ValueError("{!r}: name already exists".format(x[0]))
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
 
-        for item in ("__item_length__", "__names__"):
+        for item in ("__item_length__", "__viewers__"):
             if item in namespace:
                 raise ValueError("member {!r} is reserved for internal use")
 
         cls = super().__new__(meta, name, bases, namespace)
 
-        cls.__item_length__ = len(attr["__values__"])
-        cls.__names__ = tuple(x[0] for x in attr["__items__"])
+        cls.__item_length__ = len(attr["__names__"])
+        cls.__viewers__ = tuple(x[0] for x in attr["__views__"])
 
-        for sub, pos in cls.__items__:
+        for sub, pos in cls.__views__:
             setattr(cls, sub, CreateViewer(sub, pos, name))
 
         if cls.__module__ == __name__:
@@ -736,7 +736,7 @@ class Bypassers(metaclass=BypassersMeta):
     def add(self, *names):
         """Add unbound settings."""
         mapping = self.__mapping__
-        values = self.__values__[1:] # don't count setting
+        values = self.__names__[1:] # don't count setting
         for name in names:
             if isinstance(name, (str, bytes)):
                 data = []
@@ -799,18 +799,18 @@ class Bypassers(metaclass=BypassersMeta):
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
-    __values__ = (("setting",    NoValue),
-                  ("pairs",      set    ),
-                  ("module",     None   ),
-                  ("attr",       str    ),
-                 )
+    __names__ = (("setting",    NoValue),
+                 ("pairs",      set    ),
+                 ("module",     None   ),
+                 ("attr",       str    ),
+                )
 
-    __items__ =  (("keys",        (0,)        ),
-                  ("pairs",       (1,)        ),
-                  ("attributes",  (2, 3)      ),
-                  ("values",      (1, 2, 3)   ),
-                  ("items",       (0, 1, 2, 3)),
-                 )
+    __views__ = (("keys",        (0,)        ),
+                 ("pairs",       (1,)        ),
+                 ("attributes",  (2, 3)      ),
+                 ("values",      (1, 2, 3)   ),
+                 ("items",       (0, 1, 2, 3)),
+                )
 
 class NumberMethods:
     """Dummy class for number methods."""
