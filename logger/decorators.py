@@ -240,9 +240,10 @@ class log_usage:
     def __get__(self, instance, owner):
         """Make the decorator work properly on methods."""
         def caller(*args, **kwargs):
-            if instance is not None:
-                args = (instance,) + args
             return self.call(self.func, args, kwargs, self.handler)
+
+        if instance is not None:
+            return types.MethodType(caller, instance)
 
         return caller
 
