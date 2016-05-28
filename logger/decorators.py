@@ -5,6 +5,7 @@ __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
            "DescriptorProperty", "Singleton"]
 
 import weakref
+import types
 
 # Handle Python < 3.5
 try:
@@ -20,12 +21,19 @@ class instance_bypass:
     def __init__(self, instance, factory=dict):
         self.instance = instance
         self.factory = factory
+        self.delete = False
 
     def __enter__(self):
-        self.instance.bypassed = self.factory()
+        inst = self.instance
+        try:
+            inst.bypassed
+        except AttributeError:
+            inst.bypassed = self.factory()
+            self.delete = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        del self.instance.bypassed
+        if self.delete:
+            del self.instance.bypassed
 
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
@@ -38,11 +46,8 @@ class handle_bypass:
         """Access the method through the instance."""
         if instance is None:
             return self
-        if not hasattr(instance, "bypassed"):
-            with instance_bypass(instance):
-                return self.func.__get__(instance, owner)
-
-        return self.func.__get__(instance, owner)
+        with instance_bypass(instance):
+            return self.func.__get__(instance, owner)
 
 class check_bypass:
     """Handler to get the proper bypass check decorator."""
@@ -55,13 +60,16 @@ class check_bypass:
         """Access the method through the instance."""
         if instance is None:
             return self
-        if not hasattr(instance, "bypassed"):
+        try:
+            instance.bypassed
+        except AttributeError:
             with instance_bypass(instance):
-                name = "_check_%s_" % (owner._bp_handler,)
-                if not hasattr(self, name):
-                    raise TypeError("%r does not have a bypass handler" % owner.__name__)
+                bp_handler = getattr(owner, "_bp_handler", "base")
+                handler = getattr(self, "_check_{0}_".format(bp_handler), None)
+                if handler is None:
+                    raise TypeError("%r does not have a bypass handler".format(owner.__name__))
 
-                return lambda *args, **kwargs: getattr(self, name)(instance, *args, **kwargs)
+                return types.MethodType(handler, instance)
 
         return self.func.__get__(instance, owner)
 
