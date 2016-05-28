@@ -906,8 +906,9 @@ NOTES = """
 
 __mapping__     DONE    underlying OrderedDict mapping
 __item_length__ DONE    number of items in the Bypasser
-__attr__        DONE    class-level attributes
-__names__       DONE    view object names
+__viewers__     DONE    names of the view objects
+__names__       DONE    names of the positions and their defaults
+__views__       DONE    names of the views and their matching positions
 
 __new__         DONE    create a new instance and prevent illegal instantiation
 __init__        DONE    initialize the instance
