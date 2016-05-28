@@ -91,7 +91,7 @@ class check_bypass:
 
     def _check_base_(self, instance, *args, **kwargs):
         """Checker for the base class."""
-        for setting, pairs, mod, attr in instance.bypassers.items():
+        for setting, pairs, mod, attr in instance.bypassers.__items__():
             if mod is NoValue or attr is NoValue:
                 continue
             for module, attribute in pairs:
@@ -117,7 +117,7 @@ class check_bypass:
         if file is None:
             file = instance.logfiles.get(type, instance.logfiles["normal"])
 
-        for setting, types, pairs, mod, attr in instance.bypassers.items():
+        for setting, types, pairs, mod, attr in instance.bypassers.__items__():
             if mod is NoValue or attr is NoValue:
                 continue
             for module, attribute in pairs:
