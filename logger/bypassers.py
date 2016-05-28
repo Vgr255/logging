@@ -386,7 +386,6 @@ class BypassersMeta(type):
         else:
             raise TypeError("no proper base class found")
 
-        original = {k:v for k,v in namespace.items() if k in allowed}
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
         if not attr:
