@@ -587,9 +587,10 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __repr__(self):
         """Accurate representation of self."""
-        mapping = self.__mapping__
-        return "{0}([{1}])".format(self.__class__.__name__,
-               ", ".join(str(x) for x in ((k, *v) for k in mapping for v in mapping[k])))
+        mp = self.__mapping__
+        cls = self.__class__.__name__
+        return "{0}([{1}])".format(cls, ", ".join(str(x) for x in
+                                  ((k, *v) for k in mp for v in mp[k])))
 
     def __eq__(self, other):
         """Return True if self and other are equivalent, False otherwise."""
