@@ -6,8 +6,7 @@
 """Implementation of the Bypassers handlers."""
 
 import collections
-import types
-import enum
+import functools
 import copy
 
 from .decorators import Singleton, readonly
@@ -46,6 +45,33 @@ class NoValue:
         """Return False no matter what."""
         return False
 
+class PartialView(functools.partial):
+    """Thin subclass of functools.partial for view objects.
+
+    Unlike types.MethodType (which is not subclassable) or the bare
+    functools.partial class, this has a repr which will not clobber
+    up the interactive interpreter if the bypasser has a very large
+    number of objects. Where `...` is an arbitrary number of items:
+
+    With types.MethodType:
+    <bound method __keys__ of BaseBypassers([...])>
+
+    With functools.partial:
+    functools.partial(<stable 'keys' view object of 'BaseBypassers'>, BaseBypassers([...]))
+    # This exceeds 80 characters even when empty!
+
+    With PartialView:
+    <bound view object '__keys__' of 'BaseBypassers'>
+
+    Note: This relies on the C implementation of functools.partial
+
+    """
+
+    def __repr__(self):
+        """Return a custom representation of self."""
+        return "<bound view object {!r} of {!r}>".format(self.func.__name__,
+                                                         self.func.name)
+
 class Viewer: # TODO: set-like methods
     """Return a view object over the items of the instance."""
 
@@ -57,7 +83,7 @@ class Viewer: # TODO: set-like methods
 
     def __repr__(self):
         """Return a view of the items."""
-        return "{0}{1}([{2}])".format(self.name, self.value.title(),
+        return "{0}{1}([{2}])".format(self.name, self.value.capitalize(),
                                       ", ".join(repr(x) for x in self))
 
     def __contains__(self, item):
@@ -164,7 +190,7 @@ class Viewer: # TODO: set-like methods
         """Return True if self >= other, False otherwise."""
         return self.__gt__(other) or self == other
 
-class CreateViewer:
+class BypassersViewer:
     """Create a view object. This is meant for internal use.
 
     This class is used to dynamically create the view objects that are
@@ -189,7 +215,7 @@ class CreateViewer:
         """Return a bound method of self if an instance is present."""
         self.name = owner.__name__
         if instance is not None:
-            return types.MethodType(self, instance)
+            return PartialView(self, instance)
         return self
 
     def __set__(self, instance, value):
@@ -203,6 +229,21 @@ class CreateViewer:
     def __call__(self, instance):
         """Return an iterator over the items in the mapping."""
         return Viewer(self.name, self.__name__, self.position, instance)
+
+class DefaultViews(BypassersViewer):
+    """Dedicated subclass for __keys__, __values__ and __items__."""
+
+    def __init__(self, sub, index, name):
+        """Create a new default view object."""
+        assert sub in ("__keys__", "__values__", "__items__")
+        super().__init__(sub, index, name)
+        self.__doc__ = "Return the {0} of {1} (stable API).".format(sub[2:-2],
+                                                                    name)
+
+    def __repr__(self):
+        """Return the representation of self."""
+        return "<stable {!r} view object of {!r}>".format(self.__name__[2:-2],
+                                                          self.name)
 
 class Subscript:
     """Class for subscription of Bypassers.
@@ -372,8 +413,14 @@ class BypassersMeta(type):
         cls.__item_length__ = len(attr["__names__"])
         cls.__viewers__ = tuple(x[0] for x in attr["__views__"])
 
+        tup = tuple(range(cls.__item_length__))
+
         for sub, pos in cls.__views__:
-            setattr(cls, sub, CreateViewer(sub, pos, name))
+            setattr(cls, sub, BypassersViewer(sub, pos, name))
+
+        cls.__keys__ = DefaultViews("__keys__", tup[0], name)
+        cls.__values__ = DefaultViews("__values__", tup[1:], name)
+        cls.__items__ = DefaultViews("__items__", tup, name)
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
