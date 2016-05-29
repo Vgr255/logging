@@ -480,7 +480,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __new__(cls, names=None):
         """Create a new bypasser instance."""
-        if cls in type(cls).allowed:
+        if cls.__name__ in type(cls).allowed:
             raise TypeError("cannot instantiate the {!r} class".format(cls.__name__))
 
         return super().__new__(cls)
