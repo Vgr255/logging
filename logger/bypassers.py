@@ -404,7 +404,7 @@ class BypassersMeta(type):
 
         for item in ("__item_length__", "__viewers__"):
             if item in namespace:
-                raise ValueError("member {!r} is reserved for internal use")
+                raise ValueError("member {!r} is reserved for internal use".format(item))
 
         cls = super().__new__(meta, name, bases, namespace)
 
