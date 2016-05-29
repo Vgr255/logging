@@ -390,8 +390,7 @@ class BypassersMeta(type):
 
         if not attr:
             meta.allowed[name] = set(namespace)
-            cls = super().__new__(meta, name, bases, namespace)
-            return cls
+            return super().__new__(meta, name, bases, namespace)
 
         for value in ("__names__", "__views__"):
             if value not in attr:
