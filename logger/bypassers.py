@@ -99,16 +99,16 @@ class Viewer: # TODO: set-like methods
         assert factory is iter or factory is reversed
         mapping = self.instance.__mapping__
         item_length = self.instance.__item_length__
-        if self.position == (0,): # short-circuit for common use of keys
+        if self.position == (0,): # short-circuit for stable/common keys view
             if mapping:
                 yield from factory(mapping)
 
-        elif self.position == tuple(range(1, item_length)): # common use of values
+        elif self.position == tuple(range(1, item_length)): # stable values
             for key in factory(mapping):
                 if mapping[key]:
                     yield from factory(mapping[key])
 
-        elif self.position == tuple(range(item_length)): # commonly items
+        elif self.position == tuple(range(item_length)): # stable items
             for key in factory(mapping):
                 for values in factory(mapping[key]):
                     yield (key, *values)
