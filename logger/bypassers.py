@@ -190,6 +190,45 @@ class Viewer: # TODO: set-like methods
         """Return True if self >= other, False otherwise."""
         return self.__gt__(other) or self == other
 
+class Stable(type):
+    """Metaclass to handle stable view objects."""
+
+    name = "<unknown>"
+
+    def __repr__(cls):
+        """Return the representation of the class."""
+        return "<stable {!r} view object of {!r}>".format(cls.__name__[2:-2],
+                                                          cls.name)
+
+    def __get__(cls, instance, owner):
+        """Return a partial viewer over the instance."""
+        cls.name = owner.__name__
+        if instance is not None:
+            return PartialView(cls, instance)
+        return cls
+
+    def __set__(cls, instance, value):
+        """Prevent overwriting stable view objects."""
+        raise AttributeError("cannot overwrite stable view object")
+
+    def __delete__(cls, instance):
+        """Prevent deleting stable view objects."""
+        raise AttributeError("cannot delete stable view object")
+
+    def __call__(cls, instance):
+        """Create a new stable viewer."""
+        self = cls.__new__(cls)
+        name, value = type(instance).__name__, cls.__name__
+        assert value in ("__keys__", "__values__", "__items__")
+        if value == "__keys__":
+            tup = instance.__range__[:1]
+        elif value == "__values__":
+            tup = instance.__range__[1:]
+        else:
+            tup = instance.__range__
+        super(cls, self).__init__(name, value, tup, instance)
+        return self
+
 class BypassersViewer:
     """Create a view object. This is meant for internal use.
 
@@ -229,21 +268,6 @@ class BypassersViewer:
     def __call__(self, instance):
         """Return an iterator over the items in the mapping."""
         return Viewer(self.name, self.__name__, self.position, instance)
-
-class DefaultViews(BypassersViewer):
-    """Dedicated subclass for __keys__, __values__ and __items__."""
-
-    def __init__(self, sub, index, name):
-        """Create a new default view object."""
-        assert sub in ("__keys__", "__values__", "__items__")
-        super().__init__(sub, index, name)
-        self.__doc__ = "Return the {0} of {1} (stable API).".format(sub[2:-2],
-                                                                    name)
-
-    def __repr__(self):
-        """Return the representation of self."""
-        return "<stable {!r} view object of {!r}>".format(self.__name__[2:-2],
-                                                          self.name)
 
 class Subscript:
     """Class for subscription of Bypassers.
@@ -410,15 +434,10 @@ class BypassersMeta(type):
 
         cls.__item_length__ = len(attr["__names__"])
         cls.__viewers__ = tuple(x[0] for x in attr["__views__"])
-
-        tup = tuple(range(cls.__item_length__))
+        cls.__range__ = tuple(range(cls.__item_length__))
 
         for sub, pos in cls.__views__:
             setattr(cls, sub, BypassersViewer(sub, pos, name))
-
-        cls.__keys__ = DefaultViews("__keys__", tup[0], name)
-        cls.__values__ = DefaultViews("__values__", tup[1:], name)
-        cls.__items__ = DefaultViews("__items__", tup, name)
 
         if cls.__module__ == __name__:
             __all__.append(name) # if we got here, it succeeded
@@ -491,6 +510,15 @@ class Bypassers(metaclass=BypassersMeta):
 
         if names is not None:
             self.update(names)
+
+    class __keys__(Viewer, metaclass=Stable):
+        """Stable 'keys' view object of Bypassers instances."""
+
+    class __values__(Viewer, metaclass=Stable):
+        """Stable 'values' view object of Bypassers instances."""
+
+    class __items__(Viewer, metaclass=Stable):
+        """Stable 'items' view object of Bypassers instances."""
 
     def __iter__(self):
         """Iterate over the items of self."""
