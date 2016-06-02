@@ -395,10 +395,6 @@ class BypassersMeta(type):
 
     def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
-        for base in bases:
-            if base.__name__ not in meta.allowed:
-                raise TypeError("cannot subclass {!r}".format(base.__name__))
-
         if name == "Bypassers" and namespace["__module__"] == __name__:
             meta.allowed[name] = set(namespace)
             return super().__new__(meta, name, bases, namespace)
