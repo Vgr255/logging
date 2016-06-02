@@ -251,7 +251,7 @@ class BypassersViewer:
                                                            self.name)
 
     def __get__(self, instance, owner):
-        """Return a bound method of self if an instance is present."""
+        """Return a partial viewer over the instance."""
         self.name = owner.__name__
         if instance is not None:
             return PartialView(self, instance)
