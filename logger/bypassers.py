@@ -9,7 +9,7 @@ import collections
 import functools
 import copy
 
-from .decorators import Singleton, readonly
+from .decorators import Property, MetaProperty, Singleton
 
 __all__ = [] # the Bypassers get added to this later
 
@@ -396,6 +396,7 @@ class BypassersMeta(type):
     def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
         if name == "Bypassers" and namespace["__module__"] == __name__:
+            del namespace["_mapping_cache"]
             meta.allowed[name] = set(namespace)
             return super().__new__(meta, name, bases, namespace)
 
@@ -422,15 +423,11 @@ class BypassersMeta(type):
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
 
-        for item in ("__item_length__", "__viewers__"):
+        for item in ("__item_length__", "__viewers__", "__range__", "__mapping__"):
             if item in namespace:
                 raise ValueError("member {!r} is reserved for internal use".format(item))
 
         cls = super().__new__(meta, name, bases, namespace)
-
-        cls.__item_length__ = len(attr["__names__"])
-        cls.__viewers__ = tuple(x[0] for x in attr["__views__"])
-        cls.__range__ = tuple(range(cls.__item_length__))
 
         for sub, pos in cls.__views__:
             setattr(cls, sub, BypassersViewer(sub, pos, name))
@@ -489,9 +486,35 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
-    @readonly
-    def __mapping__(self):
+    _mapping_cache = {id(None): None}
+
+    @Property
+    def __mapping__(self, cache=_mapping_cache):
         """Underlying OrderedDict mapping."""
+        if id(self) not in cache:
+            cache[id(self)] = collections.OrderedDict()
+        return cache[id(self)]
+
+    @MetaProperty
+    def __item_length__(cls, cache={}):
+        """Return the length of the items in self."""
+        if cls not in cache:
+            cache[cls] = len(cls.__names__)
+        return cache[cls]
+
+    @MetaProperty
+    def __viewers__(cls, cache={}):
+        """Return the names of the view objects."""
+        if cls not in cache:
+            cache[cls] = tuple(x[0] for x in cls.__views__)
+        return cache[cls]
+
+    @MetaProperty
+    def __range__(cls, cache={}):
+        """Return the range of items (for internal use)."""
+        if cls not in cache:
+            cache[cls] = tuple(range(cls.__item_length__))
+        return cache[cls]
 
     def __new__(cls, names=None):
         """Create a new bypasser instance."""
@@ -502,10 +525,13 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __init__(self, names=None):
         """Initialize the instance."""
-        self.__mapping__ = collections.OrderedDict()
-
         if names is not None:
             self.update(names)
+
+    def __del__(self, cache=_mapping_cache):
+        """Remove the mapping from the cache."""
+        if id(self) in cache:
+            del cache[id(self)]
 
     class __keys__(Viewer, metaclass=Stable):
         """Stable 'keys' view object of Bypassers instances."""
