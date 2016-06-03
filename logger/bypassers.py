@@ -407,6 +407,9 @@ class BypassersMeta(type):
         else:
             raise TypeError("no proper base class found")
 
+        if "__new__" in namespace:
+            raise TypeError("may not override __new__ (use __init__ instead)")
+
         attr = {k:v for k,v in namespace.items() if k not in allowed}
 
         if not attr:
