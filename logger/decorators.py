@@ -386,7 +386,28 @@ class attribute:
         return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
                 self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
 
-class MetaProperty(attribute):
+class Property(attribute):
+    """Create and return an instance property.
+
+    This is fundamentally identical to the built-in property, except that
+    this doesn't allow to change the getter or add setters or deleters.
+
+    This also always calls the underlying function, even if the instance
+    is set to None (accessed from the class).
+
+    """
+
+    def __get__(self, instance, owner):
+        self.__objclass__ = self.__objclass__ or owner
+        return self.__func__(instance)
+
+    def __set__(self, instance, value):
+        raise AttributeError("readonly attribute")
+
+    def __delete__(self, instance):
+        raise AttributeError("readonly attribute")
+
+class MetaProperty(Property):
     """Create and return a meta-property.
 
     A meta-property is a property that works directly on the class.
@@ -410,13 +431,7 @@ class MetaProperty(attribute):
         self.__objclass__ = self.__objclass__ or owner
         return self.__func__(owner)
 
-    def __set__(self, instance, value):
-        raise AttributeError("readonly attribute")
-
-    def __delete__(self, instance):
-        raise AttributeError("readonly attribute")
-
-class DescriptorProperty(MetaProperty):
+class DescriptorProperty(Property):
     """Create and return a descriptor property.
 
     A descriptor property calls the function with the instance as first
