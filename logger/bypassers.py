@@ -421,10 +421,10 @@ class BypassersMeta(type):
                 raise TypeError("missing required {!r} parameter".format(value))
 
         for x in attr["__views__"]:
-            if x[0] in namespace:
-                raise ValueError("{!r}: name already exists".format(x[0]))
             if x[0].startswith("_"):
                 raise ValueError("names cannot start with an underscore")
+            if x[0] in namespace:
+                raise ValueError("{!r}: name already exists".format(x[0]))
 
         for item in ("__item_length__", "__viewers__", "__range__", "__mapping__"):
             if item in namespace:
