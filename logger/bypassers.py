@@ -892,11 +892,12 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove all items from the Bypasser."""
         self.__mapping__.clear()
 
-    def to_dict(self, *, ordered=True):
+    def to_dict(self, *, deep=False, ordered=True):
         """Return a dict (or OrderedDict) of self."""
+        new = self.copy(deep=deep)
         if ordered:
-            return self.__mapping__.copy()
-        return dict(self.__mapping__)
+            return new.__mapping__
+        return dict(new.__mapping__)
 
     def to_list(self):
         """Return a list of the items in self."""
