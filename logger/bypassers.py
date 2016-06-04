@@ -400,6 +400,7 @@ class BypassersMeta(type):
         if name == "Bypassers" and namespace["__module__"] == __name__:
             del namespace["_mapping_cache"]
             meta.allowed[name] = set(namespace)
+            namespace["__names__"] = namespace["__views__"] = ()
             return super().__new__(meta, name, bases, namespace)
 
         for base in bases:
