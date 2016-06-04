@@ -20,11 +20,11 @@ def is_dunder(name):
     return name[:2] == name[-2:] == "__" and "_" not in (name[2:3], name[-3:-2])
 
 def sorter(x):
+    """Make sure non-string objects are last."""
     # this is very ugly and I am not pleased with it, so if anyone can
     # come up with a better solution, I'm all open
     # see http://bugs.python.org/issue20630 and
     #     http://bugs.python.org/issue20632
-    """Make sure non-string objects are last."""
     if "__lt__" not in type(x).__dict__:
         return "????????"
     if not isinstance(x, str):
