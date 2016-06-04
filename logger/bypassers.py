@@ -673,8 +673,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __copy__(self):
         """Return a shallow copy of self."""
-        new = self.__new__(type(self))
-        new.__mapping__ = self.__mapping__.copy()
+        new = type(self)()
+        new.__mapping__.update(self.__mapping__)
         return new
 
     def __deepcopy__(self, memo):
