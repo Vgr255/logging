@@ -503,9 +503,10 @@ class Bypassers(metaclass=BypassersMeta):
         # 1) Bypassers instances are not hashable;
         # 2) we want to clear the cache when it's garbage-collected;
         # 3) we don't want to keep a weakref and handle callbacks.
-        if id(self) not in cache:
-            cache[id(self)] = collections.OrderedDict()
-        return cache[id(self)]
+        id_self = id(self)
+        if id_self not in cache:
+            cache[id_self] = collections.OrderedDict()
+        return cache[id_self]
 
     @MetaProperty
     def __item_length__(cls, cache={}):
