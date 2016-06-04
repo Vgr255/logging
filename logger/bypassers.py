@@ -869,7 +869,7 @@ class Bypassers(metaclass=BypassersMeta):
                 mapping[name].append(tuple(data))
 
             else:
-                raise TypeError("setting must be str or bytes")
+                raise TypeError("Bypassers settings can only be str or bytes")
 
     def copy(self, *, deep=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
