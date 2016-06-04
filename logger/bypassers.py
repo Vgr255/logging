@@ -302,7 +302,7 @@ class Subscript:
 
     def __repr__(self):
         """Return a representation of self."""
-        return "<subscript {0} of {1}>".format(self.item, type(self.instance).__name__)
+        return "<subscript {!r} of {!r} objects>".format(self.item, type(self.instance).__name__)
 
     def __iter__(self, factory=iter):
         """Yield all items of self in order."""
