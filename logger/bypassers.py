@@ -219,9 +219,9 @@ class Stable(type):
 
     def __call__(cls, instance):
         """Create a new stable viewer."""
-        self = cls.__new__(cls)
         name, value = type(instance).__name__, cls.__name__
         assert value in ("__keys__", "__values__", "__items__")
+        self = cls.__new__(cls)
         if value == "__keys__":
             tup = instance.__range__[:1]
         elif value == "__values__":
