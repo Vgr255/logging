@@ -491,11 +491,17 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
+    # the metaclass automatically removes this from the namespace
+    # when the class is done initializing (kept in __mapping__/__del__)
     _mapping_cache = {id(None): None}
 
     @Property
     def __mapping__(self, cache=_mapping_cache):
         """Underlying OrderedDict mapping."""
+        # we're keeping the id of self because:
+        # 1) Bypassers instances are not hashable;
+        # 2) we want to clear the cache when it's garbage-collected;
+        # 3) we don't want to keep a weakref and handle callbacks.
         if id(self) not in cache:
             cache[id(self)] = collections.OrderedDict()
         return cache[id(self)]
@@ -503,6 +509,10 @@ class Bypassers(metaclass=BypassersMeta):
     @MetaProperty
     def __item_length__(cls, cache={}):
         """Return the length of the items in self."""
+        # On the other hand, classes are always hashable, and due to
+        # the cache, they'll never actually get deleted. For the sake
+        # of simplicity, we keep the class itself in the cache and
+        # assume that subclasses never fall out of scope
         if cls not in cache:
             cache[cls] = len(cls.__names__)
         return cache[cls]
