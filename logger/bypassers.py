@@ -552,8 +552,7 @@ class Bypassers(metaclass=BypassersMeta):
 
     def __del__(self, cache=_mapping_cache):
         """Remove the mapping from the cache."""
-        if id(self) in cache:
-            del cache[id(self)]
+        cache.pop(id(self), None)
 
     class __keys__(Viewer, metaclass=Stable):
         """Stable 'keys' view object of Bypassers instances."""
