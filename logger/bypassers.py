@@ -531,12 +531,15 @@ class Bypassers(metaclass=BypassersMeta):
             cache[cls] = tuple(range(cls.__item_length__))
         return cache[cls]
 
-    def __new__(cls, names=None):
+    def __new__(*args, **kwargs):
         """Create a new bypasser instance."""
+        if not args:
+            raise TypeError("Bypassers.__new__ needs an argument")
+        cls, *args = args
         if cls.__name__ in type(cls).allowed:
             raise TypeError("cannot instantiate the {!r} class".format(cls.__name__))
 
-        return super().__new__(cls)
+        return super(Bypassers, cls).__new__(cls)
 
     def __init__(self, names=None):
         """Initialize the instance."""
