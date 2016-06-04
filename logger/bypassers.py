@@ -859,10 +859,10 @@ class Bypassers(metaclass=BypassersMeta):
             if isinstance(name, (str, bytes)):
                 data = []
                 for value, default in values:
-                    if default in (None, NoValue):
-                        data.append(default)
-                    else:
+                    if callable(default):
                         data.append(default())
+                    else:
+                        data.append(default)
 
                 if name not in mapping:
                     mapping[name] = []
