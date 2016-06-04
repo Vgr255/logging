@@ -871,6 +871,17 @@ class Bypassers(metaclass=BypassersMeta):
             else:
                 raise TypeError("Bypassers settings can only be str or bytes")
 
+    def rename(self, setting, name):
+        """Rename setting 'setting' to 'name'. The new name may not exist."""
+        if (not isinstance(setting, (str, bytes)) and
+            not isinstance(name, (str, bytes))):
+            raise TypeError("Bypassers settings can only be str or bytes")
+        if setting not in self:
+            raise KeyError(name)
+        if name in self:
+            raise ValueError("setting {!r} already exists".format(name))
+        self.__mapping__[name] = self.__mapping__.pop(setting)
+
     def copy(self, *, deep=False):
         """Return a deep or shallow copy of self, defaulting to shallow."""
         if deep:
