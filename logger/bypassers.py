@@ -513,7 +513,9 @@ class Bypassers(metaclass=BypassersMeta):
         # On the other hand, classes are always hashable, and due to
         # the cache, they'll never actually get deleted. For the sake
         # of simplicity, we keep the class itself in the cache and
-        # assume that subclasses never fall out of scope
+        # assume that subclasses never fall out of scope. If this
+        # becomes an issue, we can force the class to fall out of scope
+        # with gc.get_referrers() (from Bypassers.__subclasses__())
         if cls not in cache:
             cache[cls] = len(cls.__names__)
         return cache[cls]
