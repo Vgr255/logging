@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
 
-__all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
-           "total_decorate", "attribute", "MetaProperty",
-           "DescriptorProperty", "Singleton"]
+"""Various decorators for the bypassers and loggers."""
 
 import weakref
 import types
 
-# Handle Python < 3.5
-try:
-    RecursionError
-except NameError:
-    import builtins
-    builtins.RecursionError = RuntimeError
-    del builtins # don't populate the namespace
+__all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
+           "total_decorate", "attribute", "MetaProperty",
+           "DescriptorProperty", "Singleton"]
 
 class instance_bypass:
     """Context Manager to handle instance bypassing."""

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-# Q: Are you just defining a bunch of methods for the sake of it?
-# A: Yes
+"""Implementation of the Bypassers handlers.
 
-"""Implementation of the Bypassers handlers."""
+This is used to bypass certain settings for the loggers.
+See Bypassers.__doc__ on how to use these properly.
+
+"""
 
 import collections
 import functools

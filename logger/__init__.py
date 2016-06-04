@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-__author__ = "Emanuel 'Vgr' Barry"
+"""Logging module for the specific needs and corner cases.
 
-__version__ = "0.2.3" # Version string not being updated during refactor
-__status__ = "Mass Refactor"
+This supports translation (via the 'interpolate' submodule) when used
+with the 'Translater' subclass, as well as the bypassing of certain
+settings based on external variables (via the 'bypassers' submodule).
 
-__all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
-           "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
-           "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
-          ]
+"""
 
 from datetime import datetime
 import shutil
@@ -20,6 +18,16 @@ import re
 from . import bypassers as bp_module
 
 from .decorators import handle_bypass, check_bypass
+
+__author__ = "Emanuel 'Vgr' Barry"
+
+__version__ = "0.2.3" # Version string not being updated during refactor
+__status__ = "Mass Refactor"
+
+__all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
+           "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
+           "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
+          ]
 
 def pick(arg, default):
     """Handler for default versus given argument."""
