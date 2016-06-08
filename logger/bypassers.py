@@ -7,13 +7,14 @@ See Bypassers.__doc__ on how to use these properly.
 
 """
 
+# Bypassers defined in this module get automatically added here
+__all__ = []
+
 import collections
 import functools
 import copy
 
 from .decorators import Property, MetaProperty, Singleton
-
-__all__ = [] # the Bypassers get added to this later
 
 def is_dunder(name):
     """Return True if a __dunder__ name, False otherwise."""

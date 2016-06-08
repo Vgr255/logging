@@ -2,12 +2,12 @@
 
 """Various decorators for the bypassers and loggers."""
 
-import weakref
-import types
-
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
            "total_decorate", "attribute", "MetaProperty",
            "DescriptorProperty", "Singleton"]
+
+import weakref
+import types
 
 class instance_bypass:
     """Context Manager to handle instance bypassing."""

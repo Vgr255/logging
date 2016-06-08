@@ -2,12 +2,12 @@
 
 """Some debugging tools for development."""
 
+__all__ = ["chk_def"]
+
 import collections
 import inspect
 import sys
 import gc
-
-__all__ = ["chk_def"]
 
 arguments = collections.namedtuple("arguments",
             "name value checker annotation")
