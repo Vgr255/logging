@@ -3,8 +3,8 @@
 """Various decorators for the bypassers and loggers."""
 
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
-           "total_decorate", "attribute", "MetaProperty",
-           "DescriptorProperty", "Singleton"]
+           "total_decorate", "attribute", "Property", "MetaProperty",
+           "DescriptorProperty", "readonly", "Singleton"]
 
 import weakref
 import types
