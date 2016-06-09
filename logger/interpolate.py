@@ -281,7 +281,7 @@ class Interpolater:
                 i = 1
                 while i < len(res):
                     sep = res[i]
-                    assert sep is not None
+                    assert sep is not None, "unexpected None in results index"
                     if sep == ".":
                         if res[i-1] is not None or len(res) <= i+1 or res[i+1] in "[]().":
                             raise ValueError("Invalid attribute access in format string")
