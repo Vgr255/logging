@@ -99,11 +99,27 @@ class Interpolater:
         self, *lst = args
         kwargs.update(enumerate(lst))
         kwargs[None] = len(lst)
-        return self.format_map(kwargs, _allow_positional=True)
+        return self.format_map(kwargs)
 
-    def format_map(self, mapping, *, _allow_positional=False):
-        """Return a formatted string using the mapping directly."""
-        assert not (_allow_positional and None not in mapping)
+    def format_map(self, mapping):
+        """Return a formatted string using the mapping directly.
+
+        The mapping may contain int keys, which will be used for the
+        numbered positions in the format string. In that case, the
+        mapping may contain a None key, with the associated value being
+        the upper bound of the equivalent tuple of arguments (i.e. the
+        length). This only matters in the cases where negative indexes
+        are used. If the key is not present, no error will be raised
+        and the negative index will be used as it would normally.
+
+        Please note that no checking will be done against the mapping
+        to make sure they contain the proper keys. Instead, an error
+        will be raised when the missing key is accessed for the number
+        keys, and a missing (or incompatible) None key will simply be
+        ignored (and negative indexes subsequently left as-is).
+
+        """
+
         if self.pattern is None:
             return self.string
 
@@ -243,15 +259,18 @@ class Interpolater:
                         count = None # prevent switching between automatic/manual
 
                     num = int(string)
-                    if num < 0 and _allow_positional:
-                        num += mapping[None]
+                    if num < 0:
+                        try:
+                            num += mapping[None]
+                        except (KeyError, TypeError):
+                            pass # we just keep the number as-is
 
-                    if num in mapping:
-                        result = mapping[num]
-                    elif int(string) in mapping: # in case num was changed
-                        result = mapping[int(string)]
-                    elif string in mapping:
-                        result = mapping[string]
+                    for value in (int(string), string, num):
+                        try:
+                            result = mapping[value]
+                            break
+                        except KeyError:
+                            pass
                     else:
                         raise IndexError("Format index out of range")
 
