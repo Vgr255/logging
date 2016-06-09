@@ -337,126 +337,6 @@ class BaseLogger:
 
         self.logger(*lines, display=display, write=write, sep=sep, **rest)
 
-class TypeLogger(BaseLogger):
-    """Type-based logger class.
-
-    The options are the same as the base class, with these additions:
-
-    logfiles:
-                    Dictionary of {type:file} pairs. The type is the
-                    logging type that the logger expects. The file is
-                    the file that tells the logger to write to. This
-                    can be used for dynamic file logging.
-
-        Default:    {"normal": "logger.log", "all": "mixed.log"}
-
-    Additions to the bypassers:
-
-    "logall":
-                    Defaulting to None, this setting's bypassed value
-                    must be a string object, which, if the bypassing
-                    occurs, will be the file to write everything to.
-
-    The following parameters are not actual bypassers. Only the types
-    bound to the setting are of relevance. The pairs are ignored, and
-    so are the module and attribute.
-
-    "files":
-                    The types bound to this setting will be used to
-                    determine when to write and not to write to certain
-                    files. This is only used when using the
-                    Logger.multiple method, which will write to all
-                    files specified, except those bound to the types
-                    of this bypasser.
-
-    "all":
-                    The types bound to this setting will not be written
-                    as when writing to the file defined through the
-                    'logall' bypasser, if available.
-
-    """
-
-    def __init__(self, *, logfiles=None, **kwargs):
-        """Create a new type-based logger."""
-
-        super().__init__(**kwargs)
-
-        files = {"normal": "logger.log"}
-
-        if logfiles is not None:
-            self.logfiles = logfiles
-            for type, file in files.items():
-                # if the type is already defined, don't overwrite it
-                # only add to it if it doesn't exist
-                self.logfiles[type] = self.logfiles.get(type, file)
-        else:
-            self.logfiles = files
-
-        self.bypassers.add("logall", "files", "all")
-
-    @check_bypass
-    def logger(self, *output, file=None, type=None, display=None, write=None,
-               sep=None, split=None, use_utc=None, ts_format=None,
-               print_ts=None, encoding=None, errors=None, **kwargs):
-        """Log everything to screen and/or file. Always use this."""
-
-        sep = pick(sep, self.separator)
-        encoding = pick(encoding, self.encoding)
-        errors = pick(errors, self.errors)
-        split = self.bypassed.get("splitter", pick(split, self.split))
-        display = self.bypassed.get("display", pick(display, self.display))
-        write = self.bypassed.get("write", pick(write, self.write))
-
-        timestamp = self._get_timestamp(use_utc, ts_format)
-        # this is the file to write everything to
-        logall = self.bypassed.get("logall")
-
-        if display:
-            self._print(*output, sep=sep, use_utc=use_utc, split=split,
-                        ts_format=ts_format, print_ts=print_ts, errors=errors)
-        if write:
-            output = self._get_output(output, sep).splitlines()
-            alines = [x for x in self.logfiles if x in
-                                 self.bypassers("all")[0]]
-            getter = [file]
-            if logall:
-                getter.append(logall)
-            for log in getter:
-                if (log == logall and type not in alines) or log is None:
-                    continue
-                atypes = "type.{0} - ".format(type) if log == logall else ""
-                with open(log, "a", encoding=encoding, errors=errors) as f:
-                    for writer in output:
-                        f.write("{0}{1}{2}\n".format(timestamp, atypes, writer))
-
-    def multiple(self, *output, types=None, display=None, **rest):
-        """Log one or more line to multiple files."""
-        types = pick(types, ["normal"])
-
-        if len(types) == 1 and "*" in types: # allows any iterable
-            for log in self.logfiles:
-                if log not in self.bypassers("files")[0]:
-                    if display:
-                        self.logger(*output, type=log, display=True, **rest)
-                        display = False # display only once
-                    else:
-                        self.logger(*output, type=log, display=False, **rest)
-
-        elif types:
-            for log in types:
-                if display:
-                    self.logger(*output, type=log, display=True, **rest)
-                    display = False
-                else:
-                    self.logger(*output, type=log, display=False, **rest)
-
-        else:
-            self.logger(*output, display=display, **rest)
-
-    def show(self, *output, type="show", display=True, write=False, **rest):
-        """Explicit way to only print to screen."""
-        self.logger(*output, type=type, display=display, write=write, **rest)
-
 class Translater:
     """Logging class to use to translate lines.
 
@@ -770,6 +650,126 @@ class Translater:
             self.translate(output, self.main, format, format_dict, format_mod)
 
         super().logger(*output, file=file, display=display, **kwargs)
+
+class TypeLogger(BaseLogger):
+    """Type-based logger class.
+
+    The options are the same as the base class, with these additions:
+
+    logfiles:
+                    Dictionary of {type:file} pairs. The type is the
+                    logging type that the logger expects. The file is
+                    the file that tells the logger to write to. This
+                    can be used for dynamic file logging.
+
+        Default:    {"normal": "logger.log", "all": "mixed.log"}
+
+    Additions to the bypassers:
+
+    "logall":
+                    Defaulting to None, this setting's bypassed value
+                    must be a string object, which, if the bypassing
+                    occurs, will be the file to write everything to.
+
+    The following parameters are not actual bypassers. Only the types
+    bound to the setting are of relevance. The pairs are ignored, and
+    so are the module and attribute.
+
+    "files":
+                    The types bound to this setting will be used to
+                    determine when to write and not to write to certain
+                    files. This is only used when using the
+                    Logger.multiple method, which will write to all
+                    files specified, except those bound to the types
+                    of this bypasser.
+
+    "all":
+                    The types bound to this setting will not be written
+                    as when writing to the file defined through the
+                    'logall' bypasser, if available.
+
+    """
+
+    def __init__(self, *, logfiles=None, **kwargs):
+        """Create a new type-based logger."""
+
+        super().__init__(**kwargs)
+
+        files = {"normal": "logger.log"}
+
+        if logfiles is not None:
+            self.logfiles = logfiles
+            for type, file in files.items():
+                # if the type is already defined, don't overwrite it
+                # only add to it if it doesn't exist
+                self.logfiles[type] = self.logfiles.get(type, file)
+        else:
+            self.logfiles = files
+
+        self.bypassers.add("logall", "files", "all")
+
+    @check_bypass
+    def logger(self, *output, file=None, type=None, display=None, write=None,
+               sep=None, split=None, use_utc=None, ts_format=None,
+               print_ts=None, encoding=None, errors=None, **kwargs):
+        """Log everything to screen and/or file. Always use this."""
+
+        sep = pick(sep, self.separator)
+        encoding = pick(encoding, self.encoding)
+        errors = pick(errors, self.errors)
+        split = self.bypassed.get("splitter", pick(split, self.split))
+        display = self.bypassed.get("display", pick(display, self.display))
+        write = self.bypassed.get("write", pick(write, self.write))
+
+        timestamp = self._get_timestamp(use_utc, ts_format)
+        # this is the file to write everything to
+        logall = self.bypassed.get("logall")
+
+        if display:
+            self._print(*output, sep=sep, use_utc=use_utc, split=split,
+                        ts_format=ts_format, print_ts=print_ts, errors=errors)
+        if write:
+            output = self._get_output(output, sep).splitlines()
+            alines = [x for x in self.logfiles if x in
+                                 self.bypassers("all")[0]]
+            getter = [file]
+            if logall:
+                getter.append(logall)
+            for log in getter:
+                if (log == logall and type not in alines) or log is None:
+                    continue
+                atypes = "type.{0} - ".format(type) if log == logall else ""
+                with open(log, "a", encoding=encoding, errors=errors) as f:
+                    for writer in output:
+                        f.write("{0}{1}{2}\n".format(timestamp, atypes, writer))
+
+    def multiple(self, *output, types=None, display=None, **rest):
+        """Log one or more line to multiple files."""
+        types = pick(types, ["normal"])
+
+        if len(types) == 1 and "*" in types: # allows any iterable
+            for log in self.logfiles:
+                if log not in self.bypassers("files")[0]:
+                    if display:
+                        self.logger(*output, type=log, display=True, **rest)
+                        display = False # display only once
+                    else:
+                        self.logger(*output, type=log, display=False, **rest)
+
+        elif types:
+            for log in types:
+                if display:
+                    self.logger(*output, type=log, display=True, **rest)
+                    display = False
+                else:
+                    self.logger(*output, type=log, display=False, **rest)
+
+        else:
+            self.logger(*output, display=display, **rest)
+
+    def show(self, *output, type="show", display=True, write=False, **rest):
+        """Explicit way to only print to screen."""
+        self.logger(*output, type=type, display=display, write=write, **rest)
 
 class TranslatedTypeLogger(Translater, TypeLogger):
     """Implement translated type-based logging."""
