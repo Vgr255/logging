@@ -28,10 +28,7 @@ import re
 from . import bypassers as bp_module
 
 from .decorators import handle_bypass, check_bypass
-
-def pick(arg, default):
-    """Handler for default versus given argument."""
-    return default if arg is None else arg
+from .utilities import pick
 
 class BaseLogger:
     """Base Logger class for your everyday needs.
