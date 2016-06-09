@@ -671,11 +671,14 @@ class Translater(BaseLogger):
         self.pattern = re.compile(pick(pattern, "^[A-Z0-9_]+$"))
 
         self.bypassers.add("check", "translate")
+        # the API for the bypassers has changed, so this needs to be updated
         self.bypassers.update(("translate",) +
                 self.bypassers("translate")[:-2] + (None, True))
 
     def translate(self, output, language, format, format_dict, format_mod):
         """Translate a line into the desired language."""
+
+        # TODO: Use the interpolate submodule for translation and interpolation
 
         def copy(name, new):
             return getattr(name.__class__, "copy", new)(name)
