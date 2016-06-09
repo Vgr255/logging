@@ -318,7 +318,7 @@ class String(Interpolater):
     """Interpolation system akin to str.format()."""
 
     pattern = re.compile("{[^{}]*}")
-    ignore = re.compile("({{.*}})"), slice(1, -1)
+    ignore = re.compile("({{|}})"), slice(0, 1)
     conversion = re.compile("!.+"), slice(1)
     specifier = re.compile(":.+"), slice(1)
     bounds = slice(1, -1)
