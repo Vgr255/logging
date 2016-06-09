@@ -120,8 +120,16 @@ class Interpolater:
 
         """
 
-        if self.pattern is None:
-            return self.string
+        # if self.pattern and self.ignore are both None, we could stop
+        # here and return self.string already. however, in those cases,
+        # the path taken will be very small (and fast), as it will only
+        # create three lists, a regex pattern and a single integer. it
+        # will also help with testing, by making sure that we don't add
+        # any special cases, and instead let the format logic handle
+        # everything the way it normally would. performance for the
+        # formatting operations shouldn't be a concern. there are many
+        # ways this code could be improved - one of them being support
+        # for much more advanced regexes than the simple ones we do now
 
         count = -1
         parts = []
@@ -146,35 +154,45 @@ class Interpolater:
                     parts.append(None)
                     ignore.append(line[replace_slice])
                 else:
-                    part = []
-                    match = self.pattern.search(line)
-                    while match:
-                        part.append(line[:match.start()])
-                        part.append(match.group())
-                        line = line[match.end():]
+                    if self.pattern is not None:
+                        part = []
                         match = self.pattern.search(line)
+                        while match:
+                            part.append(line[:match.start()])
+                            part.append(match.group())
+                            line = line[match.end():]
+                            match = self.pattern.search(line)
 
-                    if line:
-                        part.append(line)
+                        if line:
+                            part.append(line)
 
-                    parts.append(part)
-                    ignore.append(None)
+                        parts.append(part)
+                        ignore.append(None)
+
+                    else:
+                        parts.append(None)
+                        ignore.append(line)
 
         else:
-            line = self.string
-            part = []
-            match = self.pattern.search(line)
-            while match:
-                part.append(line[:match.start()])
-                part.append(match.group())
-                line = line[match.end():]
+            if self.pattern is not None:
+                line = self.string
+                part = []
                 match = self.pattern.search(line)
+                while match:
+                    part.append(line[:match.start()])
+                    part.append(match.group())
+                    line = line[match.end():]
+                    match = self.pattern.search(line)
 
-            if line:
-                part.append(line)
+                if line:
+                    part.append(line)
 
-            parts.append(part)
-            ignore.append(None)
+                parts.append(part)
+                ignore.append(None)
+
+            else:
+                parts.append(None)
+                ignore.append(self.string)
 
         final = []
 
