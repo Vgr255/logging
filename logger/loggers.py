@@ -457,7 +457,7 @@ class TypeLogger(BaseLogger):
         """Explicit way to only print to screen."""
         self.logger(*output, type=type, display=display, write=write, **rest)
 
-class Translater(BaseLogger):
+class Translater:
     """Logging class to use to translate lines.
 
     This is inherited from the BaseLogger class.
