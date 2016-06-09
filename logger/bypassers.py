@@ -7,8 +7,7 @@ See Bypassers.__doc__ on how to use these properly.
 
 """
 
-# Bypassers defined in this module get automatically added here
-__all__ = []
+__all__ = [] # Bypassers defined in this module get automatically added here
 
 import collections
 import functools
