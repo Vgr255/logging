@@ -8,7 +8,9 @@ settings based on external variables (via the 'bypassers' submodule).
 
 """
 
-__all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
+__all__ = [
+           "BaseLogger", "TranslatedBaseLogger",        # base loggers
+           "TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "LevelLogger", "TranslatedLevelLogger",      # level-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
           ]
