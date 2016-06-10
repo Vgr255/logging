@@ -163,18 +163,20 @@ class BaseLogger:
 
     """
 
-    def __init__(self, *, sep=None, use_utc=None, ts_format=None,
-                       print_ts=None, split=None, bypassers=None,
-                       display=None, write=None, encoding=None,
-                       errors=None, end=None, **kwargs):
+    def __init__(self, *, sep=None, linesep=None, end=None, use_utc=None,
+                 ts_format=None, print_ts=None, split=None, bypassers=None,
+                 display=None, write=None, encoding=None, errors=None,
+                 tabsize=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
 
         self.separator = pick(sep, " ")
+        self.linesep = pick(linesep, "\n")
         self.encoding = pick(encoding, "utf-8")
         self.errors = pick(errors, "surrogateescape")
         self.end = pick(end, "\n")
+        self.tabsize = pick(tabsize, 4)
 
         self.display = pick(display, True)
         self.write = pick(write, True)
@@ -298,17 +300,18 @@ class BaseLogger:
             with open(file, "a", encoding=encoding, errors=errors) as f:
                 f.write(output + "\n")
 
-    def docstring(self, *output, tabs=4, display=True, write=False, sep=None,
-                        **rest):
+    def docstring(self, *output, tabsize=None, display=True, write=False,
+                  sep=None, **kwargs):
         """Print a docstring using proper formatting."""
         newlined = False
         indent = None
         lines = []
 
-        sep = pick(sep, "\n")
+        sep = pick(sep, self.linesep)
+        tabsize = pick(tabsize, self.tabsize)
 
         output = sep.join(str(x) for x in output)
-        for line in output.expandtabs(tabs).splitlines():
+        for line in output.expandtabs(tabsize).splitlines():
             if not newlined and not line.lstrip(): # first empty line
                 newlined = True
             elif newlined and indent is None and line.lstrip():
@@ -328,7 +331,7 @@ class BaseLogger:
         while lines and not lines[0].strip():
             lines.pop(0)
 
-        self.logger(*lines, display=display, write=write, sep=sep, **rest)
+        self.logger(*lines, display=display, write=write, sep=sep, **kwargs)
 
 class Translater:
     """Logging class to use to translate lines.
