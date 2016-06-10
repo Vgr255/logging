@@ -13,7 +13,7 @@ __all__ = ["TypeLogger", "TranslatedTypeLogger",        # type-based loggers
            "NamesLogger", "TranslatedNamesLogger",      # names-based loggers
           ]
 
-from datetime import datetime
+import datetime
 import shutil
 import types
 import time
@@ -206,14 +206,14 @@ class BaseLogger:
             return self.bypassed.get("timestamp", "")
 
         if use_utc:
-            tmf = datetime.utcnow().strftime(ts_format)
+            tmf = datetime.datetime.utcnow().strftime(ts_format)
             tz = "UTC"
             offset = "+0000"
         else:
             tmf = time.strftime(ts_format)
             tz = time.tzname[0]
             offset = "+"
-            if datetime.utcnow().hour > datetime.now().hour:
+            if datetime.datetime.utcnow().hour > datetime.datetime.now().hour:
                 offset = "-"
             offset += str(time.timezone // 36).zfill(4)
         return tmf.format(tzname=tz, tzoffset=offset).strip().upper()
