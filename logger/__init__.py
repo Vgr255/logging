@@ -4,8 +4,8 @@
 
 __author__ = "Emanuel 'Vgr' Barry"
 
-__version__ = "0.2.3" # Version string not being updated during refactor
-__status__ = "Mass Refactor"
+__version__ = "0.2.3"
+__status__ = "Mass Refactor [Unstable]"
 
 __all__ = []
 
