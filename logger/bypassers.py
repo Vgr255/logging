@@ -13,20 +13,9 @@ import collections
 import functools
 import copy
 
-from .decorators import Property, MetaProperty, Singleton
+from .decorators import Property, MetaProperty
 from .utilities import is_dunder
-
-@Singleton
-class NoValue:
-    """Express the lack of value, as None has a special meaning."""
-
-    def __repr__(self):
-        """Return the explicit NoValue string."""
-        return "NoValue"
-
-    def __bool__(self):
-        """Return False no matter what."""
-        return False
+from .types import NoValue
 
 class PartialView(functools.partial):
     """Thin subclass of functools.partial for view objects.
