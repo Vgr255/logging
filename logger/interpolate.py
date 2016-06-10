@@ -16,7 +16,7 @@ of the Interpolater class. The module currently exposes the following:
           provided as an argument (positional or keyword) to format()
           or format_map(), or methods of provided arguments.
 
-""" # todo: add call support for builtins
+"""
 
 __all__ = ["String"]
 
