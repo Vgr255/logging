@@ -12,7 +12,7 @@ __author__ = "Emanuel 'Vgr' Barry"
 __version__ = "0.2.3"
 __status__ = "Mass Refactor [Unstable]"
 
-__all__ = []
+__all__ = ["loggers"]
 
 from . import loggers
 
