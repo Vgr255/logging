@@ -647,6 +647,9 @@ class Translater:
 
         super().logger(*output, file=file, display=display, **kwargs)
 
+class TranslatedBaseLogger(Translater, BaseLogger):
+    """Implement translater base logging."""
+
 class TypeLogger(BaseLogger):
     """Type-based logger class.
 
