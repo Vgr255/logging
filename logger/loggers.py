@@ -259,7 +259,7 @@ class BaseLogger:
         errors = pick(errors, self.errors)
         end = pick(end, self.end)
 
-        output = self._get_output(output, sep)
+        output = sep.join(str(x) for x in output)
 
         if pick(print_ts, self.print_ts):
             out = output.splitlines()
@@ -278,24 +278,17 @@ class BaseLogger:
 
             file.flush()
 
-    def _get_output(self, output, sep):
-        """Sanitize output and join iterables together."""
-        return sep.join(str(x) for x in output)
-
-    def _get_output_list(self, output):
-        """Sanitize output and return a list of lines."""
-        return [str(x) for x in output] or ['']
-
     @check_bypass
     def logger(self, *output, sep=None, file=None, split=None,
                use_utc=None, ts_format=None, print_ts=None,
                display=None, write=None, encoding=None, errors=None):
         """Base method to make sure it always exists."""
-        output = self._get_output(output, pick(sep, self.separator))
+        sep = pick(sep, self.separator)
         encoding = pick(encoding, self.encoding)
         errors = pick(errors, self.errors)
         display = pick(display, self.display)
         write = pick(write, self.write)
+        output = sep.join(str(x) for x in output)
 
         if display:
             self._print(output, sep=sep, use_utc=use_utc, ts_format=ts_format,
@@ -314,7 +307,7 @@ class BaseLogger:
 
         sep = pick(sep, "\n")
 
-        output = self._get_output(output, sep)
+        output = sep.join(str(x) for x in output)
         for line in output.expandtabs(tabs).splitlines():
             if not newlined and not line.lstrip(): # first empty line
                 newlined = True
@@ -632,7 +625,7 @@ class Translater:
         format_dict = pick(format_dict, {})
         format_mod = pick(format_mod, ())
 
-        output = self._get_output_list(output)
+        output = [str(x) for x in output] or [""]
 
         if ("translate" not in self.bypassed and check and
                                language != self.main):
@@ -729,7 +722,7 @@ class TypeLogger(BaseLogger):
             self._print(*output, sep=sep, use_utc=use_utc, split=split,
                         ts_format=ts_format, print_ts=print_ts, errors=errors)
         if write:
-            output = self._get_output(output, sep).splitlines()
+            output = sep.join(str(x) for x in output).splitlines()
             alines = [x for x in self.logfiles if x in
                                  self.bypassers("all")[0]]
             getter = [file]
@@ -821,7 +814,7 @@ class LevelLogger(BaseLogger):
             self._print(*output, sep=sep, use_utc=use_utc, split=split,
                         ts_format=ts_format, print_ts=print_ts, errors=errors)
         if write:
-            output = self._get_output(output, sep).splitlines()
+            output = sep.join(str(x) for x in output).splitlines()
             alines = [x for x in self.logfiles if x in
                                  self.bypassers("all")[0]]
             getter = [file]
