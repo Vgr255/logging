@@ -2,7 +2,7 @@
 
 """Some debugging tools for development."""
 
-__all__ = ["chk_def"]
+__all__ = ["chk_def", "find_name"]
 
 import collections
 import inspect
@@ -28,6 +28,18 @@ def get_function(depth=0):
 
     if len(funcs) == 1:
         return funcs[0]
+
+def find_name(name, depth=0):
+    """Find a name in the calling frame's scopes."""
+    calling_frame = sys._getframe(depth + 2)
+    if name in calling_frame.f_locals:
+        return calling_frame.f_locals[name]
+    if name in calling_frame.f_globals:
+        return calling_frame.f_globals[name]
+    if name in calling_frame.f_builtins:
+        return calling_frame.f_builtins[name]
+
+    raise NameError("could not find {!r}".format(name))
 
 def chk_def(*olds, handler=None, parser=None, msg=[], func=[],
                    HAS_VALUE=0b01, HAS_ANNOTATION=0b10):
