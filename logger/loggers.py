@@ -707,7 +707,7 @@ class TypeLogger(BaseLogger):
     @check_bypass
     def logger(self, *output, file=None, type=None, display=None, write=None,
                sep=None, split=None, use_utc=None, ts_format=None,
-               print_ts=None, encoding=None, errors=None, **kwargs):
+               print_ts=None, encoding=None, errors=None):
         """Log everything to screen and/or file. Always use this."""
 
         sep = pick(sep, self.separator)
