@@ -729,6 +729,7 @@ class TypeLogger(BaseLogger):
         if display:
             self._print(*output, sep=sep, use_utc=use_utc, split=split,
                         ts_format=ts_format, print_ts=print_ts, errors=errors)
+
         if write:
             output = sep.join(str(x) for x in output).splitlines()
             alines = [x for x in self.logfiles if x in
