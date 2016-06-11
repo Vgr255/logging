@@ -14,7 +14,6 @@ import functools
 import copy
 
 from .decorators import Property, MetaProperty
-from .utilities import is_dunder
 from .types import NoValue
 
 class PartialView(functools.partial):
