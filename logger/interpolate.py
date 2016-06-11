@@ -144,6 +144,7 @@ class Interpolater:
         parts = []
         ignore = []
         splitter = re.compile(r"[\(\)\[\]\.]")
+
         if self.ignore is not None:
             ignore_pattern, replace_slice = self.ignore
             ignore_part = []
@@ -182,26 +183,25 @@ class Interpolater:
                         parts.append(None)
                         ignore.append(line)
 
-        else:
-            if self.pattern is not None:
-                line = self.string
-                part = []
+        elif self.pattern is not None:
+            line = self.string
+            part = []
+            match = self.pattern.search(line)
+            while match:
+                part.append(line[:match.start()])
+                part.append(match.group())
+                line = line[match.end():]
                 match = self.pattern.search(line)
-                while match:
-                    part.append(line[:match.start()])
-                    part.append(match.group())
-                    line = line[match.end():]
-                    match = self.pattern.search(line)
 
-                if line:
-                    part.append(line)
+            if line:
+                part.append(line)
 
-                parts.append(part)
-                ignore.append(None)
+            parts.append(part)
+            ignore.append(None)
 
-            else:
-                parts.append(None)
-                ignore.append(self.string)
+        else:
+            parts.append(None)
+            ignore.append(self.string)
 
         final = []
 
