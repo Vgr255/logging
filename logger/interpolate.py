@@ -118,6 +118,15 @@ class Interpolater:
         keys, and a missing (or incompatible) None key will simply be
         ignored (and negative indexes subsequently left as-is).
 
+        To use keyword and positional names, the format() method is the
+        recommended way. It will prepare the mapping and call this
+        method. If a custom mapping (e.g. defaultdict) needs to be used
+        for various purposes, the caller is responsible for properly
+        filling the mapping with the relevant information. A malformed
+        mapping (for example, 'defaultdict(lambda: 42)') is considered
+        to be a user error, and is not guarded against. The consenting
+        adults rule applies here as well.
+
         """
 
         # if self.pattern and self.ignore are both None, we could stop
