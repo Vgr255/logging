@@ -2,7 +2,7 @@
 
 """Small utility functions for use in various places."""
 
-__all__ = ["pick", "is_dunder", "find_name"]
+__all__ = ["pick", "is_dunder", "convert_to_od"]
 
 import collections
 
