@@ -267,7 +267,7 @@ class Subscript:
 
     def __len__(self):
         """Return the length of self."""
-        return len(self.instance)
+        return len(self.instance.__mapping__[self.item])
 
     def __repr__(self):
         """Return a representation of self."""
