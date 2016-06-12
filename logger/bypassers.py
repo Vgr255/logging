@@ -97,36 +97,32 @@ class Viewer: # TODO: set-like methods
         """Return a reverse iterator over the items in the instance."""
         return self.__iter__(factory=reversed)
 
-    def __eq__(self, other, is_equal=True):
+    def __eq__(self, other):
         """Return True if self == other, False otherwise."""
         if self is other:
-            return is_equal
+            return True
 
         try:
             it = iter(other)
         except TypeError:
-            return not is_equal
+            return NotImplemented
 
         if it is other: # 'other' is an iterator: don't exhaust it
-            return not is_equal
+            return NotImplemented
 
         for item in self:
             try:
                 if item != next(it):
-                    return not is_equal
+                    return False
             except StopIteration:
-                return not is_equal
+                return False
 
         try:
             next(it)
         except StopIteration:
-            return is_equal
+            return True
 
-        return not is_equal
-
-    def __ne__(self, other):
-        """Return True if self != other, False otherwise."""
-        return self.__eq__(other, is_equal=False)
+        return False
 
     def __lt__(self, other):
         """Return True if self < other, False otherwise."""
