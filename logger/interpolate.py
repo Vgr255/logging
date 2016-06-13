@@ -84,12 +84,15 @@ class Interpolater:
 
     def __str__(self):
         """Return the string of self."""
-        return str(self.string)
+        try:
+            return str(self.string)
+        except RecursionError:
+            return "(...)"
 
     def __format__(self, format_spec=""):
         """Return a formatted string of self."""
         if not format_spec:
-            return self.string
+            return str(self)
         raise NotImplementedError("__format__ is not yet implemented")
 
     def format(*args, **kwargs):
