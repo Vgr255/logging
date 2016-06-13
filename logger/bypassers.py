@@ -69,17 +69,17 @@ class Viewer: # TODO: set-like methods
         """Return a modular iterator over the items in the instance."""
         assert factory is iter or factory is reversed
         mapping = self.instance.__mapping__
-        item_length = self.instance.__item_length__
-        if self.position == (0,): # short-circuit for stable/common keys view
+        inst_range = self.instance.__range__
+        if self.position == inst_range[:1]: # commonly keys view
             if mapping:
                 yield from factory(mapping)
 
-        elif self.position == tuple(range(1, item_length)): # stable values
+        elif self.position == inst_range[1:]: # stable values
             for key in factory(mapping):
                 if mapping[key]:
                     yield from factory(mapping[key])
 
-        elif self.position == tuple(range(item_length)): # stable items
+        elif self.position == inst_range: # stable items
             for key in factory(mapping):
                 for values in factory(mapping[key]):
                     yield (key, *values)
