@@ -43,7 +43,7 @@ class PartialView(functools.partial):
         return "<bound view object {!r} of {!r}>".format(self.func.__name__,
                                                          self.func.name)
 
-class Viewer: # TODO: set-like methods
+class Viewer:
     """Return a view object over the items of the instance."""
 
     def __init__(self, name, value, position, instance):
@@ -156,6 +156,79 @@ class Viewer: # TODO: set-like methods
     def __ge__(self, other):
         """Return True if self >= other, False otherwise."""
         return self.__gt__(other) or self == other
+
+    def __sub__(self, other):
+        """Return a set with items in self but not in other."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        new = set(self)
+
+        try:
+            new.difference_update(other)
+        except TypeError:
+            return NotImplemented
+
+        return new
+
+    __rsub__ = __sub__
+
+    def __and__(self, other):
+        """Return a set with items that are both in self and other."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        try:
+            new = set(other)
+        except TypeError:
+            return NotImplemented
+
+        new.intersection_update(self)
+        return new
+
+    __rand__ = __and__
+
+    def __or__(self, other):
+        """Return a set with items from either self or other."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        try:
+            new = set(other)
+        except TypeError:
+            return NotImplemented
+
+        new.update(self)
+        return new
+
+    __ror__ = __or__
+
+    def __xor__(self, other):
+        """Return a set with items only in one of self or other."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        try:
+            new = set(other)
+        except TypeError:
+            return NotImplemented
+
+        new.symmetric_difference_update(self)
+        return new
+
+    __rxor__ = __xor__
+
+    def isdisjoint(self, other):
+        """Return True if self and other have a null intersection."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        try:
+            new = set(other)
+        except TypeError:
+            return NotImplemented
+
+        return new.isdisjoint(self)
 
 class Stable(type):
     """Metaclass to handle stable view objects."""
