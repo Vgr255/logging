@@ -78,6 +78,14 @@ class Interpolater:
     conversion = None
     specifier = None
 
+    def bounds(self, string):
+        """Return the string with proper bounds."""
+        return string
+
+    def modifier(self, string):
+        """Sanitize the string and return it."""
+        return string
+
     def __init__(self, string):
         """Create a new instance for interpolation."""
         self.string = str(string)
@@ -313,14 +321,6 @@ class Interpolater:
             final.append(converter(result))
 
         return self.modifier("".join(final))
-
-    def bounds(self, string):
-        """Return the string with proper bounds."""
-        return string
-
-    def modifier(self, string):
-        """Sanitize the string and return it."""
-        return string
 
 class String(Interpolater):
     """Interpolation system akin to str.format()."""
