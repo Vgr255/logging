@@ -212,13 +212,13 @@ class Interpolater:
             seps = []
             last = 0
             for match in splitter.finditer(string):
-                if match.start():
+                if last != match.start():
                     seps.append(string[last:match.start()])
                 seps.append(match.group())
                 last = match.end()
 
-            if string:
-                seps.append(string)
+            if last < len(string):
+                seps.append(string[last:])
 
             if seps:
                 string = seps.pop(0)
@@ -276,7 +276,7 @@ class Interpolater:
                     if res[i-1] is not None:
                         raise ValueError("Invalid indexing in format string")
                     s = 2
-                    while i+s <= len(res):
+                    while i+s < len(res):
                         if res[i+s] == "]":
                             break
                         s += 1
@@ -292,7 +292,7 @@ class Interpolater:
                     if res[i-1] is not None:
                         raise ValueError("Invalid call in format string")
                     s = 1
-                    while i+s <= len(res):
+                    while i+s < len(res):
                         if res[i+s] == ")":
                             break
                         s += 1
