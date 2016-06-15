@@ -30,13 +30,10 @@ class Interpolater:
     'pattern': A regex object as returned by 're.compile'. It will be
                used to check for the matching in the string. If set to
                None, .format() will always return the string unchanged.
-
-    'ignore': A two-tuple, where the first item is a regex object,
-              which will be used to determine that a certain part of
-              the string should not be interpolated. The second item
-              should be a slice object, which will be used as a
-              subscript to the string. Use slice(None) to keep the
-              same string. The 'ignore' variable may also be None.
+               It is the responsibility of the subclasses creators to
+               make sure that the regex is powerful enough to match all
+               the desired cases, while not matching the undesired ones
+               (the String subclass is a good example of doing this).
 
     'conversion': A two-tuple composed of a regex and slice objects.
                   The regex object will be used to find the conversion
@@ -66,7 +63,6 @@ class Interpolater:
     """
 
     pattern = None
-    ignore = None
     conversion = None
     specifier = None
     bounds = slice(None)
