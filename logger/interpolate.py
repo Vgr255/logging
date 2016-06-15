@@ -52,20 +52,31 @@ class Interpolater:
                  format specifier. If this variable is set to None, no
                  specifier will be assumed.
 
-    'bounds': A slice object used to remove the parts of the string
-              that shouldn't be used in the replacement (so that e.g.
-              "{foo}" becomes "foo" - the braces will still be removed
-              from the final string in this example).
+    Note: The format specifier and the conversion syntax in the string
+    do not have a specified ordering; both will be parsed regardless.
 
-    The order of the format specifier or the conversion syntax does not
-    matter, as they will be parsed regardless of which comes first.
+    You may also define the following functions:
+
+    'bounds': This will be called with the string to replace (i.e. the
+              matching part of the pattern). It should return a string,
+              which will then be used to look up the arguments in the
+              tuple and/or mapping. The default function on the base
+              class returns the string unchanged.
+
+    'modifier': This function or method will be called with the final
+                result of the string (after all interpolation has been
+                done, and just before returning it). It should return a
+                string, which the caller will receive. This can be used
+                to treat specially some sequences of characters; for
+                example "{{" and "}}" could get changed to "{" and "}",
+                respectively. The default behaviour is to return the
+                string unaltered.
 
     """
 
     pattern = None
     conversion = None
     specifier = None
-    bounds = slice(None)
 
     def __init__(self, string):
         """Create a new instance for interpolation."""
@@ -155,7 +166,7 @@ class Interpolater:
                 final.append(ignored)
                 continue
 
-            string = string[self.bounds]
+            string = self.bounds(string)
 
             specifier = conversion = None
             if self.specifier is not None:
@@ -296,12 +307,27 @@ class Interpolater:
 
             final.append(converter(result))
 
-        return "".join(final)
+        return self.modifier("".join(final))
+
+    def bounds(self, string):
+        """Return the string with proper bounds."""
+        return string
+
+    def modifier(self, string):
+        """Sanitize the string and return it."""
+        return string
 
 class String(Interpolater):
     """Interpolation system akin to str.format()."""
 
+    def bounds(self, string):
+        """Remove the braces from the string."""
+        return string.replace("{", "").replace("}", "")
+
+    def modifier(self, string):
+        """Change double braces into single ones."""
+        return string.replace("{{", "{").replace("}}", "}")
+
     pattern = re.compile("(?<!{){[^{}]*}(?!})")
     conversion = re.compile("!.+"), slice(1)
     specifier = re.compile(":.+"), slice(1)
-    bounds = slice(1, -1)
