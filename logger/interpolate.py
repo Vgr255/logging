@@ -80,7 +80,7 @@ class Interpolater:
 
     def __init__(self, string):
         """Create a new instance for interpolation."""
-        self.string = string
+        self.string = str(string)
 
     def __repr__(self):
         """Return the exact representation of self."""
