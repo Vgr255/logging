@@ -91,7 +91,11 @@ class Interpolater:
 
     def __str__(self):
         """Return the string of self."""
-        return self.string
+        try:
+            return str(self.string)
+        except RecursionError:
+            raise RecursionError("maximum recursion depth reached while "
+                  "calling a Python object") from None
 
     def __format__(self, format_spec=""):
         """Return a formatted string of self."""
@@ -137,7 +141,7 @@ class Interpolater:
         """
 
         if self.pattern is None:
-            return self.string
+            return str(self.string)
 
         count = -1
         lines = []
@@ -145,9 +149,10 @@ class Interpolater:
         splitter = re.compile(r"[\(\)\[\]\.]")
 
         last = 0
-        for match in self.pattern.finditer(self.string):
+        line = str(self.string)
+        for match in self.pattern.finditer(line):
             if match.start():
-                ignore.append(self.string[last:match.start()])
+                ignore.append(line[last:match.start()])
                 lines.append(None)
 
             ignore.append(None)
@@ -156,7 +161,7 @@ class Interpolater:
             last = match.end()
 
         if last < len(self.string):
-            ignore.append(self.string[last:])
+            ignore.append(line[last:])
             lines.append(None)
 
         final = []
