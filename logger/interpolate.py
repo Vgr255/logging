@@ -132,234 +132,176 @@ class Interpolater:
 
         """
 
-        # if self.pattern and self.ignore are both None, we could stop
-        # here and return self.string already. however, in those cases,
-        # the path taken will be very small (and fast), as it will only
-        # create three lists, a regex pattern and a single integer. it
-        # will also help with testing, by making sure that we don't add
-        # any special cases, and instead let the format logic handle
-        # everything the way it normally would. performance for the
-        # formatting operations shouldn't be a concern. there are many
-        # ways this code could be improved - one of them being support
-        # for much more advanced regexes than the simple ones we do now
+        if self.pattern is None:
+            return self.string
 
         count = -1
-        parts = []
+        lines = []
         ignore = []
         splitter = re.compile(r"[\(\)\[\]\.]")
 
-        if self.ignore is not None:
-            ignore_pattern, replace_slice = self.ignore
-            ignore_part = []
-            line = self.string
-            match = ignore_pattern.search(line)
-            while match:
-                ignore_part.append(line[:match.start()])
-                ignore_part.append(match.group())
-                line = line[match.end():]
-                match = ignore_pattern.search(line)
+        last = 0
+        for match in self.pattern.finditer(self.string):
+            if match.start():
+                ignore.append(self.string[last:match.start()])
+                lines.append(None)
 
-            if line:
-                ignore_part.append(line)
-
-            for i, line in enumerate(ignore_part):
-                if i % 2:
-                    parts.append(None)
-                    ignore.append(line[replace_slice])
-                else:
-                    if self.pattern is not None:
-                        part = []
-                        match = self.pattern.search(line)
-                        while match:
-                            part.append(line[:match.start()])
-                            part.append(match.group())
-                            line = line[match.end():]
-                            match = self.pattern.search(line)
-
-                        if line:
-                            part.append(line)
-
-                        parts.append(part)
-                        ignore.append(None)
-
-                    else:
-                        parts.append(None)
-                        ignore.append(line)
-
-        elif self.pattern is not None:
-            line = self.string
-            part = []
-            match = self.pattern.search(line)
-            while match:
-                part.append(line[:match.start()])
-                part.append(match.group())
-                line = line[match.end():]
-                match = self.pattern.search(line)
-
-            if line:
-                part.append(line)
-
-            parts.append(part)
             ignore.append(None)
+            lines.append(match.group())
 
-        else:
-            parts.append(None)
-            ignore.append(self.string)
+            last = match.end()
+
+        if last < len(self.string):
+            ignore.append(self.string[last:])
+            lines.append(None)
 
         final = []
 
-        for strings, ignored in zip(parts, ignore):
-            if strings is None:
+        for string, ignored in zip(lines, ignore):
+            if string is None:
                 final.append(ignored)
                 continue
 
-            for i, string in enumerate(strings):
-                auto = False
-                if not i % 2:
-                    final.append(string)
-                    continue
+            string = string[self.bounds]
 
-                string = string[self.bounds]
+            specifier = conversion = None
+            if self.specifier is not None:
+                spec_pattern, spec_slice = self.specifier
+                match = spec_pattern.search(string)
+                if match is not None:
+                    specifier = match.group()
+                    string = string[:match.start()]
 
-                specifier = conversion = None
-                if self.specifier is not None:
-                    spec_pattern, spec_slice = self.specifier
-                    match = spec_pattern.search(string)
-                    if match is not None:
-                        specifier = match.group()
-                        string = string[:match.start()]
-
-                if self.conversion is not None:
-                    conv_pattern, conv_slice = self.conversion
-                    match = conv_pattern.search(string)
+            if self.conversion is not None:
+                conv_pattern, conv_slice = self.conversion
+                match = conv_pattern.search(string)
+                if match is not None:
+                    conversion = match.group()
+                    string = string[:match.start()]
+                elif specifier is not None:
+                    match = conv_pattern.search(specifier)
                     if match is not None:
                         conversion = match.group()
-                        string = string[:match.start()]
-                    elif specifier is not None:
-                        match = conv_pattern.search(specifier)
-                        if match is not None:
-                            conversion = match.group()
-                            specifier = specifier[:match.start()]
+                        specifier = specifier[:match.start()]
 
-                if specifier is not None:
-                    specifier = specifier[spec_slice]
-                    string = format(type(self)(string), specifier)
+            if specifier is not None:
+                specifier = specifier[spec_slice]
+                string = format(type(self)(string), specifier)
 
-                converter = str
-                if conversion is not None:
-                    conversion = conversion[conv_slice]
-                    if conversion in ("s", "str"):
-                        converter = str
-                    elif conversion in ("r", "repr"):
-                        converter = repr
-                    elif conversion in ("a", "ascii"):
-                        converter = ascii
-                    else:
-                        raise ValueError("Unknown conversion specifier: {!r}".format(conversion))
+            converter = str
+            if conversion is not None:
+                conversion = conversion[conv_slice]
+                if conversion in ("s", "str"):
+                    converter = str
+                elif conversion in ("r", "repr"):
+                    converter = repr
+                elif conversion in ("a", "ascii"):
+                    converter = ascii
+                else:
+                    raise ValueError("Unknown conversion specifier: {!r}".format(conversion))
 
-                seps = []
-                match = splitter.search(string)
-                while match:
-                    if match.start():
-                        seps.append(string[:match.start()])
-                    seps.append(match.group())
-                    string = string[match.end():]
-                    match = splitter.search(string)
+            seps = []
+            last = 0
+            for match in splitter.finditer(string):
+                if match.start():
+                    seps.append(string[last:match.start()])
+                seps.append(match.group())
+                last = match.end()
 
-                if string:
-                    seps.append(string)
+            if string:
+                seps.append(string)
 
-                if seps:
-                    string = seps.pop(0)
+            if seps:
+                string = seps.pop(0)
 
-                if not string:
-                    if count is None:
-                        raise ValueError("cannot switch from manual field "
-                              "specification to automatic field numbering")
-                    count += 1
-                    string = str(count)
-                    auto = True
+            if not string:
+                if count is None:
+                    raise ValueError("cannot switch from manual field "
+                          "specification to automatic field numbering")
+                count += 1
+                string = str(count)
+                auto = True
 
-                if string.count("-") <= 1 and string.lstrip("-").isdigit():
-                    if count is not None and count != -1 and not auto:
-                        raise ValueError("cannot switch from automatic field "
-                              "numbering to manual field specification")
+            if string.count("-") <= 1 and string.lstrip("-").isdigit():
+                if count is not None and count != -1 and not auto:
+                    raise ValueError("cannot switch from automatic field "
+                          "numbering to manual field specification")
 
-                    if not auto:
-                        count = None # prevent switching between automatic/manual
+                if not auto:
+                    count = None # prevent switching between automatic/manual
 
-                    num = int(string)
-                    if num < 0:
-                        try:
-                            num += mapping[None]
-                        except (KeyError, TypeError):
-                            pass # we just keep the number as-is
+                num = int(string)
+                if num < 0:
+                    try:
+                        num += mapping[None]
+                    except (KeyError, TypeError):
+                        pass # we just keep the number as-is
 
-                    for value in (int(string), string, num):
-                        try:
-                            result = mapping[value]
+                for value in (int(string), string, num):
+                    try:
+                        result = mapping[value]
+                        break
+                    except KeyError:
+                        pass
+                else:
+                    raise IndexError("Format index out of range")
+
+            else:
+                result = mapping[string]
+
+            res = [None] + seps
+            i = 1
+            while i < len(res):
+                sep = res[i]
+                assert sep is not None, "unexpected None in results index"
+                if sep == ".":
+                    if res[i-1] is not None or len(res) <= i+1 or res[i+1] in "[]().":
+                        raise ValueError("Invalid attribute access in format string")
+                    result = getattr(result, res[i+1])
+                    res[i] = res[i+1] = None
+                    i += 2
+
+                elif sep == "[":
+                    if len(res) > i+1 and res[i+1] == "]":
+                        raise ValueError("Empty indexing in format string")
+                    if res[i-1] is not None:
+                        raise ValueError("Invalid indexing in format string")
+                    s = 2
+                    while i+s <= len(res):
+                        if res[i+s] == "]":
                             break
-                        except KeyError:
-                            pass
+                        s += 1
                     else:
-                        raise IndexError("Format index out of range")
+                        raise ValueError("Invalid indexing in format string")
+
+                    r = "".join(res[i+1:i+s])
+                    result = result[r]
+                    res[i:i+s+1] = [None] * (s+1)
+                    i = i+s+1
+
+                elif sep == "(":
+                    if res[i-1] is not None:
+                        raise ValueError("Invalid call in format string")
+                    s = 1
+                    while i+s <= len(res):
+                        if res[i+s] == ")":
+                            break
+                        s += 1
+                    else:
+                        raise ValueError("Invalid call in format string")
+
+                    if s == 1: # no arguments
+                        result = result()
+                    else:
+                        r = "".join(res[i+1:i+s])
+                        result = result(r)
+                    res[i:i+s+1] = [None] * (s+1)
+                    i = i+s+1
 
                 else:
-                    result = mapping[string]
+                    raise ValueError("Invalid operation in format string")
 
-                res = [None] + seps
-                i = 1
-                while i < len(res):
-                    sep = res[i]
-                    assert sep is not None, "unexpected None in results index"
-                    if sep == ".":
-                        if res[i-1] is not None or len(res) <= i+1 or res[i+1] in "[]().":
-                            raise ValueError("Invalid attribute access in format string")
-                        result = getattr(result, res[i+1])
-                        res[i] = res[i+1] = None
-                        i += 2
-
-                    elif sep == "[":
-                        if len(res) > i+1 and res[i+1] == "]":
-                            raise ValueError("Empty indexing in format string")
-                        if res[i-1] is not None:
-                            raise ValueError("Invalid indexing in format string")
-                        s = 2
-                        while i+s <= len(res):
-                            if res[i+s] == "]":
-                                break
-                            s += 1
-                        else:
-                            raise ValueError("Invalid indexing in format string")
-
-                        r = "".join(res[i+1:i+s])
-                        result = result[r]
-                        res[i:i+s+1] = [None] * (s+1)
-                        i = i+s+1
-
-                    elif sep == "(":
-                        if res[i-1] is not None:
-                            raise ValueError("Invalid call in format string")
-                        s = 1
-                        while i+s <= len(res):
-                            if res[i+s] == ")":
-                                break
-                            s += 1
-                        else:
-                            raise ValueError("Invalid call in format string")
-
-                        if s == 1: # no arguments
-                            result = result()
-                        else:
-                            r = "".join(res[i+1:i+s])
-                            result = result(r)
-                        res[i:i+s+1] = [None] * (s+1)
-                        i = i+s+1
-
-                    else:
-                        raise ValueError("Invalid operation in format string")
-
-                final.append(converter(result))
+            final.append(converter(result))
 
         return "".join(final)
 
