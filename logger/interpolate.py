@@ -84,10 +84,7 @@ class Interpolater:
 
     def __str__(self):
         """Return the string of self."""
-        try:
-            return str(self.string)
-        except RecursionError:
-            return "(...)"
+        return self.string
 
     def __format__(self, format_spec=""):
         """Return a formatted string of self."""
