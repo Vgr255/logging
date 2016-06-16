@@ -198,9 +198,11 @@ class Interpolater:
 
         for string, ignored in zip(lines, ignore):
             if string is None:
+                assert ignored is not None
                 final.append(ignored)
                 continue
 
+            assert ignored is None
             string = self.bounds(string)
 
             specifier = conversion = None
@@ -340,6 +342,7 @@ class Interpolater:
                 else:
                     raise ValueError("Invalid operation in format string")
 
+            assert res.count(None) == len(res) == i
             final.append(converter(result))
 
         return self.modifier("".join(final))
