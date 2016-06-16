@@ -65,6 +65,10 @@ class Viewer:
 
         return False
 
+    def __len__(self):
+        """Return the length of self."""
+        return sum(1 for i in self)
+
     def __iter__(self, factory=iter):
         """Return a modular iterator over the items in the instance."""
         assert factory is iter or factory is reversed
