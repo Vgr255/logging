@@ -72,6 +72,24 @@ class Interpolater:
                 respectively. The default behaviour is to return the
                 string unaltered.
 
+    Note on creating subclasses:
+
+    All methods can be overridden in the subclasses. The only methods
+    which don't make sense to be overridden are format and format_map.
+    All of the other methods (e.g. __init__, __len__, __str__ ...) can
+    be safely overridden. The format and format_map methods delegate to
+    the methods for their operation. The 'string' attribute is only
+    used in __init__, __len__, __str__ and __repr__; the interpolation
+    methods call len(self) and str(self) to get the length and string
+    of self, instead of accessing the 'string' member.
+
+    Note on the return type of format() (and format_map()):
+
+    The formatting methods will return exactly what is returned by the
+    modifier method on the object -- subclasses which desire to have an
+    alternative return type can override the default behaviour in that
+    method. The default return type is 'str'.
+
     """
 
     pattern = None
@@ -89,6 +107,10 @@ class Interpolater:
     def __init__(self, string):
         """Create a new instance for interpolation."""
         self.string = str(string)
+
+    def __len__(self):
+        """Return the length of the string."""
+        return len(self.string)
 
     def __repr__(self):
         """Return the exact representation of self."""
@@ -149,7 +171,7 @@ class Interpolater:
         """
 
         if self.pattern is None:
-            return str(self.string)
+            return str(self)
 
         count = -1
         lines = []
@@ -157,7 +179,7 @@ class Interpolater:
         splitter = re.compile(r"[\(\)\[\]\.]")
 
         last = 0
-        line = str(self.string)
+        line = str(self)
         for match in self.pattern.finditer(line):
             if match.start():
                 ignore.append(line[last:match.start()])
@@ -168,7 +190,7 @@ class Interpolater:
 
             last = match.end()
 
-        if last < len(self.string):
+        if last < len(self):
             ignore.append(line[last:])
             lines.append(None)
 
