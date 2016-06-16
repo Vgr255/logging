@@ -137,7 +137,7 @@ class Viewer:
         if value is NotImplemented:
             return NotImplemented
 
-        return value and self.__ne__(other)
+        return value and self != other
 
     def __ge__(self, other):
         """Return True if self >= other, False otherwise."""
@@ -157,7 +157,7 @@ class Viewer:
         if value is NotImplemented:
             return NotImplemented
 
-        return value and self.__ne__(other)
+        return value and self != other
 
     def __sub__(self, other):
         """Return a set with items in self but not in other."""
