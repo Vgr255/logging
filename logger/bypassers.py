@@ -103,63 +103,61 @@ class Viewer:
 
     def __eq__(self, other):
         """Return True if self == other, False otherwise."""
-        if self is other:
-            return True
-
         try:
-            it = iter(other)
+            new = set(other)
         except TypeError:
             return NotImplemented
 
-        if it is other: # 'other' is an iterator: don't exhaust it
-            return NotImplemented
+        return new.union(self) == new
 
-        for item in self:
-            try:
-                if item != next(it):
-                    return False
-            except StopIteration:
-                return False
-
+    def __ne__(self, other):
+        """Return True if self != other, False otherwise."""
         try:
-            next(it)
-        except StopIteration:
-            return True
-
-        return False
-
-    def __lt__(self, other):
-        """Return True if self < other, False otherwise."""
-        if 0 not in self.position:
+            new = set(other)
+        except TypeError:
             return NotImplemented
 
-        if self == other:
-            return False
-
-        for item in self:
-            try:
-                if item not in other:
-                    return False
-            except TypeError:
-                return NotImplemented
-
-        return True
+        return new.union(self) != new
 
     def __le__(self, other):
         """Return True if self <= other, False otherwise."""
-        return self.__lt__(other) or self == other
+        if 0 not in self.position:
+            return NotImplemented
 
-    def __gt__(self, other):
-        """Return True if self > other, False otherwise."""
+        new = set(self)
+
+        try:
+            return new.issubset(other)
+        except TypeError:
+            return NotImplemented
+
+    def __lt__(self, other):
+        """Return True if self < other, False otherwise."""
         value = self.__le__(other)
         if value is NotImplemented:
             return NotImplemented
 
-        return not value
+        return value and self.__ne__(other)
 
     def __ge__(self, other):
         """Return True if self >= other, False otherwise."""
-        return self.__gt__(other) or self == other
+        if 0 not in self.position:
+            return NotImplemented
+
+        new = set(self)
+
+        try:
+            return new.issuperset(other)
+        except TypeError:
+            return NotImplemented
+
+    def __gt__(self, other):
+        """Return True if self > other, False otherwise."""
+        value = self.__ge__(other)
+        if value is NotImplemented:
+            return NotImplemented
+
+        return value and self.__ne__(other)
 
     def __sub__(self, other):
         """Return a set with items in self but not in other."""
@@ -175,7 +173,18 @@ class Viewer:
 
         return new
 
-    __rsub__ = __sub__
+    def __rsub__(self, other):
+        """Return a set with items in other but not in self."""
+        if 0 not in self.position:
+            return NotImplemented
+
+        try:
+            new = set(other)
+        except TypeError:
+            return NotImplemented
+
+        new.difference_update(self)
+        return new
 
     def __and__(self, other):
         """Return a set with items that are both in self and other."""
