@@ -170,6 +170,9 @@ class Interpolater:
 
         """
 
+        # TODO: 'invalid' class variable for e.g. unmatched braces
+        # also better handle double braces (not at the end)
+
         if self.pattern is None:
             return str(self)
 
