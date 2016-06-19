@@ -104,20 +104,20 @@ class Viewer:
     def __eq__(self, other):
         """Return True if self == other, False otherwise."""
         try:
-            new = set(other)
+            new = tuple(other)
         except TypeError:
             return NotImplemented
 
-        return new.union(self) == new
+        return new == tuple(self)
 
     def __ne__(self, other):
         """Return True if self != other, False otherwise."""
         try:
-            new = set(other)
+            new = tuple(other)
         except TypeError:
             return NotImplemented
 
-        return new.union(self) != new
+        return new != tuple(self)
 
     def __le__(self, other):
         """Return True if self <= other, False otherwise."""
