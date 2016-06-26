@@ -388,9 +388,15 @@ class String(Interpolater):
         """Remove the braces from the string."""
         return string.replace("{", "").replace("}", "")
 
-    def modifier(self, string):
-        """Change double braces into single ones."""
-        return string.replace("{{", "{").replace("}}", "}")
+    def check(self, lines, ignored):
+        """Change double braces to single ones."""
+        single = re.compile("({|})")
+        double = re.compile("({{|}})")
+        for i, line in enumerate(ignored):
+            if double.search(line):
+                ignored[i] = line.replace("{{", "{").replace("}}", "}")
+            elif single.search(line):
+                raise ValueError("Single {!r} encountered in format string".format(single.search(line).group()))
 
     pattern = re.compile("(?<!{){[^{}]*}(?!})")
     conversion = re.compile("!.+"), slice(1)
