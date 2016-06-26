@@ -202,7 +202,7 @@ class Interpolater:
         last = 0
         line = str(self)
         for match in self.pattern.finditer(line):
-            if match.start():
+            if match.start() > last:
                 ignore.append(line[last:match.start()])
                 lines.append(None)
 
