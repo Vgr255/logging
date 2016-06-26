@@ -63,14 +63,29 @@ class Interpolater:
               tuple and/or mapping. The default function on the base
               class returns the string unchanged.
 
-    'modifier': This function or method will be called with the final
-                result of the string (after all interpolation has been
-                done, and just before returning it). It should return a
-                string, which the caller will receive. This can be used
-                to treat specially some sequences of characters; for
-                example "{{" and "}}" could get changed to "{" and "}",
-                respectively. The default behaviour is to return the
-                string unaltered.
+    'modifier': This function or method will be called with a list of
+                all the substrings that will be part of the final
+                string (after all interpolation has been done, and just
+                before returning it). It should return a string, which
+                the caller will receive. The default behaviour is to
+                return the result of ''.join(final_list).
+
+    'check': This will be passed two lists; the first is the list of
+             substrings matching the pattern, but before they they get
+             interpolated. The second list contains the substrings
+             which don't match the pattern. The indexes follow up from
+             across the lists (i.e. they are unique), so if there is a
+             match at the beginning of the string, the first list will
+             contain said match as index 0, and the second list will
+             have None at position 0. This is used to track the order
+             of the substrings. The return code of the function is not
+             checked against, but exceptions will propagate unharmed to
+             the caller, and mutations to the lists will be reflected
+             in the interpolation (although there are guards against
+             invalid mutation). This can also be used to modify the
+             second list to special-case some sequences of characters,
+             for example modify "{{" and "}}" to "{" and "}" (in the
+             case of String).
 
     Note on creating subclasses:
 
@@ -100,9 +115,12 @@ class Interpolater:
         """Return the string with proper bounds."""
         return string
 
-    def modifier(self, string):
-        """Sanitize the string and return it."""
-        return string
+    def modifier(self, final):
+        """Join the string and return it."""
+        return "".join(final)
+
+    def check(self, lines, ignored):
+        """Check the output and apply special cases."""
 
     def __init__(self, string):
         """Create a new instance for interpolation."""
@@ -197,15 +215,24 @@ class Interpolater:
             ignore.append(line[last:])
             lines.append(None)
 
+        for a, b in zip(lines, ignore):
+            assert (a is None) ^ (b is None)
+
+        self.check(lines, ignore)
+
         final = []
 
         for string, ignored in zip(lines, ignore):
             if string is None:
-                assert ignored is not None
+                if ignored is None or not isinstance(ignored, str):
+                    raise ValueError("invalid mutation in {0}.check".format(
+                                     type(self).__name__))
                 final.append(ignored)
                 continue
 
-            assert ignored is None
+            if ignored is not None or not isinstance(string, str):
+                raise ValueError("invalid mutation in {0}.check".format(
+                                 type(self).__name__))
             string = self.bounds(string)
 
             specifier = conversion = None
@@ -348,7 +375,11 @@ class Interpolater:
             assert res.count(None) == len(res) == i
             final.append(converter(result))
 
-        return self.modifier("".join(final))
+        result = self.modifier(final)
+        if not isinstance(result, str):
+            raise ValueError("{0}.modifier must return a str, not {1}".format(
+                             type(self).__name__, type(result).__name__))
+        return result
 
 class String(Interpolater):
     """Interpolation system akin to str.format()."""
