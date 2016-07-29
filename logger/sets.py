@@ -283,3 +283,119 @@ class SetBase:
         if deep:
             return type(self).__deepcopy__(self, {})
         return type(self).__copy__(self)
+
+class MutableSetBase(SetBase):
+    """A base set implementation for mutable sets."""
+
+    def __init__(self, iterable=()):
+        """Create a new mutable set."""
+        self._dict = {x: None for x in iterable}
+
+    def __iand__(self, other):
+        """Update the set with the items in both sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in dict(self._dict):
+            if item not in other._dict:
+                del self._dict[item]
+
+        return self
+
+    def __isub__(self, other):
+        """Update the set without the items in the other set."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in other._dict:
+            if item in self._dict:
+                del self._dict[item]
+
+        return self
+
+    def __ixor__(self, other):
+        """Update the set with the items in only one set."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in other._dict:
+            if item in self._dict:
+                del self._dict[item]
+            else:
+                self._dict[item] = None
+
+        return self
+
+    def __ior__(self, other):
+        """Update the set with the items in both sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in other:
+            self._dict[item] = None
+
+        return self
+
+    def __iadd__(self, other):
+        """Update the set with all the items from the sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in other:
+            self._dict[item] = None
+
+        return self
+
+    def add(self, item):
+        """Add a new item to the set."""
+        self._dict[item] = None
+
+    def discard(self, item):
+        """Remove an item from the set if it exists."""
+        self._dict.pop(item, None)
+
+    def remove(self, item):
+        """Remove an item from the set."""
+        del self._dict[item]
+
+    def pop(self):
+        """Remove and return a random item from the set."""
+        if self._dict:
+            return self._dict.popitem()[0]
+        raise KeyError("pop from an empty set")
+
+    def intersection_update(self, iterable):
+        """Update the set with the items in both the set and iterable."""
+        for item in dict(self._dict):
+            if item not in iterable:
+                del self._dict[item]
+
+    def difference_update(self, iterable):
+        """Update the set with the items not in the iterable."""
+        for item in iterable:
+            if item in self._dict:
+                del self._dict[item]
+
+    def symmetric_difference_update(self, iterable):
+        """Update the set with the items in one of the set or iterable."""
+        for item in dict(self._dict):
+            if item in iterable:
+                del self._dict[item]
+
+    def union_update(self, iterable):
+        """Update the set with the items in both the set or iterable."""
+        for item in iterable:
+            self._dict[item] = None
+
+    def sum_update(self, iterable):
+        """Update the set with all the items from the set and iterable."""
+        for item in iterable:
+            self._dict[item] = None
+
+    def update(self, iterable):
+        """Update the set with the iterable."""
+        self.sum_update(iterable)
+
+    def clear(self):
+        """Clear the set."""
+        self._dict.clear()
