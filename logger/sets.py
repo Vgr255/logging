@@ -292,7 +292,7 @@ class MutableSetBase(SetBase):
 
     def __init__(self, iterable=()):
         """Create a new mutable set."""
-        self._dict = {x: None for x in iterable}
+        self._dict = dict.fromkeys(iterable)
 
     def __iand__(self, other):
         """Update the set with the items in both sets."""
@@ -408,7 +408,7 @@ class ImmutableSetBase(SetBase):
 
     def __new__(cls, iterable=()):
         """Create a new immutable set."""
-        new = {x: None for x in iterable}
+        new = dict.fromkeys(iterable)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
