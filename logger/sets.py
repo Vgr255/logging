@@ -361,6 +361,10 @@ class MutableSetBase(SetBase):
         """Remove an item from the set."""
         del self._dict[item]
 
+    def drop(self, item):
+        """Drop all instances of the item from the set."""
+        del self._dict[item]
+
     def pop(self):
         """Remove and return a random item from the set."""
         if self._dict:
