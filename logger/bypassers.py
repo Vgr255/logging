@@ -272,15 +272,13 @@ class Stable(type):
         """Create a new stable viewer."""
         name, value = type(instance).__name__, cls.__name__
         assert value in ("__keys__", "__values__", "__items__")
-        self = cls.__new__(cls)
         if value == "__keys__":
             tup = instance.__range__[:1]
         elif value == "__values__":
             tup = instance.__range__[1:]
         else:
             tup = instance.__range__
-        super(cls, self).__init__(name, value, tup, instance)
-        return self
+        return Viewer(name, value, tup, instance)
 
 class BypassersViewer:
     """Create a view object. This is meant for internal use.
@@ -605,13 +603,13 @@ class Bypassers(metaclass=BypassersMeta):
         """Remove the mapping from the cache."""
         cache.pop(id(self), None)
 
-    class __keys__(Viewer, metaclass=Stable):
+    class __keys__(metaclass=Stable):
         """Stable 'keys' view object of Bypassers instances."""
 
-    class __values__(Viewer, metaclass=Stable):
+    class __values__(metaclass=Stable):
         """Stable 'values' view object of Bypassers instances."""
 
-    class __items__(Viewer, metaclass=Stable):
+    class __items__(metaclass=Stable):
         """Stable 'items' view object of Bypassers instances."""
 
     def __iter__(self):
