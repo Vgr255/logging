@@ -386,7 +386,7 @@ class String(Interpolater):
 
     def bounds(self, string):
         """Remove the braces from the string."""
-        return string.replace("{", "").replace("}", "")
+        return string[1:-1]
 
     def check(self, lines, ignored):
         """Change double braces to single ones."""
