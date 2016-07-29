@@ -415,3 +415,10 @@ class ImmutableSetBase(SetBase):
     def __hash__(self):
         """Return the hash of the set."""
         return hash(tuple(self._dict.items()))
+
+class OrderedSetBase(SetBase):
+    """A base ordered set implementation for the ordered versions."""
+
+    def __reversed__(self):
+        """Yield all the items from the set in reverse order."""
+        yield from reversed(self._dict)
