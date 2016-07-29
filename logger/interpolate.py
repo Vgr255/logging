@@ -128,7 +128,7 @@ class Interpolater:
 
     def __len__(self):
         """Return the length of the string."""
-        return len(self.string)
+        return len(str(self))
 
     def __repr__(self):
         """Return the exact representation of self."""
