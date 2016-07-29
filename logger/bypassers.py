@@ -41,7 +41,7 @@ class PartialView(functools.partial):
     def __repr__(self):
         """Return a custom representation of self."""
         return "<bound view object {!r} of {!r}>".format(self.func.__name__,
-                                                         self.func.name)
+                                                         self.func.__objclass__)
 
 class Viewer:
     """Return a view object over the items of the instance."""
@@ -246,16 +246,16 @@ class Viewer:
 class Stable(type):
     """Metaclass to handle stable view objects."""
 
-    name = "<unknown>"
+    __objclass__ = "<unknown>"
 
     def __repr__(cls):
         """Return the representation of the class."""
         return "<stable {!r} view object of {!r}>".format(cls.__name__[2:-2],
-                                                          cls.name)
+                                                          cls.__objclass__)
 
     def __get__(cls, instance, owner):
         """Return a partial viewer over the instance."""
-        cls.name = owner.__name__
+        cls.__objclass__ = owner.__name__
         if instance is not None:
             return PartialView(cls, instance)
         return cls
@@ -294,18 +294,18 @@ class BypassersViewer:
     def __init__(self, sub, index, name):
         """Create a new view object."""
         self.position = index
-        self.name = name
+        self.__objclass__ = name
         self.__name__ = sub
         self.__doc__ = "Return all the {0} of the {1} class.".format(sub, name)
 
     def __repr__(self):
         """Return the representation of self."""
         return "<{!r} view object of {!r} objects>".format(self.__name__,
-                                                           self.name)
+                                                           self.__objclass__)
 
     def __get__(self, instance, owner):
         """Return a partial viewer over the instance."""
-        self.name = owner.__name__
+        self.__objclass__ = owner.__name__
         if instance is not None:
             return PartialView(self, instance)
         return self
@@ -320,7 +320,7 @@ class BypassersViewer:
 
     def __call__(self, instance):
         """Return an iterator over the items in the mapping."""
-        return Viewer(self.name, self.__name__, self.position, instance)
+        return Viewer(type(instance).__name__, self.__name__, self.position, instance)
 
 class Subscript:
     """Class for subscription of Bypassers.
