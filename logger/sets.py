@@ -436,6 +436,34 @@ class MultiSetBase(SetBase):
         """Return the number of items in the set."""
         return sum(self._dict.values())
 
+    def issubset(self, iterable):
+        """Return True if the set is a subset of the iterable."""
+        other = {}
+        for item in iterable:
+            if item not in other:
+                other[item] = 0
+            other[item] += 1
+
+        for item in self._dict:
+            if item not in other or other[item] < self._dict[item]:
+                return False
+
+        return True
+
+    def issuperset(self, iterable):
+        """Return True if the set is a superset of the iterable."""
+        other = {}
+        for item in iterable:
+            if item not in other:
+                other[item] = 0
+            other[item] += 1
+
+        for item in other:
+            if item not in self._dict or self._dict[item] < other[item]:
+                return False
+
+        return True
+
     def intersection(self, iterable):
         """Return a set of the items from both the set and iterable."""
         new = type(self._dict)()
