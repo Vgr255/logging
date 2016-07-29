@@ -20,9 +20,9 @@ def convert_to_od(mapping, order):
     """Convert mapping to an OrderedDict instance using order."""
     return collections.OrderedDict([(i, mapping[i]) for i in order])
 
-def counter_to_iterable(counter):
-    """Convert a counter to an iterable / iterator."""
-    for item in itertools.starmap(itertools.repeat, counter):
+def counter_to_iterable(mapping):
+    """Convert a counter (mapping) to an iterable / iterator."""
+    for item in itertools.starmap(itertools.repeat, mapping.items()):
         yield from item
 
 def count(iterable):

@@ -475,7 +475,7 @@ class MultiSetBase(SetBase):
                     new[item] = 0
                 new[item] += 1
                 copy[item] -= 1
-        return type(self)(counter_to_iterable(new.items()))
+        return type(self)(counter_to_iterable(new))
 
     def difference(self, iterable):
         """Return a set of the items in the set but not the iterable."""
@@ -483,7 +483,7 @@ class MultiSetBase(SetBase):
         for item in iterable:
             if item in copy and copy[item] > 0:
                 copy[item] -= 1
-        return type(self)(counter_to_iterable(copy.items()))
+        return type(self)(counter_to_iterable(copy))
 
     def symmetric_difference(self, iterable):
         """Return a set of the items in either the set or the iterable."""
@@ -498,7 +498,7 @@ class MultiSetBase(SetBase):
         for item in itertools.chain(copy, other):
             new[item] = abs(copy.get(item, 0) - other.get(item, 0))
 
-        return type(self)(counter_to_iterable(new.items()))
+        return type(self)(counter_to_iterable(new))
 
     def union(self, iterable):
         """Return a set with one of each of the items."""
@@ -514,4 +514,4 @@ class MultiSetBase(SetBase):
             if item not in new:
                 new[item] = 0
             new[item] += 1
-        return type(self)(counter_to_iterable(new.items()))
+        return type(self)(counter_to_iterable(new))
