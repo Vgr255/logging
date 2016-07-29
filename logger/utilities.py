@@ -2,7 +2,8 @@
 
 """Small utility functions for use in various places."""
 
-__all__ = ["pick", "is_dunder", "convert_to_od", "counter_to_iterable"]
+__all__ = ["pick", "is_dunder", "convert_to_od",
+           "counter_to_iterable", "count"]
 
 import collections
 import itertools
@@ -23,3 +24,14 @@ def counter_to_iterable(counter):
     """Convert a counter to an iterable / iterator."""
     for item in itertools.starmap(itertools.repeat, counter):
         yield from item
+
+def count(iterable):
+    """Yield (item, count) two-tuples of the iterable."""
+    seen = []
+    full = list(iterable)
+
+    for item in full:
+        if item in seen:
+            continue
+        seen.append(item)
+        yield (item, full.count(item))
