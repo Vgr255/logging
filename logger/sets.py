@@ -4,6 +4,7 @@
 
 __all__ = []
 
+import itertools
 import types
 
 from .utilities import counter_to_iterable
@@ -422,3 +423,66 @@ class OrderedSetBase(SetBase):
     def __reversed__(self):
         """Yield all the items from the set in reverse order."""
         yield from reversed(self._dict)
+
+class MultiSetBase(SetBase):
+    """A base multiset implementation for both multiset versions."""
+
+    def __iter__(self):
+        """Yield all the items from the set."""
+        for item, count in self._dict.items():
+            yield from itertools.repeat(item, count)
+
+    def __len__(self):
+        """Return the number of items in the set."""
+        return sum(self._dict.values())
+
+    def intersection(self, iterable):
+        """Return a set of the items from both the set and iterable."""
+        new = {}
+        copy = dict(self._dict)
+        for item in iterable:
+            if item in copy and copy[item] > 0:
+                if item not in new:
+                    new[item] = 0
+                new[item] += 1
+                copy[item] -= 1
+        return type(self)(counter_to_iterable(new.items()))
+
+    def difference(self, iterable):
+        """Return a set of the items in the set but not the iterable."""
+        copy = dict(self._dict)
+        for item in iterable:
+            if item in copy and copy[item] > 0:
+                copy[item] -= 1
+        return type(self)(counter_to_iterable(copy.items()))
+
+    def symmetric_difference(self, iterable):
+        """Return a set of the items in either the set or the iterable."""
+        new = {}
+        other = {}
+        copy = dict(self._dict)
+        for item in iterable:
+            if item not in other:
+                other[item] = 0
+            other[item] += 1
+
+        for item in itertools.chain(copy, other):
+            new[item] = abs(copy.get(item, 0) - other.get(item, 0))
+
+        return type(self)(counter_to_iterable(new.items()))
+
+    def union(self, iterable):
+        """Return a set with one of each of the items."""
+        new = dict.fromkeys(self._dict)
+        for item in iterable:
+            new[item] = None
+        return type(self)(new)
+
+    def sum(self, iterable):
+        """Return a set of all items and their counts."""
+        new = dict(self._dict)
+        for item in iterable:
+            if item not in new:
+                new[item] = 0
+            new[item] += 1
+        return type(self)(counter_to_iterable(new.items()))
