@@ -4,6 +4,8 @@
 
 __all__ = []
 
+import types
+
 from .utilities import counter_to_iterable
 
 class SetBase:
@@ -399,3 +401,17 @@ class MutableSetBase(SetBase):
     def clear(self):
         """Clear the set."""
         self._dict.clear()
+
+class ImmutableSetBase(SetBase):
+    """A base set implementation for immutable sets."""
+
+    def __new__(cls, iterable=()):
+        """Create a new immutable set."""
+        new = {x: None for x in iterable}
+        self = super().__new__(cls)
+        self._dict = types.MappingProxyType(new)
+        return self
+
+    def __hash__(self):
+        """Return the hash of the set."""
+        return hash(tuple(self._dict.items()))
