@@ -165,39 +165,39 @@ class SetBase:
         """Return a set of the items only in one of the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = {x: None for x in self if x not in other}
-        new.update({x: None for x in other if x not in self})
+        new = type(self._dict)((x, None) for x in self if x not in other)
+        new.update((x, None) for x in other if x not in self)
         return type(self)(new)
 
     def __rxor__(self, other):
         """Return a set of the items only in one of the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = {x: None for x in other if x not in self}
-        new.update({x: None for x in self if x not in other})
+        new = type(self._dict)((x, None) for x in other if x not in self)
+        new.update((x, None) for x in self if x not in other)
         return type(self)(new)
 
     def __or__(self, other):
         """Return a set of the items in either sets, or both."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = dict.fromkeys(self._dict)
-        new.update(dict.fromkeys(other._dict))
+        new = self._dict.fromkeys(self._dict)
+        new.update(other._dict.fromkeys(other._dict))
         return type(self)(new)
 
     def __ror__(self, other):
         """Return a set of the items in either sets, or both."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = dict.fromkeys(other._dict)
-        new.update(dict.fromkeys(self._dict))
+        new = other._dict.fromkeys(other._dict)
+        new.update(self._dict.fromkeys(self._dict))
         return type(self)(new)
 
     def __add__(self, other):
         """Return a set of all the items in the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = dict(self._dict)
+        new = self._dict.copy()
         new.update(other._dict)
         return type(self)(new)
 
@@ -205,7 +205,7 @@ class SetBase:
         """Return a set of all the items in the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = dict(other._dict)
+        new = other._dict.copy()
         new.update(self._dict)
         return type(self)(new)
 
@@ -237,8 +237,8 @@ class SetBase:
 
     def intersection(self, iterable):
         """Return a set of the items from both the set and iterable."""
-        new = {}
-        copy = dict.fromkeys(self._dict)
+        new = type(self._dict)()
+        copy = self._dict.fromkeys(self._dict)
         for item in iterable:
             if item in copy and item not in new:
                 new[item] = None
@@ -246,7 +246,7 @@ class SetBase:
 
     def difference(self, iterable):
         """Return a set of the items in the set but not the iterable."""
-        copy = dict.fromkeys(self._dict)
+        copy = self._dict.fromkeys(self._dict)
         for item in iterable:
             if item in copy:
                 del copy[item]
@@ -254,29 +254,29 @@ class SetBase:
 
     def symmetric_difference(self, iterable):
         """Return a set of the items in one of the set or the iterable."""
-        copy = dict.fromkeys(self._dict)
-        to_add = {}
-        to_remove = {}
+        copy = self._dict.fromkeys(self._dict)
+        to_add = type(self._dict)()
+        to_remove = type(self._dict)()
         for item in iterable:
             if item not in copy:
                 to_add[item] = None
             else:
                 to_remove[item] = None
 
-        new = {k: None for k in copy if k not in to_remove}
+        new = type(self._dict)((k, None) for k in copy if k not in to_remove)
         new.update(to_add)
         return type(self)(new)
 
     def union(self, iterable):
         """Return a set of the items in both the set or iterable."""
-        copy = dict.fromkeys(self._dict)
+        copy = self._dict.fromkeys(self._dict)
         for item in iterable:
             copy[item] = None
         return type(self)(copy)
 
     def sum(self, iterable):
         """Return a set of all the items in the set and iterable."""
-        copy = dict(self._dict)
+        copy = self._dict.copy()
         for item in iterable:
             copy[item] = None
         return type(self)(copy)
@@ -299,7 +299,7 @@ class MutableSetBase(SetBase):
         if not isinstance(other, SetBase):
             return NotImplemented
 
-        for item in dict(self._dict):
+        for item in self._dict.copy():
             if item not in other._dict:
                 del self._dict[item]
 
@@ -369,7 +369,7 @@ class MutableSetBase(SetBase):
 
     def intersection_update(self, iterable):
         """Update the set with the items in both the set and iterable."""
-        for item in dict(self._dict):
+        for item in self._dict.copy():
             if item not in iterable:
                 del self._dict[item]
 
@@ -381,7 +381,7 @@ class MutableSetBase(SetBase):
 
     def symmetric_difference_update(self, iterable):
         """Update the set with the items in one of the set or iterable."""
-        for item in dict(self._dict):
+        for item in self._dict.copy():
             if item in iterable:
                 del self._dict[item]
 
@@ -438,8 +438,8 @@ class MultiSetBase(SetBase):
 
     def intersection(self, iterable):
         """Return a set of the items from both the set and iterable."""
-        new = {}
-        copy = dict(self._dict)
+        new = type(self._dict)()
+        copy = self._dict.copy()
         for item in iterable:
             if item in copy and copy[item] > 0:
                 if item not in new:
@@ -450,7 +450,7 @@ class MultiSetBase(SetBase):
 
     def difference(self, iterable):
         """Return a set of the items in the set but not the iterable."""
-        copy = dict(self._dict)
+        copy = self._dict.copy()
         for item in iterable:
             if item in copy and copy[item] > 0:
                 copy[item] -= 1
@@ -458,9 +458,9 @@ class MultiSetBase(SetBase):
 
     def symmetric_difference(self, iterable):
         """Return a set of the items in either the set or the iterable."""
-        new = {}
-        other = {}
-        copy = dict(self._dict)
+        new = type(self._dict)()
+        other = type(self._dict)()
+        copy = self._dict.copy()
         for item in iterable:
             if item not in other:
                 other[item] = 0
@@ -473,14 +473,14 @@ class MultiSetBase(SetBase):
 
     def union(self, iterable):
         """Return a set with one of each of the items."""
-        new = dict.fromkeys(self._dict)
+        new = self._dict.fromkeys(self._dict)
         for item in iterable:
             new[item] = None
         return type(self)(new)
 
     def sum(self, iterable):
         """Return a set of all items and their counts."""
-        new = dict(self._dict)
+        new = self._dict.copy()
         for item in iterable:
             if item not in new:
                 new[item] = 0
