@@ -5,6 +5,7 @@
 __all__ = ["pick", "is_dunder", "convert_to_od"]
 
 import collections
+import itertools
 
 def pick(arg, default):
     """Handler for default versus given argument."""
@@ -17,3 +18,8 @@ def is_dunder(name):
 def convert_to_od(mapping, order):
     """Convert mapping to an OrderedDict instance using order."""
     return collections.OrderedDict([(i, mapping[i]) for i in order])
+
+def counter_to_iterable(counter):
+    """Convert a counter to an iterable / iterator."""
+    for item in itertools.starmap(itertools.repeat, counter):
+        yield from item
