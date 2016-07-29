@@ -397,7 +397,8 @@ class MutableSetBase(SetBase):
 
     def update(self, iterable):
         """Update the set with the iterable."""
-        self.sum_update(iterable)
+        for item in iterable:
+            self._dict[item] = None
 
     def clear(self):
         """Clear the set."""
