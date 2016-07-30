@@ -418,12 +418,27 @@ class OrderedSetBase(SetBase):
     """A base ordered set implementation for the ordered versions.
 
     Indexing an ordered set is supported, but is not very efficient.
+    See the information below on indexing and deleting items. Getting
+    or deleting an item with its index is O(n), while using a slice or
+    tuple as indices is O(log n).
+
+    Furthermore, the items in an ordered set are ordered by the first
+    item's insert location, should there be duplicates. If an arbitrary
+    order (including re-ordering) is desired, a list is recommended.
 
     Indexing a set using an int (or int-like) object returns the item
     at that position. Indexing using a slice recursively iterates over
     the set with each integer in the slice, and returns a new set.
     Finally, indexing with a tuple recursively iterates over the set
     and returns a tuple of the elements.
+
+    Assigning to an index makes no sense for a set (even ordered), and
+    is not supported. However, deleting from an index is somewhat less
+    senseless. Doing `del oset[i]` is approximately equivalent (mostly
+    in regards to performance) to `oset.remove(oset[i])`. Valid indices
+    include ints (or int-like), slices, and tuples. Please note that,
+    since tuples can contain an arbitrary number of nested structures,
+    passing in tuples to delete items has an exponential runtime cost.
 
     """
 
@@ -466,6 +481,26 @@ class OrderedSetBase(SetBase):
             for item in index:
                 new.append(self[item])
             return tuple(new)
+
+        else:
+            raise TypeError("set indices must be integers, slices or tuples, "
+                            "not {0}".format(type(index).__name__))
+
+    def __delitem__(self, index):
+        """Remove the item at position given."""
+        if hasattr(index, "__index__"):
+            self.remove(self[index])
+
+        elif isinstance(index, slice):
+            for i in range(*index.indices(len(self))):
+                try:
+                    self.remove(self[i])
+                except (IndexError, KeyError):
+                    continue
+
+        elif isinstance(index, tuple):
+            for item in index:
+                del self[item]
 
         else:
             raise TypeError("set indices must be integers, slices or tuples, "
