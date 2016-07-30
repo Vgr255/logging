@@ -7,7 +7,7 @@ __all__ = []
 import itertools
 import types
 
-from .utilities import counter_to_iterable
+from .utilities import counter_to_iterable, count
 
 class SetBase:
     """A base set implementation for all implementations."""
@@ -599,3 +599,198 @@ class Set(MutableSetBase):
 
 class FrozenSet(ImmutableSetBase):
     """An immutable and unordered set which does not allow duplicates."""
+
+class MultiSet(MutableSetBase, MultiSetBase):
+    """A mutable and unordered set which allows duplicates."""
+
+    def __init__(self, iterable=()):
+        """Create a new mutable multiset."""
+        self._dict = new = {}
+        for item in iterable:
+            if item not in new:
+                new[item] = 0
+            new[item] += 1
+
+    def __iand__(self, other):
+        """Update the set with the items in both sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        copy = self._dict.copy()
+        self._dict.clear()
+
+        for item in copy:
+            if item in other._dict:
+                value = other._dict[item]
+                if value is None:
+                    value = 1
+                self._dict[item] = min(value, copy[item])
+
+        return self
+
+    def __isub__(self, other):
+        """Update the set with the items not in the other set."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        copy = self._dict.copy()
+
+        for item in copy:
+            if item in other._dict:
+                value = other._dict[item]
+                if value is None:
+                    value = 1
+                count = copy[item] - value
+                if count > 0:
+                    self._dict[item] = count
+
+        return self
+
+    def __ixor__(self, other):
+        """Update the set with the items in only one set."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        copy = self._dict.copy()
+        self._dict.clear()
+
+        for item in copy:
+            value = 0
+            if item in other._dict:
+                value = other._dict[item]
+                if value is None:
+                    value = 1
+
+            self._dict[item] = abs(copy[item] - value)
+
+        for item, value in other._dict.items():
+            if item in self._dict:
+                continue # already did it
+
+            if value is None:
+                value = 1
+            self._dict[item] = value
+
+        return self
+
+    def __ior__(self, other):
+        """Update the set with the items in both sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item in itertools.chain(self._dict, other._dict):
+            self._dict[item] = 1 # we don't care about the count
+
+        return self
+
+    def __iadd__(self, other):
+        """Update the set with all the items in both sets."""
+        if not isinstance(other, SetBase):
+            return NotImplemented
+
+        for item, value in other._dict.items():
+            if value is None:
+                value = 1
+            self._dict[item] = self._dict.get(item, 0) + value
+
+        return self
+
+    def add(self, item):
+        """Add a new item to the set."""
+        if item not in self._dict:
+            self._dict[item] = 0
+        self._dict[item] += 1
+
+    def discard(self, item):
+        """Remove an item from the set if it exists."""
+        if item in self._dict:
+            self._dict[item] -= 1
+            if self._dict[item] <= 0:
+                del self._dict[item]
+
+    def remove(self, item):
+        """Remove an item from the set."""
+        self._dict[item] -= 1 # Raises a KeyError if not present
+        if self._dict[item] <= 0:
+            del self._dict[item]
+
+    def pop(self):
+        """Remove and return a random item from the set."""
+        if not self._dict:
+            raise KeyError("pop from empty set")
+
+        item = next(iter(self._dict))
+        if self._dict[item] == 1:
+            del self._dict[item]
+            return item
+
+        self._dict[item] -= 1
+        return item
+
+    def intersection_update(self, iterable):
+        """Update the set with the items in both the set and iterable."""
+        copy = self._dict.copy()
+        counter = type(self._dict)(count(iterable))
+        self._dict.clear()
+
+        for item in copy:
+            value = min(copy[item], counter.get(item, 0))
+            if value:
+                self._dict[item] = value
+
+    def difference_update(self, iterable):
+        """Update the set with the items not in the iterable."""
+        for item, value in count(iterable):
+            if item in self._dict:
+                self._dict[item] -= value
+                if self._dict[item] <= 0:
+                    del self._dict[item]
+
+    def symmetric_difference_update(self, iterable):
+        """Update the set with the items in one of the set or iterable."""
+        copy = self._dict.copy()
+        counter = type(self._dict)(count(iterable))
+        self._dict.clear()
+
+        for item in copy:
+            value = 0
+            if item in counter:
+                value = counter[item]
+            self._dict[item] = copy[item] + value
+
+        for item, value in counter:
+            if item in copy:
+                continue # already done it above
+            self._dict[item] = value
+
+    def union_update(self, iterable):
+        """Update the set with the items from both the set and iterable."""
+        for item in itertools.chain(self._dict, iterable):
+            self._dict[item] = 1
+
+    def sum_update(self, iterable):
+        """Update the set with all items from the set and iterable."""
+        for item in iterable:
+            if item not in self._dict:
+                self._dict[item] = 0
+            self._dict[item] += 1
+
+    def update(self, iterable):
+        """Update the set with all items from the iterable."""
+        for item in iterable:
+            if item not in self._dict:
+                self._dict[item] = 0
+            self._dict[item] += 1
+
+class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
+    """An immutable and unordered set which allows duplicates."""
+
+    def __new__(cls, iterable=()):
+        new = {}
+        for item in iterable:
+            if item not in new:
+                new[item] = 0
+            new[item] += 1
+        self = super().__new__(cls)
+        self._dict = types.MappingProxyType(new)
+        return self
