@@ -611,7 +611,11 @@ class MultiSet(MutableSetBase, MultiSetBase):
         copy = self._dict.copy()
 
         for item, value in copy.items():
-            self._dict[item] = min(other.count(item), value)
+            count = min(other.count(item), value)
+            if count:
+                self._dict[item] = count
+            else:
+                del self._dict[item]
 
         return self
 
@@ -624,10 +628,10 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
         for item, value in copy.items():
             count = value - other.count(item)
-            if count <= 0:
-                del self._dict[item]
-            else:
+            if count > 0:
                 self._dict[item] = count
+            else:
+                del self._dict[item]
 
         return self
 
