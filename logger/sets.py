@@ -2,7 +2,12 @@
 
 """Various set implementations."""
 
-__all__ = []
+__all__ = [ # Mutable versions; Immutable versions;      Ordered; Duplicates
+            "Set",              "FrozenSet",             # [ ]       [ ]
+            "MultiSet",         "FrozenMultiSet",        # [ ]       [X]
+            "OrderedSet",       "FrozenOrderedSet",      # [X]       [ ]
+            "OrderedMultiSet",  "FrozenOrderedMultiSet", # [X]       [X]
+          ]
 
 import collections
 import itertools
