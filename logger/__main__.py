@@ -30,28 +30,6 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertFalse(logger.bypassers.is_dunder("_"))
         self.assertFalse(logger.bypassers.is_dunder(""))
 
-    def test_is_singleton(self): # depends on on TestDecorators.test_singleton
-        import enum
-        import types
-        import decimal
-        import fractions
-
-        @logger.decorators.Singleton
-        class S: pass
-
-        class E(enum.Enum):
-            foo = 21
-            bar = 42
-            baz = 66
-
-        self.assertTrue(logger.bypassers.is_singleton(len))
-        self.assertTrue(logger.bypassers.is_singleton(S))
-        self.assertTrue(logger.bypassers.is_singleton(types.CodeType))
-        self.assertTrue(logger.bypassers.is_singleton(E))
-        self.assertTrue(logger.bypassers.is_singleton(fractions.Fraction(3)))
-        self.assertTrue(logger.bypassers.is_singleton(decimal.Deciaml("45")))
-        self.assertTrue(logger.bypassers.is_singleton(("foo", "bar"))
-
 class TestDecorators(unittest.TestCase):
 
     def test_instance_bypass(self):
