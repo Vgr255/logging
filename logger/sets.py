@@ -281,6 +281,10 @@ class SetBase:
             copy[item] = None
         return type(self)(copy)
 
+    def count(self, item):
+        """Return the number of times the item is in the set."""
+        return self._dict[item] or 1
+
     def copy(self, *, deep=False):
         """Return a deep or shallow copy of self."""
         if deep:
