@@ -686,8 +686,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
     def add(self, item):
         """Add a new item to the set."""
         if item not in self._dict:
-            self._dict[item] = 0
-        self._dict[item] += 1
+            self._dict[item] = 1
+        else:
+            self._dict[item] += 1
 
     def discard(self, item):
         """Remove an item from the set if it exists."""
