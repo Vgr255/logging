@@ -32,8 +32,7 @@ class SetBase:
 
     def __repr__(self):
         """Return the representation of the set."""
-        return "{0}([{1}])".format(type(self).__name__,
-                                   ", ".join(repr(x) for x in self))
+        return "{0}({1!r})".format(type(self).__name__, list(self))
 
     def __eq__(self, other):
         """Return True if both sets are equal."""
