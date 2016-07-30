@@ -35,22 +35,6 @@ class SetBase:
         return "{0}([{1}])".format(type(self).__name__,
                                    ", ".join(repr(x) for x in self))
 
-    def __reduce__(self):
-        """Return the set state for pickling."""
-        return type(self), (list(self),), None
-
-    def __reduce_ex__(self, proto=3):
-        """Return the advanced set state for pickling."""
-        return type(self), (list(self),), None
-
-    def __copy__(self):
-        """Return a shallow copy of the set."""
-        return type(self)(self._dict)
-
-    def __deepcopy__(self, memo):
-        """Return a deep copy of the set."""
-        return type(self)(self._dict)
-
     def __eq__(self, other):
         """Return True if both sets are equal."""
         if not isinstance(other, SetBase):
@@ -291,11 +275,9 @@ class SetBase:
         """Return the number of times the item is in the set."""
         return self._dict[item] or 1
 
-    def copy(self, *, deep=False):
-        """Return a deep or shallow copy of self."""
-        if deep:
-            return type(self).__deepcopy__(self, {})
-        return type(self).__copy__(self)
+    def copy(self):
+        """Return a shallow copy of self."""
+        return type(self)(self._dict)
 
 class MutableSetBase(SetBase):
     """A base set implementation for mutable sets."""
