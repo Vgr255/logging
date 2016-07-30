@@ -39,28 +39,14 @@ class SetBase:
         if not isinstance(other, SetBase):
             return NotImplemented
 
-        if len(self) != len(other):
-            return False
-
-        for item, value in self._dict.items():
-            if item not in other._dict or other._dict[item] != value:
-                return False
-
-        return True
+        return self._dict == other._dict
 
     def __ne__(self, other):
         """Return True if both sets are not equal."""
         if not isinstance(other, SetBase):
             return NotImplemented
 
-        if len(self) != len(other):
-            return True
-
-        for item, value in self._dict.items():
-            if item not in other._dict or other._dict[item] != value:
-                return True
-
-        return False
+        return self._dict != other._dict
 
     def __lt__(self, other):
         """Return True if the set is a strict subset of the other set."""
