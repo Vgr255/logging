@@ -258,7 +258,9 @@ class SetBase:
 
     def count(self, item):
         """Return the number of times the item is in the set."""
-        return self._dict[item] or 1
+        if item in self._dict:
+            return self._dict[item] or 1
+        return 0
 
     def copy(self):
         """Return a shallow copy of self."""
@@ -607,14 +609,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
             return NotImplemented
 
         copy = self._dict.copy()
-        self._dict.clear()
 
-        for item in copy:
-            if item in other._dict:
-                value = other._dict[item]
-                if value is None:
-                    value = 1
-                self._dict[item] = min(value, copy[item])
+        for item, value in copy.items():
+            self._dict[item] = min(other.count(item), value)
 
         return self
 
@@ -625,14 +622,12 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
         copy = self._dict.copy()
 
-        for item in copy:
-            if item in other._dict:
-                value = other._dict[item]
-                if value is None:
-                    value = 1
-                count = copy[item] - value
-                if count > 0:
-                    self._dict[item] = count
+        for item, value in copy.items():
+            count = value - other.count(item)
+            if count <= 0:
+                del self._dict[item]
+            else:
+                self._dict[item] = count
 
         return self
 
@@ -642,24 +637,19 @@ class MultiSet(MutableSetBase, MultiSetBase):
             return NotImplemented
 
         copy = self._dict.copy()
-        self._dict.clear()
 
-        for item in copy:
-            value = 0
-            if item in other._dict:
-                value = other._dict[item]
-                if value is None:
-                    value = 1
-
-            self._dict[item] = abs(copy[item] - value)
+        for item, value in copy.items():
+            count = abs(value - other.count(item))
+            if count:
+                self._dict[item] = count
+            else:
+                del self._dict[item]
 
         for item, value in other._dict.items():
-            if item in self._dict:
+            if item in copy:
                 continue # already did it
 
-            if value is None:
-                value = 1
-            self._dict[item] = value
+            self._dict[item] = value or 1
 
         return self
 
@@ -679,9 +669,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
             return NotImplemented
 
         for item, value in other._dict.items():
-            if value is None:
-                value = 1
-            self._dict[item] = self._dict.get(item, 0) + value
+            self._dict[item] = self._dict.get(item, 0) + (value or 1)
 
         return self
 
@@ -722,12 +710,13 @@ class MultiSet(MutableSetBase, MultiSetBase):
         """Update the set with the items in both the set and iterable."""
         copy = self._dict.copy()
         counter = count(iterable)
-        self._dict.clear()
 
-        for item in copy:
-            value = min(copy[item], counter.get(item, 0))
-            if value:
-                self._dict[item] = value
+        for item, value in copy.items():
+            count = min(value, counter.get(item, 0))
+            if not count:
+                del self._dict[item]
+            else:
+                self._dict[item] = count
 
     def difference_update(self, iterable):
         """Update the set with the items not in the iterable."""
@@ -741,18 +730,18 @@ class MultiSet(MutableSetBase, MultiSetBase):
         """Update the set with the items in one of the set or iterable."""
         copy = self._dict.copy()
         counter = count(iterable)
-        self._dict.clear()
 
-        for item in copy:
-            value = 0
-            if item in counter:
-                value = counter[item]
-            self._dict[item] = copy[item] + value
+        for item, value in copy.items():
+            count = abs(value - counter.get(item, 0))
+            if count:
+                self._dict[item] = count
+            else:
+                del self._dict[item]
 
-        for item in counter:
+        for item, value in counter.items():
             if item in copy:
                 continue # already done it above
-            self._dict[item] = counter[item]
+            self._dict[item] = value
 
     def union_update(self, iterable):
         """Update the set with the items from both the set and iterable."""
