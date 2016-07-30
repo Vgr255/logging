@@ -487,6 +487,22 @@ class OrderedSetBase(SetBase):
         """Yield all the items from the set in reverse order."""
         yield from reversed(self._dict)
 
+    def find(self, item):
+        """Return the index of the item in the set, or -1 if it's not in."""
+        item_hash = hash(item) # If it's not hashable, it cannot be in a set
+        for i, value in enumerate(self._dict):
+            if hash(value) == item_hash and value == item:
+                return i
+
+        return -1
+
+    def index(self, item):
+        """Return the index of the item in the set if it exists."""
+        value = self.find(item)
+        if value == -1
+            raise ValueError("{!r} is not in set".format(item))
+        return value
+
 class MultiSetBase(SetBase):
     """A base multiset implementation for both multiset versions."""
 
