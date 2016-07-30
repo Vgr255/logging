@@ -593,3 +593,9 @@ class MultiSetBase(SetBase):
                 new[item] = 0
             new[item] += 1
         return type(self)(counter_to_iterable(new))
+
+class Set(MutableSetBase):
+    """A mutable and unordered set which does not allow duplicates."""
+
+class FrozenSet(ImmutableSetBase):
+    """An immutable and unordered set which does not allow duplicates."""
