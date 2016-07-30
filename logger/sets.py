@@ -4,6 +4,7 @@
 
 __all__ = []
 
+import collections
 import itertools
 import types
 
@@ -787,6 +788,48 @@ class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
 
     def __new__(cls, iterable=()):
         new = {}
+        for item in iterable:
+            if item not in new:
+                new[item] = 0
+            new[item] += 1
+        self = super().__new__(cls)
+        self._dict = types.MappingProxyType(new)
+        return self
+
+class OrderedSet(OrderedSetBase, Set):
+    """A mutable and ordered set which does not allow duplicates."""
+
+    def __init__(self, iterable=()):
+        """Create a new mutable ordered set."""
+        self._dict = collections.OrderedDict.fromkeys(iterable)
+
+class FrozenOrderedSet(OrderedSetBase, FrozenSet):
+    """An immutable and ordered set which does not allow duplicates."""
+
+    def __new__(cls, iterable=()):
+        """Create a new immutable ordered set."""
+        new = collections.OrderedDict.fromkeys(iterable)
+        self = super().__new__(cls)
+        self._dict = types.MappingProxyType(new)
+        return self
+
+class OrderedMultiSet(OrderedSetBase, MultiSet):
+    """A mutable and ordered set which allows duplicates."""
+
+    def __init__(self, iterable=()):
+        """Create a new mutable ordered multiset."""
+        self._dict = new = collections.OrderedDict()
+        for item in iterable:
+            if item not in new:
+                new[item] = 0
+            new[item] += 1
+
+class FrozenOrderedMultiSet(OrderedSetBase, FrozenMultiSet):
+    """An immutable and ordered set which allows duplicates."""
+
+    def __new__(cls, iterable=()):
+        """Create a new immutable ordered multiset."""
+        new = collections.OrderedDict()
         for item in iterable:
             if item not in new:
                 new[item] = 0
