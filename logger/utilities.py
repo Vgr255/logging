@@ -37,4 +37,4 @@ def count(iterable):
             items[item] = 0
         items[item] += 1
 
-    yield from items.items()
+    return items

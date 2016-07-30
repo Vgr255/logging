@@ -523,28 +523,18 @@ class MultiSetBase(SetBase):
 
     def issubset(self, iterable):
         """Return True if the set is a subset of the iterable."""
-        other = {}
-        for item in iterable:
-            if item not in other:
-                other[item] = 0
-            other[item] += 1
+        counter = count(iterable)
 
         for item in self._dict:
-            if item not in other or other[item] < self._dict[item]:
+            if item not in counter or counter[item] < self._dict[item]:
                 return False
 
         return True
 
     def issuperset(self, iterable):
         """Return True if the set is a superset of the iterable."""
-        other = {}
-        for item in iterable:
-            if item not in other:
-                other[item] = 0
-            other[item] += 1
-
-        for item in other:
-            if item not in self._dict or self._dict[item] < other[item]:
+        for item, value in count(iterable).items():
+            if item not in self._dict or self._dict[item] < value:
                 return False
 
         return True
@@ -572,15 +562,11 @@ class MultiSetBase(SetBase):
     def symmetric_difference(self, iterable):
         """Return a set of the items in either the set or the iterable."""
         new = type(self._dict)()
-        other = type(self._dict)()
         copy = self._dict.copy()
-        for item in iterable:
-            if item not in other:
-                other[item] = 0
-            other[item] += 1
+        counter = count(iterable)
 
-        for item in itertools.chain(copy, other):
-            new[item] = abs(copy.get(item, 0) - other.get(item, 0))
+        for item in itertools.chain(copy, counter):
+            new[item] = abs(copy.get(item, 0) - counter.get(item, 0))
 
         return type(self)(counter_to_iterable(new))
 
@@ -611,11 +597,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
     def __init__(self, iterable=()):
         """Create a new mutable multiset."""
-        self._dict = new = {}
-        for item in iterable:
-            if item not in new:
-                new[item] = 0
-            new[item] += 1
+        self._dict = count(iterable)
 
     def __iand__(self, other):
         """Update the set with the items in both sets."""
@@ -736,7 +718,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
     def intersection_update(self, iterable):
         """Update the set with the items in both the set and iterable."""
         copy = self._dict.copy()
-        counter = type(self._dict)(count(iterable))
+        counter = count(iterable)
         self._dict.clear()
 
         for item in copy:
@@ -746,7 +728,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
     def difference_update(self, iterable):
         """Update the set with the items not in the iterable."""
-        for item, value in count(iterable):
+        for item, value in count(iterable).items():
             if item in self._dict:
                 self._dict[item] -= value
                 if self._dict[item] <= 0:
@@ -755,7 +737,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
     def symmetric_difference_update(self, iterable):
         """Update the set with the items in one of the set or iterable."""
         copy = self._dict.copy()
-        counter = type(self._dict)(count(iterable))
+        counter = count(iterable)
         self._dict.clear()
 
         for item in copy:
@@ -764,10 +746,10 @@ class MultiSet(MutableSetBase, MultiSetBase):
                 value = counter[item]
             self._dict[item] = copy[item] + value
 
-        for item, value in counter:
+        for item in counter:
             if item in copy:
                 continue # already done it above
-            self._dict[item] = value
+            self._dict[item] = counter[item]
 
     def union_update(self, iterable):
         """Update the set with the items from both the set and iterable."""
@@ -792,11 +774,7 @@ class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
     """An immutable and unordered set which allows duplicates."""
 
     def __new__(cls, iterable=()):
-        new = {}
-        for item in iterable:
-            if item not in new:
-                new[item] = 0
-            new[item] += 1
+        new = count(iterable)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
@@ -821,24 +799,5 @@ class FrozenOrderedSet(OrderedSetBase, FrozenSet):
 class OrderedMultiSet(OrderedSetBase, MultiSet):
     """A mutable and ordered set which allows duplicates."""
 
-    def __init__(self, iterable=()):
-        """Create a new mutable ordered multiset."""
-        self._dict = new = collections.OrderedDict()
-        for item in iterable:
-            if item not in new:
-                new[item] = 0
-            new[item] += 1
-
 class FrozenOrderedMultiSet(OrderedSetBase, FrozenMultiSet):
     """An immutable and ordered set which allows duplicates."""
-
-    def __new__(cls, iterable=()):
-        """Create a new immutable ordered multiset."""
-        new = collections.OrderedDict()
-        for item in iterable:
-            if item not in new:
-                new[item] = 0
-            new[item] += 1
-        self = super().__new__(cls)
-        self._dict = types.MappingProxyType(new)
-        return self
