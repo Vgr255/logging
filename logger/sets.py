@@ -423,7 +423,61 @@ class ImmutableSetBase(SetBase):
         return hash(tuple(self._dict.items()))
 
 class OrderedSetBase(SetBase):
-    """A base ordered set implementation for the ordered versions."""
+    """A base ordered set implementation for the ordered versions.
+
+    Indexing an ordered set is supported, but is not very efficient.
+
+    Indexing a set using an int (or int-like) object returns the item
+    at that position. Indexing using a slice recursively iterates over
+    the set with each integer in the slice, and returns a new set.
+    Finally, indexing with a tuple recursively iterates over the set
+    and returns a tuple of the elements.
+
+    """
+
+    def __getitem__(self, index):
+        """Get the item at index given."""
+        if hasattr(index, "__index__"):
+            if index >= 0:
+                it = iter(self._dict)
+            else:
+                it = reversed(self._dict)
+                index = -index
+
+            for i in range(index):
+                try:
+                    next(it)
+                except StopIteration:
+                    raise IndexError("set index out of range")
+
+            try:
+                return next(it)
+            except StopIteration:
+                raise IndexError("set index out of range")
+
+        elif isinstance(index, slice):
+            new = type(self._dict)()
+            for i in range(*index.indices(len(self))):
+                try:
+                    item = self[i]
+                except IndexError:
+                    continue
+
+                if item not in new:
+                    new[item] = 0
+                new[item] += 1
+
+            return type(self)(counter_to_iterable(new))
+
+        elif isinstance(index, tuple):
+            new = []
+            for item in index:
+                new.append(self[item])
+            return tuple(new)
+
+        else:
+            raise TypeError("set indices must be integers, slices or tuples, "
+                            "not {0}".format(type(index).__name__))
 
     def __reversed__(self):
         """Yield all the items from the set in reverse order."""
