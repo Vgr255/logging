@@ -375,7 +375,6 @@ class attribute:
         self.__objclass__ = objclass
 
     def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
         if instance is None:
             return self
         try:
@@ -383,6 +382,12 @@ class attribute:
         except AttributeError:
             return self.__func__
         return get(instance, owner)
+
+    def __set_name__(self, owner, name):
+        if self.__name__ is None:
+            self.__name__ = name
+        if self.__objclass__ is None:
+            self.__objclass__ = owner
 
     def __repr__(self):
         return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
@@ -400,7 +405,6 @@ class Property(attribute):
     """
 
     def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance)
 
     def __set__(self, instance, value):
@@ -430,7 +434,6 @@ class ClassProperty(Property):
     """
 
     def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
         return self.__func__(owner)
 
 class DescriptorProperty(Property):
@@ -456,7 +459,6 @@ class DescriptorProperty(Property):
     """
 
     def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance, owner)
 
 class readonly(Property):
@@ -467,7 +469,6 @@ class readonly(Property):
         self.funcs = []
 
     def __get__(self, instance, owner):
-        self.__objclass__ = self.__objclass__ or owner
         if instance is None:
             return self.__func__
 

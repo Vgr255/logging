@@ -246,8 +246,6 @@ class Viewer:
 class Stable(type):
     """Metaclass to handle stable view objects."""
 
-    __objclass__ = "<unknown>"
-
     def __repr__(cls):
         """Return the representation of the class."""
         return "<stable {!r} view object of {!r}>".format(cls.__name__[2:-2],
@@ -255,7 +253,6 @@ class Stable(type):
 
     def __get__(cls, instance, owner):
         """Return a partial viewer over the instance."""
-        cls.__objclass__ = owner.__name__
         if instance is not None:
             return PartialView(cls, instance)
         return cls
@@ -267,6 +264,10 @@ class Stable(type):
     def __delete__(cls, instance):
         """Prevent deleting stable view objects."""
         raise AttributeError("cannot delete stable view object")
+
+    def __set_name__(cls, owner, name):
+        """Set the owner class and name of the descriptor."""
+        cls.__objclass__ = owner
 
     def __call__(cls, instance):
         """Create a new stable viewer."""
@@ -583,6 +584,12 @@ class Bypassers(metaclass=BypassersMeta):
         if cls not in cache:
             cache[cls] = tuple(range(cls.__item_length__))
         return cache[cls]
+
+    @classmethod
+    def __init_subclass__(*args, **kwargs):
+        """Initialize the subclasses."""
+        if not args:
+            raise TypeError("Bypassers.__init_subclass__ needs an argument")
 
     def __new__(*args, **kwargs):
         """Create a new bypasser instance."""
