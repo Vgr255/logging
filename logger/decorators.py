@@ -3,7 +3,7 @@
 """Various decorators for the bypassers and loggers."""
 
 __all__ = ["handle_bypass", "check_bypass", "log_usage", "log_use",
-           "total_decorate", "attribute", "Property", "MetaProperty",
+           "total_decorate", "attribute", "Property", "ClassProperty",
            "DescriptorProperty", "readonly", "Singleton"]
 
 import weakref
@@ -401,10 +401,10 @@ class Property(attribute):
     def __delete__(self, instance):
         raise AttributeError("readonly attribute")
 
-class MetaProperty(Property):
-    """Create and return a meta-property.
+class ClassProperty(Property):
+    """Create and return a class property.
 
-    A meta-property is a property that works directly on the class.
+    A class property is a property that works directly on the class.
     It is similar to using a property with a classmethod decorator,
     except that it will always trigger.
 
@@ -451,7 +451,7 @@ class DescriptorProperty(Property):
         self.__objclass__ = self.__objclass__ or owner
         return self.__func__(instance, owner)
 
-class readonly(MetaProperty):
+class readonly(Property):
     """Make an instance attribute read-only."""
 
     def __init__(self, *args, **kwargs):

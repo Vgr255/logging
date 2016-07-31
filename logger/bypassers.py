@@ -13,7 +13,7 @@ import collections
 import functools
 import copy
 
-from .decorators import Property, MetaProperty
+from .decorators import Property, ClassProperty
 from .types import NoValue
 
 class PartialView(functools.partial):
@@ -557,7 +557,7 @@ class Bypassers(metaclass=BypassersMeta):
             cache[id_self] = collections.OrderedDict()
         return cache[id_self]
 
-    @MetaProperty
+    @ClassProperty
     def __item_length__(cls, cache={}):
         """Return the length of the items in self."""
         # On the other hand, classes are always hashable, and due to
@@ -570,14 +570,14 @@ class Bypassers(metaclass=BypassersMeta):
             cache[cls] = len(cls.__names__)
         return cache[cls]
 
-    @MetaProperty
+    @ClassProperty
     def __viewers__(cls, cache={}):
         """Return the names of the view objects."""
         if cls not in cache:
             cache[cls] = tuple(x[0] for x in cls.__views__)
         return cache[cls]
 
-    @MetaProperty
+    @ClassProperty
     def __range__(cls, cache={}):
         """Return the range of items (for internal use)."""
         if cls not in cache:
