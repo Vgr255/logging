@@ -364,17 +364,24 @@ class attribute:
 
     """
 
-    def __init__(self, func, doc=None, name=None, objclass=None):
+    def __init__(self, func=None, doc=None, name=None, objclass=None):
         self.__func__ = func
         self.__doc__ = doc or func.__doc__
-        self.__name__ = name or func.__name__
+        if name is None and func is not None:
+            self.__name__ = func.__name__
+        else:
+            self.__name__ = name
         self.__objclass__ = objclass
 
     def __get__(self, instance, owner):
         self.__objclass__ = self.__objclass__ or owner
         if instance is None:
             return self
-        return self.__func__.__get__(instance, owner)
+        try:
+            get = self.__func__.__get__
+        except AttributeError:
+            return self.__func__
+        return get(instance, owner)
 
     def __repr__(self):
         return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
