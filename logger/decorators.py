@@ -13,11 +13,13 @@ class instance_bypass:
     """Context Manager to handle instance bypassing."""
 
     def __init__(self, instance, factory=dict):
+        """Create a new context manager for instance bypassing."""
         self.instance = instance
         self.factory = factory
         self.delete = False
 
     def __enter__(self):
+        """Setup the context manager."""
         inst = self.instance
         try:
             inst.bypassed
@@ -26,6 +28,7 @@ class instance_bypass:
             self.delete = True
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Tear down the context manager after use."""
         if self.delete:
             del self.instance.bypassed
         self.delete = False
@@ -200,6 +203,7 @@ class log_usage:
     _default_handler = None
 
     def __new__(cls, *args, **kwargs):
+        """Initialize the default handler."""
         if cls._default_handler is None:
             from .logger import BaseLogger
             cls._default_handler = BaseLogger
@@ -366,6 +370,7 @@ class attribute:
     """
 
     def __init__(self, func=None, doc=None, name=None, objclass=None):
+        """Create a new attribute decorator (descriptor)."""
         self.__func__ = func
         self.__doc__ = doc or func.__doc__
         if name is None and func is not None:
@@ -375,6 +380,7 @@ class attribute:
         self.__objclass__ = objclass
 
     def __get__(self, instance, owner=None):
+        """Return a bound version of the attribute."""
         if instance is None:
             return self
         if owner is None:
@@ -386,12 +392,14 @@ class attribute:
         return get(instance, owner)
 
     def __set_name__(self, owner, name):
+        """Set the owner class and name of the decorator."""
         if self.__name__ is None:
             self.__name__ = name
         if self.__objclass__ is None:
             self.__objclass__ = owner
 
     def __repr__(self):
+        """Return the representation of the attribute object."""
         if self.__doc__:
             return self.__doc__
         return "<{0} {1!r} of {2!r} objects>".format(type(self).__name__,
@@ -409,12 +417,15 @@ class Property(attribute):
     """
 
     def __get__(self, instance, owner=None):
+        """Call the function with the instance, and return the result."""
         return self.__func__(instance)
 
     def __set__(self, instance, value):
+        """Prevent changing the value of the property."""
         raise AttributeError("readonly attribute")
 
     def __delete__(self, instance):
+        """Prevent deleting the value of the property."""
         raise AttributeError("readonly attribute")
 
 class ClassProperty(Property):
@@ -438,6 +449,7 @@ class ClassProperty(Property):
     """
 
     def __get__(self, instance, owner=None):
+        """Call the function with the class, and return the result."""
         if instance is owner is None:
             raise TypeError("__get__(None, None) is invalid")
         if owner is None:
@@ -467,6 +479,7 @@ class DescriptorProperty(Property):
     """
 
     def __get__(self, instance, owner=None):
+        """Call the function with the instance and class; return the value."""
         if instance is owner is None:
             raise TypeError("__get__(None, None) is invalid")
         if owner is None:
@@ -477,10 +490,12 @@ class readonly(Property):
     """Make an instance attribute read-only."""
 
     def __init__(self, *args, **kwargs):
+        """Create a new read-only attribute."""
         super().__init__(*args, **kwargs)
         self.funcs = []
 
     def __get__(self, instance, owner=None):
+        """Return the value of the attribute."""
         if instance is None:
             return self.__func__
 
@@ -498,6 +513,7 @@ class readonly(Property):
         return get(instance, owner)
 
     def __set__(self, instance, value):
+        """Set a new value the first time. Raise an AttributeError after."""
         for inst, val in self.funcs:
             if inst() is instance:
                 super().__set__(instance, value) # to AttributeError
@@ -505,6 +521,7 @@ class readonly(Property):
         self.funcs.append((weakref.ref(instance, self.cleanup), value))
 
     def cleanup(self, ref=None):
+        """Clean the instance of all dead references."""
         for inst, val in self.funcs.copy():
             if inst is ref or inst() is None:
                 self.funcs.remove((inst, val))
