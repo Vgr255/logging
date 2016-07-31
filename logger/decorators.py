@@ -392,8 +392,10 @@ class attribute:
             self.__objclass__ = owner
 
     def __repr__(self):
-        return (self.__doc__ or "<%s %r of %r objects>" % (self.__class__.__name__,
-                self.__name__, getattr(self.__objclass__, "__name__", "<unknown>")))
+        if self.__doc__:
+            return self.__doc__
+        return "<{0} {1!r} of {2!r} objects>".format(type(self).__name__,
+               self.__name__, self.__objclass__.__name__)
 
 class Property(attribute):
     """Create and return an instance property.
