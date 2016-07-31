@@ -28,6 +28,7 @@ class instance_bypass:
     def __exit__(self, exc_type, exc_value, traceback):
         if self.delete:
             del self.instance.bypassed
+        self.delete = False
 
 class handle_bypass:
     """Default bypasser handler for methods that do not support it."""
