@@ -374,9 +374,11 @@ class attribute:
             self.__name__ = name
         self.__objclass__ = objclass
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         if instance is None:
             return self
+        if owner is None:
+            owner = type(instance)
         try:
             get = self.__func__.__get__
         except AttributeError:
@@ -404,7 +406,7 @@ class Property(attribute):
 
     """
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         return self.__func__(instance)
 
     def __set__(self, instance, value):
@@ -433,7 +435,11 @@ class ClassProperty(Property):
 
     """
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
+        if instance is owner is None:
+            raise TypeError("__get__(None, None) is invalid")
+        if owner is None:
+            owner = type(instance)
         return self.__func__(owner)
 
 class DescriptorProperty(Property):
@@ -458,7 +464,11 @@ class DescriptorProperty(Property):
 
     """
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
+        if instance is owner is None:
+            raise TypeError("__get__(None, None) is invalid")
+        if owner is None:
+            owner = type(instance)
         return self.__func__(instance, owner)
 
 class readonly(Property):
@@ -468,7 +478,7 @@ class readonly(Property):
         super().__init__(*args, **kwargs)
         self.funcs = []
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         if instance is None:
             return self.__func__
 
