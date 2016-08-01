@@ -18,6 +18,8 @@ from .utilities import counter_to_iterable, count
 class SetBase:
     """A base set implementation for all implementations."""
 
+    _dict = dict
+
     def __iter__(self):
         """Yield all the items from the set."""
         for item, count in self._dict.items():
@@ -264,7 +266,7 @@ class MutableSetBase(SetBase):
 
     def __init__(self, iterable=()):
         """Create a new mutable set."""
-        self._dict = dict.fromkeys(iterable, 1)
+        self._dict = self._dict.fromkeys(iterable, 1)
 
     def __iand__(self, other):
         """Update the set with the items in both sets."""
@@ -390,7 +392,7 @@ class ImmutableSetBase(SetBase):
 
     def __new__(cls, iterable=()):
         """Create a new immutable set."""
-        new = dict.fromkeys(iterable, 1)
+        new = self._dict.fromkeys(iterable, 1)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
@@ -426,6 +428,8 @@ class OrderedSetBase(SetBase):
     passing in tuples to delete items has an exponential runtime cost.
 
     """
+
+    _dict = collections.OrderedDict
 
     def __getitem__(self, index):
         """Get the item at index given."""
@@ -767,19 +771,8 @@ class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
 class OrderedSet(OrderedSetBase, Set):
     """A mutable and ordered set which does not allow duplicates."""
 
-    def __init__(self, iterable=()):
-        """Create a new mutable ordered set."""
-        self._dict = collections.OrderedDict.fromkeys(iterable, 1)
-
 class FrozenOrderedSet(OrderedSetBase, FrozenSet):
     """An immutable and ordered set which does not allow duplicates."""
-
-    def __new__(cls, iterable=()):
-        """Create a new immutable ordered set."""
-        new = collections.OrderedDict.fromkeys(iterable, 1)
-        self = super().__new__(cls)
-        self._dict = types.MappingProxyType(new)
-        return self
 
 class OrderedMultiSet(OrderedSetBase, MultiSet):
     """A mutable and ordered set which allows duplicates."""
