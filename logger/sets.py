@@ -20,7 +20,8 @@ class SetBase:
 
     def __iter__(self):
         """Yield all the items from the set."""
-        yield from self._dict
+        for item, count in self._dict.items():
+            yield from itertools.repeat(item, count)
 
     def __contains__(self, item):
         """Return True if the item is in the set, False otherwise."""
@@ -28,7 +29,7 @@ class SetBase:
 
     def __len__(self):
         """Return the number of items in the set."""
-        return len(self._dict)
+        return sum(self._dict.values())
 
     def __repr__(self):
         """Return the representation of the set."""
@@ -57,8 +58,6 @@ class SetBase:
             return False
 
         for item, value in self._dict.items():
-            if value is None:
-                value = 1
             if item not in other._dict or other._dict[item] < value:
                 return False
 
@@ -73,8 +72,6 @@ class SetBase:
             return False
 
         for item, value in self._dict.items():
-            if value is None:
-                value = 1
             if item not in other._dict or other._dict[item] < value:
                 return False
 
@@ -89,8 +86,6 @@ class SetBase:
             return False
 
         for item, value in other._dict.items():
-            if value is None:
-                value = 1
             if item not in self._dict or self._dict[item] < value:
                 return False
 
@@ -105,8 +100,6 @@ class SetBase:
             return False
 
         for item, value in other._dict.items():
-            if value is None:
-                value = 1
             if item not in self._dict or self._dict[item] < value:
                 return False
 
@@ -259,7 +252,7 @@ class SetBase:
     def count(self, item):
         """Return the number of times the item is in the set."""
         if item in self._dict:
-            return self._dict[item] or 1
+            return self._dict[item]
         return 0
 
     def copy(self):
@@ -271,7 +264,7 @@ class MutableSetBase(SetBase):
 
     def __init__(self, iterable=()):
         """Create a new mutable set."""
-        self._dict = dict.fromkeys(iterable)
+        self._dict = dict.fromkeys(iterable, 1)
 
     def __iand__(self, other):
         """Update the set with the items in both sets."""
@@ -304,7 +297,7 @@ class MutableSetBase(SetBase):
             if item in self._dict:
                 del self._dict[item]
             else:
-                self._dict[item] = None
+                self._dict[item] = 1
 
         return self
 
@@ -314,7 +307,7 @@ class MutableSetBase(SetBase):
             return NotImplemented
 
         for item in other:
-            self._dict[item] = None
+            self._dict[item] = 1
 
         return self
 
@@ -324,13 +317,13 @@ class MutableSetBase(SetBase):
             return NotImplemented
 
         for item in other:
-            self._dict[item] = None
+            self._dict[item] = 1
 
         return self
 
     def add(self, item):
         """Add a new item to the set."""
-        self._dict[item] = None
+        self._dict[item] = 1
 
     def discard(self, item):
         """Remove an item from the set if it exists."""
@@ -376,17 +369,17 @@ class MutableSetBase(SetBase):
     def union_update(self, iterable):
         """Update the set with the items in both the set or iterable."""
         for item in iterable:
-            self._dict[item] = None
+            self._dict[item] = 1
 
     def sum_update(self, iterable):
         """Update the set with all the items from the set and iterable."""
         for item in iterable:
-            self._dict[item] = None
+            self._dict[item] = 1
 
     def update(self, iterable):
         """Update the set with the iterable."""
         for item in iterable:
-            self._dict[item] = None
+            self._dict[item] = 1
 
     def clear(self):
         """Clear the set."""
@@ -397,7 +390,7 @@ class ImmutableSetBase(SetBase):
 
     def __new__(cls, iterable=()):
         """Create a new immutable set."""
-        new = dict.fromkeys(iterable)
+        new = dict.fromkeys(iterable, 1)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
@@ -520,15 +513,6 @@ class OrderedSetBase(SetBase):
 
 class MultiSetBase(SetBase):
     """A base multiset implementation for both multiset versions."""
-
-    def __iter__(self):
-        """Yield all the items from the set."""
-        for item, count in self._dict.items():
-            yield from itertools.repeat(item, count)
-
-    def __len__(self):
-        """Return the number of items in the set."""
-        return sum(self._dict.values())
 
     def issubset(self, iterable):
         """Return True if the set is a subset of the iterable."""
@@ -658,7 +642,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
             if item in copy:
                 continue # already did it
 
-            self._dict[item] = value or 1
+            self._dict[item] = value
 
         return self
 
@@ -678,7 +662,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
             return NotImplemented
 
         for item, value in other._dict.items():
-            self._dict[item] = self._dict.get(item, 0) + (value or 1)
+            self._dict[item] = self._dict.get(item, 0) + value
 
         return self
 
@@ -785,14 +769,14 @@ class OrderedSet(OrderedSetBase, Set):
 
     def __init__(self, iterable=()):
         """Create a new mutable ordered set."""
-        self._dict = collections.OrderedDict.fromkeys(iterable)
+        self._dict = collections.OrderedDict.fromkeys(iterable, 1)
 
 class FrozenOrderedSet(OrderedSetBase, FrozenSet):
     """An immutable and ordered set which does not allow duplicates."""
 
     def __new__(cls, iterable=()):
         """Create a new immutable ordered set."""
-        new = collections.OrderedDict.fromkeys(iterable)
+        new = collections.OrderedDict.fromkeys(iterable, 1)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
