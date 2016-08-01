@@ -534,8 +534,8 @@ class MultiSetBase(SetBase):
         """Return True if the set is a subset of the iterable."""
         counter = count(iterable)
 
-        for item in self._dict:
-            if item not in counter or counter[item] < self._dict[item]:
+        for item, value in self._dict.items():
+            if item not in counter or counter[item] < value:
                 return False
 
         return True
