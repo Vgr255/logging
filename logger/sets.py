@@ -140,7 +140,7 @@ class SetBase:
         """Return a set of the items only in one of the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = type(self._dict)((x, None) for x in self if x not in other)
+        new = self._dict.fromkeys(x for x in self if x not in other)
         new.update((x, None) for x in other if x not in self)
         return type(self)(new)
 
@@ -148,7 +148,7 @@ class SetBase:
         """Return a set of the items only in one of the sets."""
         if not isinstance(other, SetBase):
             return NotImplemented
-        new = type(self._dict)((x, None) for x in other if x not in self)
+        new = other._dict.fromkeys(x for x in other if x not in self)
         new.update((x, None) for x in self if x not in other)
         return type(self)(new)
 
@@ -238,7 +238,7 @@ class SetBase:
             else:
                 to_remove[item] = None
 
-        new = type(self._dict)((k, None) for k in copy if k not in to_remove)
+        new = self._dict.fromkeys(k for k in copy if k not in to_remove)
         new.update(to_add)
         return type(self)(new)
 
