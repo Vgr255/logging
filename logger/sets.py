@@ -364,9 +364,14 @@ class MutableSetBase(SetBase):
 
     def symmetric_difference_update(self, iterable):
         """Update the set with the items in one of the set or iterable."""
-        for item in self._dict.copy():
+        copy = self._dict.copy()
+        for item in copy:
             if item in iterable:
                 del self._dict[item]
+
+        for item in iterable:
+            if item not in copy:
+                self._dict[item] = 1
 
     def union_update(self, iterable):
         """Update the set with the items in both the set or iterable."""
