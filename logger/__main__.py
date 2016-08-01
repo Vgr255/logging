@@ -106,10 +106,10 @@ class TestDecorators(unittest.TestCase):
         d = D()
         self.assertNotEqual(repr(d.attr), "Some attribute.")
 
-    def test_meta_property(self):
+    def test_class_property(self):
         obj = _Object()
         class C:
-            @logger.decorators.MetaProperty
+            @logger.decorators.ClassProperty
             def attr(cls):
                 self.assertIs(cls, C)
                 return obj
