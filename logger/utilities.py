@@ -25,12 +25,9 @@ def counter_to_iterable(mapping):
     for item in itertools.starmap(itertools.repeat, mapping.items()):
         yield from item
 
-def count(iterable):
-    """Yield (item, count) two-tuples of the iterable."""
-    # We could use a simple dict, but OrderedDict (in 3.5+) is fast
-    # micro benchmarks hint that it's about 0.03% slower than dict
-    # and that's about 0.3 ms for every ten thousand elements
-    items = collections.OrderedDict()
+def count(iterable, mapping):
+    """Return an instance of 'mapping' with {item: count} items."""
+    items = mapping()
 
     for item in iterable:
         if item not in items:

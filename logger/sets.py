@@ -594,7 +594,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
     def __init__(self, iterable=()):
         """Create a new mutable multiset."""
-        self._dict = count(iterable)
+        self._dict = count(iterable, self._dict)
 
     def __iand__(self, other):
         """Update the set with the items in both sets."""
@@ -763,7 +763,7 @@ class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
     """An immutable and unordered set which allows duplicates."""
 
     def __new__(cls, iterable=()):
-        new = count(iterable)
+        new = count(iterable, self._dict)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
