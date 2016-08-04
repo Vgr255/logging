@@ -22,8 +22,8 @@ class SetBase:
 
     def __iter__(self):
         """Yield all the items from the set."""
-        for item, count in self._dict.items():
-            yield from itertools.repeat(item, count)
+        for item, total in self._dict.items():
+            yield from itertools.repeat(item, total)
 
     def __contains__(self, item):
         """Return True if the item is in the set, False otherwise."""
@@ -598,9 +598,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
         copy = self._dict.copy()
 
         for item, value in copy.items():
-            count = min(other.count(item), value)
-            if count:
-                self._dict[item] = count
+            total = min(other.count(item), value)
+            if total:
+                self._dict[item] = total
             else:
                 del self._dict[item]
 
@@ -614,9 +614,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
         copy = self._dict.copy()
 
         for item, value in copy.items():
-            count = value - other.count(item)
-            if count > 0:
-                self._dict[item] = count
+            total = value - other.count(item)
+            if total > 0:
+                self._dict[item] = total
             else:
                 del self._dict[item]
 
@@ -630,9 +630,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
         copy = self._dict.copy()
 
         for item, value in copy.items():
-            count = abs(value - other.count(item))
-            if count:
-                self._dict[item] = count
+            total = abs(value - other.count(item))
+            if total:
+                self._dict[item] = total
             else:
                 del self._dict[item]
 
@@ -703,11 +703,11 @@ class MultiSet(MutableSetBase, MultiSetBase):
         counter = count(iterable, type(self._dict))
 
         for item, value in copy.items():
-            count = min(value, counter.get(item, 0))
-            if not count:
+            total = min(value, counter.get(item, 0))
+            if not total:
                 del self._dict[item]
             else:
-                self._dict[item] = count
+                self._dict[item] = total
 
     def difference_update(self, iterable):
         """Update the set with the items not in the iterable."""
@@ -723,9 +723,9 @@ class MultiSet(MutableSetBase, MultiSetBase):
         counter = count(iterable, type(self._dict))
 
         for item, value in copy.items():
-            count = abs(value - counter.get(item, 0))
-            if count:
-                self._dict[item] = count
+            total = abs(value - counter.get(item, 0))
+            if total:
+                self._dict[item] = total
             else:
                 del self._dict[item]
 
