@@ -497,7 +497,8 @@ class OrderedSetBase(SetBase):
 
     def __reversed__(self):
         """Yield all the items from the set in reverse order."""
-        yield from reversed(self._dict)
+        for item, total in reversed(self._dict.items()):
+            yield from itertools.repeat(item, total)
 
     def find(self, item):
         """Return the index of the item in the set, or -1 if it's not in."""
