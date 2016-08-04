@@ -259,7 +259,7 @@ class SetBase:
 
     def copy(self):
         """Return a shallow copy of self."""
-        return type(self)(self._dict)
+        return type(self)(self)
 
 class MutableSetBase(SetBase):
     """A base set implementation for mutable sets."""
