@@ -444,12 +444,12 @@ class OrderedSetBase(SetBase):
                 try:
                     next(it)
                 except StopIteration:
-                    raise IndexError("set index out of range")
+                    raise IndexError("set index out of range") from None
 
             try:
                 return next(it)
             except StopIteration:
-                raise IndexError("set index out of range")
+                raise IndexError("set index out of range") from None
 
         elif isinstance(index, slice):
             new = type(self._dict)()
