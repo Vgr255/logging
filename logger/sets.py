@@ -503,7 +503,7 @@ class OrderedSetBase(SetBase):
     def find(self, item):
         """Return the index of the item in the set, or -1 if it's not in."""
         item_hash = hash(item) # If it's not hashable, it cannot be in a set
-        for i, value in enumerate(self._dict):
+        for i, value in enumerate(self):
             if hash(value) == item_hash and value == item:
                 return i
 
