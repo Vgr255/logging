@@ -568,13 +568,6 @@ class MultiSetBase(SetBase):
 
         return type(self)(counter_to_iterable(new))
 
-    def union(self, iterable):
-        """Return a set with one of each of the items."""
-        new = self._dict.fromkeys(self._dict)
-        for item in iterable:
-            new[item] = None
-        return type(self)(new)
-
     def sum(self, iterable):
         """Return a set of all items and their counts."""
         new = self._dict.copy()
