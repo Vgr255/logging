@@ -435,9 +435,9 @@ class OrderedSetBase(SetBase):
         """Get the item at index given."""
         if hasattr(index, "__index__"):
             if index >= 0:
-                it = iter(self._dict)
+                it = iter(self)
             else:
-                it = reversed(self._dict)
+                it = reversed(self)
                 index = -index
 
             for i in range(index):
