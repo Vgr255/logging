@@ -392,7 +392,7 @@ class ImmutableSetBase(SetBase):
 
     def __new__(cls, iterable=()):
         """Create a new immutable set."""
-        new = self._dict.fromkeys(iterable, 1)
+        new = cls._dict.fromkeys(iterable, 1)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
@@ -757,7 +757,7 @@ class FrozenMultiSet(ImmutableSetBase, MultiSetBase):
     """An immutable and unordered set which allows duplicates."""
 
     def __new__(cls, iterable=()):
-        new = count(iterable, self._dict)
+        new = count(iterable, cls._dict)
         self = super().__new__(cls)
         self._dict = types.MappingProxyType(new)
         return self
