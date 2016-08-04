@@ -521,7 +521,7 @@ class MultiSetBase(SetBase):
 
     def issubset(self, iterable):
         """Return True if the set is a subset of the iterable."""
-        counter = count(iterable)
+        counter = count(iterable, type(self._dict))
 
         for item, value in self._dict.items():
             if item not in counter or counter[item] < value:
@@ -531,7 +531,7 @@ class MultiSetBase(SetBase):
 
     def issuperset(self, iterable):
         """Return True if the set is a superset of the iterable."""
-        for item, value in count(iterable).items():
+        for item, value in count(iterable, type(self._dict)).items():
             if item not in self._dict or self._dict[item] < value:
                 return False
 
@@ -561,7 +561,7 @@ class MultiSetBase(SetBase):
         """Return a set of the items in either the set or the iterable."""
         new = type(self._dict)()
         copy = self._dict.copy()
-        counter = count(iterable)
+        counter = count(iterable, type(self._dict))
 
         for item in itertools.chain(copy, counter):
             new[item] = abs(copy.get(item, 0) - counter.get(item, 0))
@@ -700,7 +700,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
     def intersection_update(self, iterable):
         """Update the set with the items in both the set and iterable."""
         copy = self._dict.copy()
-        counter = count(iterable)
+        counter = count(iterable, type(self._dict))
 
         for item, value in copy.items():
             count = min(value, counter.get(item, 0))
@@ -711,7 +711,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
 
     def difference_update(self, iterable):
         """Update the set with the items not in the iterable."""
-        for item, value in count(iterable).items():
+        for item, value in count(iterable, type(self._dict)).items():
             if item in self._dict:
                 self._dict[item] -= value
                 if self._dict[item] <= 0:
@@ -720,7 +720,7 @@ class MultiSet(MutableSetBase, MultiSetBase):
     def symmetric_difference_update(self, iterable):
         """Update the set with the items in one of the set or iterable."""
         copy = self._dict.copy()
-        counter = count(iterable)
+        counter = count(iterable, type(self._dict))
 
         for item, value in copy.items():
             count = abs(value - counter.get(item, 0))
