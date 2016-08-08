@@ -216,7 +216,7 @@ class BaseLogger:
 
         # Setting bypassing settings
 
-        if bypassers_handler = None:
+        if bypassers_handler is None:
             bypassers_handler = self.default_bypassers_handler
 
         self.bypassers = bypassers_handler.from_iterable(bypassers)
