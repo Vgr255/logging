@@ -17,7 +17,6 @@ __all__ = [
 
 import datetime
 import shutil
-import types
 import time
 import sys
 import re
