@@ -22,7 +22,7 @@ import time
 import sys
 import re
 
-from . import bypassers as bp_module
+from . import bypassers
 
 from .decorators import handle_bypass, check_bypass
 from .utilities import pick
@@ -165,40 +165,63 @@ class BaseLogger:
 
     """
 
+    default_separator = " "
+    default_linesep = "\n"
+    default_encoding = sys.getdefaultencoding()
+    default_errors = "surrogateescape"
+    default_end = "\n"
+    default_tabsize = 4
+
+    default_display = True
+    default_write = True
+
+    default_use_utc = False
+    default_print_ts = False
+    default_ts_format = "[%Y-%m-%d] (%H:%M:%S {tzoffset})"
+    default_split = True
+
+    default_bypassers_handler = bypassers.BaseBypassers
+
     def __init__(self, *, sep=None, linesep=None, end=None, use_utc=None,
-                 ts_format=None, print_ts=None, split=None, bypassers=None,
+                 ts_format=None, print_ts=None, split=None, tabsize=None,
                  display=None, write=None, encoding=None, errors=None,
-                 tabsize=None, **kwargs):
+                 bypassers=None, bypassers_handler=None, **kwargs):
         """Create a new base instance."""
 
         super().__init__(**kwargs)
 
-        self.separator = pick(sep, " ")
-        self.linesep = pick(linesep, "\n")
-        self.encoding = pick(encoding, "utf-8")
-        self.errors = pick(errors, "surrogateescape")
-        self.end = pick(end, "\n")
-        self.tabsize = pick(tabsize, 4)
+        # Text handling settings
 
-        self.display = pick(display, True)
-        self.write = pick(write, True)
+        self.separator = pick(sep, self.default_separator)
+        self.linesep = pick(linesep, self.default_linesep)
+        self.encoding = pick(encoding, self.default_encoding)
+        self.errors = pick(errors, self.default_errors)
+        self.end = pick(end, self.default_end)
+        self.tabsize = pick(tabsize, self.default_tabsize)
 
-        self.use_utc = pick(use_utc, False)
-        self.print_ts = pick(print_ts, False)
-        self.split = pick(split, True)
+        # Logging handling settings
 
-        try:
-            func = self._bp_handler
-        except AttributeError:
-            func = bp_module.BaseBypassers
+        self.display = pick(display, self.default_display)
+        self.write = pick(write, self.default_write)
 
-        self.bypassers = func.from_iterable(bypassers)
+        # Timestamp handling settings
+        # Note: ts_format can have {tzname} and {tzoffset} in it
+        # The 'tzname' field adds the timezone name, uppercased
+        # The 'tzoffset' field adds the offset with a '+' or '-'
+        #   followed by 4 digits, HHMM, and always with 5 characters
+
+        self.use_utc = pick(use_utc, self.default_use_utc)
+        self.print_ts = pick(print_ts, self.default_print_ts)
+        self.ts_format = pick(ts_format, self.default_ts_format)
+        self.split = pick(split, self.default_split)
+
+        # Setting bypassing settings
+
+        if bypassers_handler = None:
+            bypassers_handler = self.default_bypassers_handler
+
+        self.bypassers = bypassers_handler.from_iterable(bypassers)
         self.bypassers.add("timestamp", "splitter", "display", "write")
-
-        # this can have {tzname} and {tzoffset} for formatting
-        # this adds respectively a timezone in the format UTC or EST
-        # and an offset from UTC in the form +0000 or -0500
-        self.ts_format = pick(ts_format, "[%Y-%m-%d] (%H:%M:%S {tzoffset})")
 
     @handle_bypass
     def _get_timestamp(self, use_utc=None, ts_format=None):
@@ -516,6 +539,11 @@ class Translater:
 
     """
 
+    default_language = "English", "en"
+    default_check = True
+    default_first = "language"
+    default_pattern = "^[A-Z0-9_]+$"
+
     def __init__(self, *, main=None, current=None, module=None, modules=None,
                  first=None, pattern=None, all_languages=None, check=None,
                  **kwargs):
@@ -523,25 +551,25 @@ class Translater:
 
         super().__init__(**kwargs)
 
-        self.main = pick(main, "English")
+        lang, short = self.default_language
+
+        self.main = pick(main, lang)
         self.current = pick(current, self.main)
 
-        langs = {"English": "en"}
+        if all_languages is None:
+            self.all_languages = {lang: short}
 
-        if all_languages is not None:
-            self.all_languages = all_languages
-            for long, short in langs.items():
-                self.all_languages[long] = self.all_languages.get(long, short)
         else:
-            self.all_languages = langs
+            self.all_languages = all_languages
+            all_languages[lang] = all_languages.get(lang, short)
 
-        self.check = pick(check, True)
+        self.check = pick(check, self.default_check)
 
         self.module = module
         self.modules = modules
 
-        self.first = pick(first, "language")
-        self.pattern = re.compile(pick(pattern, "^[A-Z0-9_]+$"))
+        self.first = pick(first, self.default_first)
+        self.pattern = re.compile(pick(pattern, self.default_pattern))
 
         self.bypassers.add("check", "translate")
         # the API for the bypassers has changed, so this needs to be updated
@@ -691,21 +719,23 @@ class TypeLogger(BaseLogger):
 
     """
 
+    default_logfiles = "normal", "logger.log"
+
+    #default_bypassers_handler = bypassers.TypeBypassers
+
     def __init__(self, *, logfiles=None, **kwargs):
         """Create a new type-based logger."""
 
         super().__init__(**kwargs)
 
-        files = {"normal": "logger.log"}
+        type, file = self.default_logfiles
 
-        if logfiles is not None:
-            self.logfiles = logfiles
-            for type, file in files.items():
-                # if the type is already defined, don't overwrite it
-                # only add to it if it doesn't exist
-                self.logfiles[type] = self.logfiles.get(type, file)
+        if logfiles is None:
+            self.logfiles = {type: file}
+
         else:
-            self.logfiles = files
+            self.logfiles = logfiles
+            logfiles[type] = logfiles.get(type, file)
 
         self.bypassers.add("logall", "files", "all")
 
@@ -794,13 +824,18 @@ class LevelLogger(BaseLogger):
 
     """
 
+    default_level = 0
+    default_file = "normal.log"
+
+    #default_bypassers_handler = bypassers.LevelBypassers
+
     def __init__(self, *, level=None, file=None, **kwargs):
         """Create a new levelled logging instance."""
 
         super().__init__(**kwargs)
 
-        self.default_level = pick(level, 0)
-        self.default_file = pick(file, "normal.log")
+        self.level = pick(level, self.default_level)
+        self.file = pick(file, self.default_file)
 
     @check_bypass
     def logger(self, *output, file=None, level=None, display=None, write=None,
@@ -872,23 +907,27 @@ class NamesLogger(LevelLogger):
 
     """
 
+    default_name = "normal"
+
+    #default_bypassers_handler = bypassers.NamesBypassers
+
     def __init__(self, *, levels=None, default=None, **kwargs):
         """Create a new instance of the named levels logger."""
 
         super().__init__(**kwargs)
 
-        self.default = pick(default, "normal")
+        self.name = pick(default, self.default_name)
         self.levels = pick(levels, {})
 
-        if self.default not in self.levels:
-            self.levels[self.default] = 0
+        if self.name not in self.levels:
+            self.levels[self.name] = self.default_level
 
     def logger(self, *output, level=None, **kwargs):
         """Log a line matching a named level."""
 
         level = self.levels.get(level)
         if level is None:
-            level = self.default
+            level = self.name
 
         super().logger(*output, level=level, **kwargs)
 
