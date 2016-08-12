@@ -871,7 +871,7 @@ class LevelLogger(BaseLogger):
                     for writer in output:
                         f.write(timestamp + atypes + writer + "\n")
 
-    def logger(self, *output, level=None, **kwargs):
+    def logger_new(self, *output, level=None, **kwargs):
         """Log a line based on level given."""
 
         level = self.bypassed.get("level", level)
