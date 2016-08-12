@@ -200,12 +200,12 @@ class log_usage:
 
     """
 
-    _default_handler = None
-
     def __new__(cls, *args, **kwargs):
         """Initialize the default handler."""
-        if cls._default_handler is None:
-            from .logger import BaseLogger
+        try:
+            cls._default_handler
+        except AttributeError:
+            from .loggers import BaseLogger
             cls._default_handler = BaseLogger
         return super().__new__(cls, *args, **kwargs)
 
@@ -252,7 +252,7 @@ class log_usage:
 
         if handler is None:
             if cls._default_handler is None:
-                from .logger import BaseLogger
+                from .loggers import BaseLogger
                 cls._default_handler = BaseLogger
             handler = cls._default_handler().logger
 
