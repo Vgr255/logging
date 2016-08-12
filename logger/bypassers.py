@@ -13,6 +13,8 @@ import collections
 import functools
 import copy
 
+from typing import Dict, Set, Tuple, Any
+
 from .decorators import Property, ClassProperty
 from .types import NoValue
 
@@ -443,14 +445,13 @@ class BypassersMeta(type):
 
     """
 
-    allowed = {}
+    allowed = {} # type: Dict[str, Set[str]]
 
     def __new__(meta, name, bases, namespace):
         """Create a new Bypassers class."""
         if name == "Bypassers" and namespace["__module__"] == __name__:
             del namespace["_mapping_cache"]
-            meta.allowed[name] = set(namespace)
-            namespace["__names__"] = namespace["__views__"] = ()
+            meta.allowed[name] = set(namespace) - {"__names__", "__views__"}
             return super().__new__(meta, name, bases, namespace)
 
         for base in bases:
@@ -544,7 +545,12 @@ class Bypassers(metaclass=BypassersMeta):
 
     # the metaclass automatically removes this from the namespace
     # when the class is done initializing (kept in __mapping__/__del__)
-    _mapping_cache = {id(None): None}
+    _mapping_cache = {} # type: Dict[int, collections.OrderedDict]
+    # special-case a None instance to return None
+    _mapping_cache[id(None)] = None # type: ignore
+
+    __names__ = (("", None),) # type: Tuple[Tuple[str, Any]]
+    __views__ = (("", (0,)),) # type: Tuple[Tuple[str, Tuple[int]]]
 
     @Property
     def __mapping__(self, cache=_mapping_cache):
@@ -984,13 +990,15 @@ class Bypassers(metaclass=BypassersMeta):
 class BaseBypassers(Bypassers):
     """Base Bypassers class."""
 
-    __names__ = (("setting",    NoValue),
+    __names__ = (
+                 ("setting",    NoValue),
                  ("pairs",      set    ),
                  ("module",     None   ),
                  ("attr",       str    ),
                 )
 
-    __views__ = (("keys",        (0,)        ),
+    __views__ = (
+                 ("keys",        (0,)        ),
                  ("pairs",       (1,)        ),
                  ("attributes",  (2, 3)      ),
                  ("values",      (1, 2, 3)   ),
