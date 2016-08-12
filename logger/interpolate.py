@@ -22,6 +22,8 @@ __all__ = ["String"]
 
 import re
 
+from typing import Optional, Tuple, Pattern
+
 class Interpolater:
     """Base class for string interpolation.
 
@@ -107,9 +109,9 @@ class Interpolater:
 
     """
 
-    pattern = None
-    conversion = None
-    specifier = None
+    pattern = None # type: Optional[Pattern[str]]
+    conversion = None # type: Optional[Tuple[Pattern[str], slice]]
+    specifier = None # type: Optional[Tuple[Pattern[str], slice]]
 
     def bounds(self, string):
         """Return the string with proper bounds."""
