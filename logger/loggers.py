@@ -207,7 +207,7 @@ class BaseLogger:
         # Note: ts_format can have {tzname} and {tzoffset} in it
         # The 'tzname' field adds the timezone name, uppercased
         # The 'tzoffset' field adds the offset with a '+' or '-'
-        #   followed by 4 digits, HHMM, and always with 5 characters
+        #   followed by 4 digits, HHMM, and is always 5 characters long
 
         self.use_utc = pick(use_utc, self.default_use_utc)
         self.print_ts = pick(print_ts, self.default_print_ts)
