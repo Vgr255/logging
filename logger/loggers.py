@@ -921,6 +921,7 @@ class NamesLogger(LevelLogger):
         if self.name not in self.levels:
             self.levels[self.name] = self.default_level
 
+    @check_bypass
     def logger(self, *output, level=None, **kwargs):
         """Log a line matching a named level."""
 
