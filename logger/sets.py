@@ -512,7 +512,7 @@ class OrderedSetBase(SetBase):
     def index(self, item):
         """Return the index of the item in the set if it exists."""
         value = self.find(item)
-        if value == -1
+        if value == -1:
             raise ValueError("{!r} is not in set".format(item))
         return value
 
