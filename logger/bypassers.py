@@ -544,8 +544,8 @@ class Bypassers(metaclass=BypassersMeta):
 
     """
 
-    # the metaclass automatically removes this from the namespace
-    # when the class is done initializing (kept in __mapping__/__del__)
+    # the metaclass automatically removes this from the namespace when
+    # the class is done initializing (kept in __mapping__/__del__)
     _mapping_cache = {} # type: Dict[int, collections.OrderedDict]
     # special-case a None instance to return None
     _mapping_cache[id(None)] = None # type: ignore
@@ -589,6 +589,7 @@ class Bypassers(metaclass=BypassersMeta):
     @classmethod
     def __init_subclass__(*args, **kwargs):
         """Initialize the subclasses."""
+        # TODO: move some of the metaclass machinery in here
         if not args:
             raise TypeError("Bypassers.__init_subclass__ needs an argument")
 
