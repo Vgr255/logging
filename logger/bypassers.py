@@ -11,6 +11,7 @@ __all__ = [] # Bypassers defined in this module get automatically added here
 
 import collections
 import functools
+import weakref
 import copy
 
 from typing import Dict, Set, Tuple, Any
@@ -565,27 +566,21 @@ class Bypassers(metaclass=BypassersMeta):
         return cache[id_self]
 
     @ClassProperty
-    def __item_length__(cls, cache={}):
+    def __item_length__(cls, cache=weakref.WeakKeyDictionary()):
         """Return the length of the items in self."""
-        # On the other hand, classes are always hashable, and due to
-        # the cache, they'll never actually get deleted. For the sake
-        # of simplicity, we keep the class itself in the cache and
-        # assume that subclasses never fall out of scope. If this
-        # becomes an issue, we can force the class to fall out of scope
-        # with gc.get_referrers() (from Bypassers.__subclasses__())
         if cls not in cache:
             cache[cls] = len(cls.__names__)
         return cache[cls]
 
     @ClassProperty
-    def __viewers__(cls, cache={}):
+    def __viewers__(cls, cache=weakref.WeakKeyDictionary()):
         """Return the names of the view objects."""
         if cls not in cache:
             cache[cls] = tuple(x[0] for x in cls.__views__)
         return cache[cls]
 
     @ClassProperty
-    def __range__(cls, cache={}):
+    def __range__(cls, cache=weakref.WeakKeyDictionary()):
         """Return the range of items (for internal use)."""
         if cls not in cache:
             cache[cls] = tuple(range(cls.__item_length__))
